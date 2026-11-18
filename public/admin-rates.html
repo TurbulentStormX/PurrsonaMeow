@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Admin - Rates</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main>
+      <div class="card wide-card">
+        <h1>Admin: Rates</h1>
+        <p class="hint">Prices are <strong>per hour</strong>, the same for any number of guests. For a booking, the rate for that kind of day (public holiday, weekend, weekday) is used first, then the "every day" rate.</p>
+        <div id="warning"></div>
+        <table>
+          <thead><tr><th>Rate</th><th>Session</th><th>Applies on</th><th>Price per hour</th><th>Active</th><th>Action</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <form class="card" id="rateForm">
+        <h2 id="formTitle">Add a rate</h2>
+        <label>Name <input type="text" id="rateName" required placeholder="e.g. Private Cat Session - weekend"></label>
+        <label>Session <select id="rateSession"></select></label>
+        <label>Applies on <select id="rateDayType"></select></label>
+        <label>Price per hour (S$) <input type="number" id="ratePrice" min="0.5" step="0.5" required></label>
+        <label class="inline-check"><input type="checkbox" id="rateActive" checked> Active</label>
+        <div class="form-buttons">
+          <button type="submit" id="saveBtn">Add rate</button>
+          <button type="button" id="cancelBtn" style="display:none">Cancel editing</button>
+        </div>
+        <div class="msg-error" id="error"></div>
+      </form>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('admin-rates.html');
+    if (guardPage(['admin'], 'manage rates')) initRates();
+
+    function initRates() {
+      let editingId = null;
+      const el = id => document.getElementById(id);
+      const error = el('error');
+
+      const allOption = document.createElement('option');
+      allOption.value = ''; allOption.textContent = 'All sessions';
+      el('rateSession').appendChild(allOption);
+      loadSessions().forEach(function (s) {
+        const o = document.createElement('option');
+        o.value = s.id; o.textContent = s.name;
+        el('rateSession').appendChild(o);
+      });
+      Object.keys(DAY_TYPE_LABELS).forEach(function (key) {
+        const o = document.createElement('option');
+        o.value = key; o.textContent = DAY_TYPE_LABELS[key];
+        el('rateDayType').appendChild(o);
+      });
+
+      function resetForm() {
+        editingId = null;
+        el('rateForm').reset();
+        el('rateActive').checked = true;
+        el('formTitle').textContent = 'Add a rate';
+        el('saveBtn').textContent = 'Add rate';
+        el('cancelBtn').style.display = 'none';
+        error.textContent = '';
+      }
+      function startEdit(rate) {
+        editingId = rate.id;
+        el('rateName').value = rate.name;
+        el('rateSession').value = rate.sessionId;
+        el('rateDayType').value = rate.dayType;
+        el('ratePrice').value = rate.pricePerHour;
+        el('rateActive').checked = rate.active;
+        el('formTitle').textContent = 'Edit ' + rate.name;
+        el('saveBtn').textContent = 'Save changes';
+        el('cancelBtn').style.display = 'inline-block';
+        error.textContent = '';
+        el('rateForm').scrollIntoView();
+      }
+
+      function render() {
+        // a session with no usable rate cannot be booked: warn
+        const missing = loadSessions().filter(s => s.active && !rateFor(s.id, daysFromToday(1)));
+        el('warning').innerHTML = '';
+        if (missing.length) {
+          const div = document.createElement('div');
+          div.className = 'notice warn';
+          div.textContent = 'No active rate for: ' + missing.map(s => s.name).join(', ') + '. Guests cannot book these until a rate is added.';
+          el('warning').appendChild(div);
+        }
+        const body = el('rows');
+        body.innerHTML = '';
+        loadRates().forEach(function (rate) {
+          const tr = body.insertRow();
+          const session = loadSessions().find(s => s.id === rate.sessionId);
+          [rate.name, rate.sessionId === '' ? 'All sessions' : (session ? session.name : rate.sessionId), DAY_TYPE_LABELS[rate.dayType], money(rate.pricePerHour), rate.active ? 'Yes' : 'No']
+            .forEach(v => { tr.insertCell().textContent = v; });
+          const action = tr.insertCell();
+          const edit = document.createElement('button');
+          edit.textContent = 'Edit';
+          edit.addEventListener('click', () => startEdit(rate));
+          const del = document.createElement('button');
+          del.textContent = 'Delete';
+          del.style.marginLeft = '6px';
+          del.addEventListener('click', function () {
+            if (!confirm('Delete the rate "' + rate.name + '"? Bookings already made keep their price.')) return;
+            saveRates(loadRates().filter(r => r.id !== rate.id));
+            if (editingId === rate.id) resetForm();
+            render();
+          });
+          action.appendChild(edit);
+          action.appendChild(del);
+        });
+      }
+
+      el('rateForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const name = el('rateName').value.trim();
+        const price = Number(el('ratePrice').value);
+        const rates = loadRates();
+        if (!name) { error.textContent = 'Please enter a name.'; return; }
+        if (!(price > 0)) { error.textContent = 'The price per hour must be more than 0.'; return; }
+        const sessionId = el('rateSession').value, dayType = el('rateDayType').value;
+        if (rates.some(r => r.sessionId === sessionId && r.dayType === dayType && r.id !== editingId && r.active && el('rateActive').checked)) {
+          error.textContent = 'There is already an active rate for that session and kind of day. Edit it, or switch it off first.';
+          return;
+        }
+        const data = { name: name, sessionId: sessionId, dayType: dayType, pricePerHour: price, active: el('rateActive').checked };
+        if (editingId) {
+          Object.assign(rates.find(r => r.id === editingId), data);
+        } else {
+          rates.push(Object.assign({ id: 'r' + Date.now() }, data));
+        }
+        saveRates(rates);
+        resetForm();
+        render();
+      });
+      el('cancelBtn').addEventListener('click', resetForm);
+
+      resetForm();
+      render();
+    }
+    });
+  </script>
+</body>
+</html>

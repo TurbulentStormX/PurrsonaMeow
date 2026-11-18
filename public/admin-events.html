@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Events</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main>
+      <div class="card wide-card">
+        <h1>Admin: Events</h1>
+        <p class="hint">Guests see events that are on now or coming up. Finished events are hidden. <a href="events.html">View the public Events page</a></p>
+        <table>
+          <thead><tr><th>Event</th><th>From</th><th>To</th><th>Special guest</th><th>Offer</th><th>Shown as</th><th>Action</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <form class="card" id="eventForm">
+        <h2 id="formTitle">Add an event</h2>
+        <label>Title <input type="text" id="evTitle" required></label>
+        <label>Starts <input type="date" id="evStart" required></label>
+        <label>Ends <input type="date" id="evEnd" required></label>
+        <label>Description <textarea id="evText" rows="2"></textarea></label>
+        <label>Special guest <input type="text" id="evGuest" placeholder="e.g. Special guest: visiting yoga instructor"></label>
+        <label>Offer <input type="text" id="evOffer" placeholder="e.g. 10% off for groups of 4 or more"></label>
+        <div class="form-buttons">
+          <button type="submit" id="saveBtn">Add event</button>
+          <button type="button" id="cancelBtn" style="display:none">Cancel editing</button>
+        </div>
+        <div class="msg-error" id="error"></div>
+      </form>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('admin-events.html');
+    if (guardPage(['admin'], 'manage events')) initEvents();
+
+    function initEvents() {
+      let editingId = null;
+      const form = document.getElementById('eventForm');
+      const error = document.getElementById('error');
+      const ids = ['evTitle', 'evStart', 'evEnd', 'evText', 'evGuest', 'evOffer'];
+      const el = id => document.getElementById(id);
+
+      function resetForm() {
+        editingId = null;
+        form.reset();
+        el('formTitle').textContent = 'Add an event';
+        el('saveBtn').textContent = 'Add event';
+        el('cancelBtn').style.display = 'none';
+        error.textContent = '';
+      }
+
+      function startEdit(e) {
+        editingId = e.id;
+        el('evTitle').value = e.title; el('evStart').value = e.start; el('evEnd').value = e.end;
+        el('evText').value = e.text || ''; el('evGuest').value = e.guest || ''; el('evOffer').value = e.offer || '';
+        el('formTitle').textContent = 'Edit event';
+        el('saveBtn').textContent = 'Save changes';
+        el('cancelBtn').style.display = 'inline-block';
+        error.textContent = '';
+        form.scrollIntoView();
+      }
+
+      function shownAs(e) {
+        const today = todayString();
+        if (e.end < today) return 'Finished (hidden)';
+        if (e.start <= today) return 'Ongoing';
+        return 'Upcoming';
+      }
+
+      function render() {
+        const body = el('rows');
+        body.innerHTML = '';
+        loadEvents().slice().sort((a, b) => a.start.localeCompare(b.start)).forEach(function (e) {
+          const tr = body.insertRow();
+          [e.title, formatDate(e.start), formatDate(e.end), e.guest || '-', e.offer || '-', shownAs(e)]
+            .forEach(v => { tr.insertCell().textContent = v; });
+          const action = tr.insertCell();
+          const edit = document.createElement('button');
+          edit.textContent = 'Edit';
+          edit.addEventListener('click', () => startEdit(e));
+          const del = document.createElement('button');
+          del.textContent = 'Delete';
+          del.style.marginLeft = '6px';
+          del.addEventListener('click', function () {
+            if (!confirm('Delete the event "' + e.title + '"?')) return;
+            saveEvents(loadEvents().filter(x => x.id !== e.id));
+            if (editingId === e.id) resetForm();
+            render();
+          });
+          action.appendChild(edit);
+          action.appendChild(del);
+        });
+      }
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        const data = {
+          title: el('evTitle').value.trim(), start: el('evStart').value, end: el('evEnd').value,
+          text: el('evText').value.trim(), guest: el('evGuest').value.trim(), offer: el('evOffer').value.trim()
+        };
+        if (!data.title) { error.textContent = 'Please enter a title.'; return; }
+        if (data.end < data.start) { error.textContent = 'The end date cannot be before the start date.'; return; }
+
+        const events = loadEvents();
+        if (editingId) {
+          Object.assign(events.find(x => x.id === editingId), data);
+        } else {
+          events.push(Object.assign({ id: 'e' + Date.now() }, data));
+        }
+        saveEvents(events);
+        resetForm();
+        render();
+      });
+      el('cancelBtn').addEventListener('click', resetForm);
+
+      resetForm();
+      render();
+    }
+    });
+  </script>
+</body>
+</html>

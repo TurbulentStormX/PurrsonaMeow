@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Sign up</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main>
+      <form class="card" id="signupForm">
+        <h1>Create a guest account</h1>
+        <p>You need an account to book sessions. Without one you can still look at Events, the Menu and our cats.</p>
+        <label>Name <input type="text" id="name" required></label>
+        <label>Email <input type="email" id="email" required></label>
+        <label>Phone number
+          <input type="tel" id="phone" required pattern="[689][0-9]{7}"
+                 placeholder="8 digits, e.g. 91234567"
+                 title="Enter an 8-digit number starting with 6, 8 or 9">
+        </label>
+        <label>Password <input type="password" id="password" maxlength="12" autocomplete="new-password" required></label>
+        <ul class="pw-rules" id="pwRules"></ul>
+        <label>Confirm password <input type="password" id="confirm" maxlength="12" autocomplete="new-password" required></label>
+        <label class="inline-check"><input type="checkbox" id="agree" required> I agree to the <a href="terms.html">Terms and conditions</a> and the <a href="rules.html">Cafe rules</a></label>
+        <button type="submit">Sign up</button>
+        <div id="errors"></div>
+        <p class="link-row">Already have an account? <a href="login.html">Log in</a></p>
+      </form>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('signup.html');
+    showPasswordChecklist(document.getElementById('password'), document.getElementById('pwRules'));
+
+    function showErrors(messages) {
+      const box = document.getElementById('errors');
+      box.innerHTML = '';
+      messages.forEach(function (text) {
+        const div = document.createElement('div');
+        div.className = 'msg-error';
+        div.textContent = text;
+        box.appendChild(div);
+      });
+    }
+
+    document.getElementById('signupForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      const password = document.getElementById('password').value;
+      if (!document.getElementById('agree').checked) { showErrors(['Please tick the box to agree to the Terms and conditions and the Cafe rules.']); return; }
+
+      // quick checks in the browser first (the server checks everything again)
+      const problem = passwordProblem(password);
+      if (problem) { showErrors([problem]); return; }
+      if (password !== document.getElementById('confirm').value) { showErrors(['The two passwords do not match.']); return; }
+      showErrors([]);
+
+      try {
+        const data = await api.post('/auth/signup', {
+          name: document.getElementById('name').value,
+          email: document.getElementById('email').value,
+          phone: document.getElementById('phone').value,
+          password: password
+        });
+        saveAuth(data);                                   // signing up also logs the new guest in
+        window.location.href = homePageFor(data.user.role);
+      } catch (e) {
+        showErrors(e.messages || ['Something went wrong.']);
+      }
+    });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Events</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="events-design.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <<main class="events-page">>
+      <h1>Events</h1>
+      <h2>Ongoing now</h2>
+      <div id="ongoing"></div>
+      <h2>Coming up</h2>
+      <div id="upcoming"></div>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('events.html');
+
+    // Events come from the list the admin manages (Manage Events).
+    function makeCard(e, status) {
+      const card = document.createElement('div');
+      card.className = 'event-card';
+
+      const title = document.createElement('h2');
+      title.textContent = e.title;
+      const badge = document.createElement('span');
+      badge.className = 'badge ' + status;
+      badge.textContent = status === 'ongoing' ? 'Ongoing' : 'Upcoming';
+      title.appendChild(badge);
+      card.appendChild(title);
+
+      const when = document.createElement('p');
+      when.textContent = e.start === e.end ? formatDate(e.start) : formatDate(e.start) + ' to ' + formatDate(e.end);
+      card.appendChild(when);
+
+      [[e.text, ''], [e.guest, ''], [e.offer ? 'Offer: ' + e.offer : '', 'offer']].forEach(function (item) {
+        if (!item[0]) return;
+        const p = document.createElement('p');
+        p.textContent = item[0];
+        if (item[1]) p.className = item[1];
+        card.appendChild(p);
+      });
+
+      // Only signed-in guests can book, so only they get the button
+      const me = currentUser();
+      if (me && me.role === 'guest') {
+        const book = document.createElement('a');
+        book.className = 'cta';
+        book.href = 'booking.html';
+        book.textContent = 'Book a session';
+        card.appendChild(book);
+      }
+      return card;
+    }
+
+    const today = todayString();
+    const events = loadEvents();
+    const ongoing = events.filter(e => e.start <= today && today <= e.end);
+    const upcoming = events.filter(e => e.start > today).sort((a, b) => a.start.localeCompare(b.start));
+
+    function fill(id, list, status) {
+      const box = document.getElementById(id);
+      if (list.length === 0) { box.textContent = 'Nothing here right now. Check back soon!'; return; }
+      list.forEach(e => box.appendChild(makeCard(e, status)));
+    }
+    fill('ongoing', ongoing, 'ongoing');
+    fill('upcoming', upcoming, 'upcoming');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Book a Session</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="booking-design.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main class="booking-page">
+      <div class="booking-wrap">
+
+        <form id="reserveForm" class="card">
+          <h1>Reserve a Cat Session</h1>
+          <p class="hint">Your details come from your account. First come, first served: if the time is free, you are confirmed straight away.</p>
+
+          <label>Name <input type="text" id="name" readonly></label>
+          <label>Email <input type="email" id="email" readonly></label>
+          <label>Phone number <input type="tel" id="phone" readonly></label>
+
+          <label>Session <select id="session"></select></label>
+          <label>Room <select id="room"></select></label>
+          <label>Date <input type="date" id="date" required></label>
+          <label>Start time <select id="time"></select></label>
+          <label>How many hours? <select id="hours"></select></label>
+          <label>Number of guests <input type="number" id="guests" min="1" max="6" value="1" required></label>
+
+          <div id="catSection" style="display:none">
+            <label>Choose your cats</label>
+            <p class="hint" id="catHint"></p>
+            <div class="cat-picker" id="catPicker"></div>
+          </div>
+
+          <label>Special requests (optional)
+            <textarea id="requests" rows="3" placeholder="e.g. birthday celebration, allergies"></textarea>
+          </label>
+
+          <div class="notice" id="priceLine"></div>
+          <div id="availability"></div>
+          <p class="hint-line" id="handlerLine"></p>
+
+          <label class="inline-check"><input type="checkbox" id="agree"> I agree to the <a href="terms.html">Terms and conditions</a> and the <a href="rules.html">Cafe rules</a></label>
+          <button type="submit">Book now</button>
+          <p class="hint">Lunch break and our opening hours are on the <a href="hours.html">Opening hours</a> page. See the <a href="rate.html">Rates</a> and your bookings on the <a href="sessions.html">Sessions</a> page.</p>
+        </form>
+
+        <aside class="card schedule">
+          <h2>Schedule</h2>
+          <p class="hint">Rooms for the session you picked. Pick a date to see what is free, then click a free hour to choose it as your start time.</p>
+          <label>Show availability for <input type="date" id="scheduleDate"></label>
+          <div class="table-scroll"><table id="scheduleTable" class="timeline"></table></div>
+          <p class="legend">Green: free &nbsp; Orange: filling up &nbsp; Red: booked &nbsp; Purple: closed for lunch &nbsp; Grey: outside opening hours</p>
+          <p class="hint" id="scheduleNote"></p>
+
+          <div class="rooms-overview">
+            <h2>Rooms</h2>
+            <table id="roomsTable"></table>
+          </div>
+        </aside>
+
+      </div>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('booking.html');
+    // Only signed-in guests can book. Everyone else sees a friendly message.
+    if (guardPage(['guest'], 'book a session')) initBooking();
+
+    function initBooking() {
+      const el = id => document.getElementById(id);
+      const form = el('reserveForm');
+      const sessionEl = el('session'), roomEl = el('room'), dateEl = el('date'), timeEl = el('time'), hoursEl = el('hours');
+      const guestsEl = el('guests'), requestsEl = el('requests'), scheduleDateEl = el('scheduleDate');
+      let chosenCats = [];                 // the ids of the cats the guest has ticked
+
+      const today = todayString();
+      dateEl.min = today;
+      scheduleDateEl.min = today;
+      scheduleDateEl.value = today;
+
+      function fillFromAccount() {
+        const me = currentUser();
+        el('name').value = me.name;
+        el('email').value = me.email;
+        el('phone').value = me.phone;
+      }
+      fillFromAccount();
+
+      // ----- helpers -----
+      function option(value, text, disabled) {
+        const o = document.createElement('option');
+        o.value = value;
+        o.textContent = text;
+        if (disabled) o.disabled = true;
+        return o;
+      }
+      const activeRoomsOf = session => loadRooms().filter(r => r.active && session.rooms.includes(r.id));
+      const currentSession = () => loadSessions().find(s => s.id === sessionEl.value);
+      const currentRoom = () => loadRooms().find(r => r.id === roomEl.value);
+      const chosenHours = () => Number(hoursEl.value) || 1;
+      const lowestPrice = s => { const p = loadRates().filter(r => r.active && (r.sessionId === s.id || r.sessionId === '')).map(r => r.pricePerHour); return p.length ? Math.min.apply(null, p) : null; };
+
+      // ----- the lists depend on each other: session -> room, hours, start time -----
+      function fillSessions() {
+        sessionEl.innerHTML = '';
+        loadSessions().filter(s => s.active && activeRoomsOf(s).length > 0).forEach(function (s) {
+          const low = lowestPrice(s);
+          sessionEl.appendChild(option(s.id, s.name + ' (max ' + s.max + ' people' + (low !== null ? ', from ' + money(low) + ' per hour' : '') + ')'));
+        });
+      }
+      function fillRooms() {
+        roomEl.innerHTML = '';
+        const s = currentSession();
+        if (!s) return;
+        activeRoomsOf(s).forEach(r => roomEl.appendChild(option(r.id, r.name + ' (' + r.type + ', up to ' + r.capacity + ')')));
+        fillHours();
+      }
+      function fillHours() {
+        const keep = hoursEl.value;
+        hoursEl.innerHTML = '';
+        const s = currentSession();
+        if (!s) return;
+        for (let h = s.minHours; h <= s.maxHours; h++) hoursEl.appendChild(option(String(h), hoursText(h)));
+        if ([...hoursEl.options].some(o => o.value === keep)) hoursEl.value = keep;
+        fillTimes();
+      }
+      // every whole hour the cafe is open that day; hours that are booked, closed or too late for the chosen length are greyed out
+      function fillTimes() {
+        const keep = timeEl.value;
+        timeEl.innerHTML = '';
+        const s = currentSession(), r = currentRoom();
+        if (!s || !r) return;
+        const date = dateEl.value || scheduleDateEl.value || today;
+        const info = dayInfo(date);
+        if (!info.open) { timeEl.appendChild(option('', 'Closed on this day', true)); updateMaxGuests(); return; }
+        let first = null;
+        for (let m = Math.ceil(toMin(info.from) / 60) * 60; m < toMin(info.to); m += 60) {
+          const t = fromMin(m);
+          const check = roomCheck(r.id, s.id, date, t, chosenHours(), '');
+          const ok = check.ok;
+          timeEl.appendChild(option(t, timeLabel(t) + (ok ? '' : check.state === 'full' ? ' (booked)' : ' (not possible)'), !ok));
+          if (ok && first === null) first = t;
+        }
+        if ([...timeEl.options].some(o => o.value === keep && !o.disabled)) timeEl.value = keep;
+        else if (first !== null) timeEl.value = first;
+        updateMaxGuests();
+      }
+      function updateMaxGuests() {
+        const s = currentSession(), r = currentRoom();
+        guestsEl.max = s && r ? Math.min(s.max, r.capacity) : 1;
+      }
+
+      // ----- the price: rate per hour x hours (the same for any number of guests) -----
+      function updatePrice() {
+        const s = currentSession();
+        const date = dateEl.value;
+        if (!s) { el('priceLine').textContent = ''; return; }
+        if (!date) { el('priceLine').textContent = 'Pick a date to see the price. We charge per hour, not per guest.'; return; }
+        const rate = rateFor(s.id, date);
+        el('priceLine').textContent = rate
+          ? rate.name + ': ' + money(rate.pricePerHour) + ' per hour x ' + hoursText(chosenHours()) + ' = ' + money(rate.pricePerHour * chosenHours()) + '. The same for any number of guests. You pay after you book.'
+          : 'No rate is set for this session on that day, so it cannot be booked yet.';
+      }
+
+      // ----- who will look after the session -----
+      function updateHandler() {
+        const line = el('handlerLine');
+        const s = currentSession();
+        if (!s || !dateEl.value || !timeEl.value || !roomEl.value) { line.textContent = ''; return; }
+        line.textContent = handlerPreview(roomEl.value, dateEl.value, timeEl.value, chosenHours(), s.catChoice ? chosenCats : []).text;
+      }
+
+      // ----- choosing cats (only for sessions where guests choose) -----
+      function renderCats() {
+        const s = currentSession();
+        const useCats = !!s && s.catChoice;
+        el('catSection').style.display = useCats ? 'block' : 'none';
+        el('catPicker').innerHTML = '';
+        if (!useCats) { chosenCats = []; return; }
+
+        const ready = !!dateEl.value && !!timeEl.value;
+        const cats = loadCats();
+        // forget a choice that is no longer free (for example after changing the time)
+        chosenCats = chosenCats.filter(function (id) {
+          const cat = cats.find(c => c.id === id);
+          return cat && ready && catState(cat, dateEl.value, timeEl.value, chosenHours(), '').state === 'free';
+        });
+        el('catHint').textContent = ready
+          ? 'Choose 1 to ' + s.maxCats + ' cat(s). Cats that are booked, resting or on a break at those hours cannot be chosen.'
+          : 'Pick a date and start time first, to see which cats are free.';
+
+        cats.forEach(function (cat) {
+          const state = ready ? catState(cat, dateEl.value, timeEl.value, chosenHours(), '').state : (cat.active ? 'wait' : 'resting');
+          const chosen = chosenCats.includes(cat.id);
+          const free = state === 'free';
+          const box = document.createElement('div');
+          box.className = 'cat-option' + (chosen ? ' chosen' : '') + (free ? '' : ' unavailable');
+          if (cat.photo) {
+            const img = document.createElement('img');
+            img.src = cat.photo; img.alt = '';
+            box.appendChild(img);
+          } else {
+            const none = document.createElement('div');
+            none.className = 'noimg'; none.textContent = 'No photo';
+            box.appendChild(none);
+          }
+          const name = document.createElement('strong');
+          name.textContent = cat.name;
+          box.appendChild(name);
+          const note = document.createElement('small');
+          note.textContent = chosen ? 'Chosen' : state === 'free' ? 'Free' : state === 'booked' ? 'Booked then' : state === 'break' ? 'On a break then' : state === 'resting' ? 'Resting' : 'Pick a date first';
+          box.appendChild(note);
+          box.addEventListener('click', function () {
+            if (!free) return;
+            if (chosen) {
+              chosenCats = chosenCats.filter(id => id !== cat.id);
+            } else {
+              if (chosenCats.length >= s.maxCats) { alert('You can choose up to ' + s.maxCats + ' cat(s) for this session.'); return; }
+              chosenCats.push(cat.id);
+            }
+            renderCats();
+            updateHandler();
+          });
+          el('catPicker').appendChild(box);
+        });
+      }
+
+      // ----- availability message under the form -----
+      function showAvailability() {
+        const box = el('availability');
+        box.className = '';
+        box.textContent = '';
+        const s = currentSession();
+        if (!s || !dateEl.value || !roomEl.value || !timeEl.value) return;
+        const check = roomCheck(roomEl.value, s.id, dateEl.value, timeEl.value, chosenHours(), '');
+        if (check.state === 'closed') { box.textContent = check.reason; box.className = 'full'; }
+        else if (check.left <= 0) { box.textContent = 'This room is already booked then. Please choose another room or time.'; box.className = 'full'; }
+        else if (currentRoom().type === 'Private') { box.textContent = 'Free: this private room is yours from ' + timeLabel(timeEl.value) + ' to ' + timeLabel(fromMin(toMin(timeEl.value) + chosenHours() * 60)) + ' (up to ' + check.max + ' guests).'; box.className = 'ok'; }
+        else { box.textContent = check.left + ' spot(s) left from ' + timeLabel(timeEl.value) + ' to ' + timeLabel(fromMin(toMin(timeEl.value) + chosenHours() * 60)); box.className = 'ok'; }
+      }
+
+      // ----- the schedule on the side: one cell per hour -----
+      function renderSchedule() {
+        const date = scheduleDateEl.value || today;
+        const table = el('scheduleTable');
+        table.innerHTML = '';
+        el('scheduleNote').textContent = '';
+        const s = currentSession();
+        if (!s) return;
+        const info = dayInfo(date);
+        if (!info.open) { el('scheduleNote').textContent = info.text + '.'; return; }
+        const startHour = Math.floor(toMin(info.from) / 60), endHour = Math.ceil(toMin(info.to) / 60);
+        el('scheduleNote').textContent = info.text + '. Each cell is one hour.';
+
+        const head = table.insertRow();
+        head.insertCell().outerHTML = '<th>Room</th>';
+        for (let h = startHour; h < endHour; h++) head.insertCell().outerHTML = '<th>' + timeLabel(fromMin(h * 60)).replace(':00 ', '').replace(' ', '') + '</th>';
+
+        activeRoomsOf(s).forEach(function (room) {
+          const row = table.insertRow();
+          row.insertCell().textContent = room.name;
+          for (let h = startHour; h < endHour; h++) {
+            const t = fromMin(h * 60);
+            const check = roomCheck(room.id, s.id, date, t, 1, '', true);
+            const box = document.createElement('div');
+            const lunch = loadHours().closedPeriods.some(p => toMin(p.from) <= h * 60 && h * 60 < toMin(p.to));
+            if (check.state === 'closed') {
+              box.className = 'slot ' + (lunch ? 'shut' : 'out');
+              box.textContent = lunch ? 'Lunch' : '-';
+            } else if (check.state === 'full') {
+              box.className = 'slot full'; box.textContent = 'Booked';
+            } else {
+              box.className = 'slot ' + check.state;
+              box.textContent = room.type === 'Private' ? 'Free' : check.left + ' left';
+              box.addEventListener('click', function () {      // clicking a free hour fills in the form
+                roomEl.value = room.id;
+                dateEl.value = date;
+                fillTimes();
+                timeEl.value = t;
+                refresh(false);
+              });
+            }
+            row.insertCell().appendChild(box);
+          }
+        });
+      }
+
+      function renderRoomsOverview() {
+        const table = el('roomsTable');
+        table.innerHTML = '<tr><th>Room</th><th>Type</th><th>Up to</th><th>Sessions</th></tr>';
+        const sessions = loadSessions().filter(s => s.active);
+        loadRooms().filter(r => r.active).forEach(function (room) {
+          const row = table.insertRow();
+          [room.name, room.type, room.capacity + ' people', sessions.filter(s => s.rooms.includes(room.id)).map(s => s.name).join(', ') || '-']
+            .forEach(v => { row.insertCell().textContent = v; });
+        });
+      }
+
+      // redraw everything that depends on the choices (refillTimes = the start times may have changed)
+      function refresh(refillTimes) {
+        if (refillTimes !== false) fillTimes();
+        showAvailability(); renderCats(); updatePrice(); updateHandler(); renderSchedule();
+      }
+
+      // ----- events -----
+      sessionEl.addEventListener('change', () => { fillRooms(); refresh(); });
+      roomEl.addEventListener('change', () => refresh());
+      hoursEl.addEventListener('change', () => refresh());
+      timeEl.addEventListener('change', () => refresh(false));
+      dateEl.addEventListener('change', () => { if (dateEl.value) scheduleDateEl.value = dateEl.value; refresh(); });
+      scheduleDateEl.addEventListener('change', renderSchedule);
+      guestsEl.addEventListener('input', () => {});
+
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        if (!el('agree').checked) { alert('Please tick the box to agree to the Terms and conditions and the Cafe rules.'); return; }
+        const f = {
+          sessionId: sessionEl.value, roomId: roomEl.value, date: dateEl.value, time: timeEl.value, hours: chosenHours(),
+          guests: Number(guestsEl.value), requests: requestsEl.value, cats: chosenCats
+        };
+        // the rules live in bookings.js: check everything first, then ask the guest to confirm
+        const check = checkBooking(f);
+        if (!check.ok) { alert(check.error); return; }
+
+        const catNames = check.catIds.map(id => loadCats().find(c => c.id === id).name);
+        const message = 'Please confirm your booking:\n\n' + check.session.name + '\n' + check.room.name + '\n' +
+          f.date + ', ' + timeLabel(f.time) + ' to ' + timeLabel(fromMin(toMin(f.time) + f.hours * 60)) + ' (' + hoursText(f.hours) + ')\n' + f.guests + ' guest(s)' +
+          (catNames.length ? '\nCats: ' + catNames.join(', ') : '') +
+          '\nTotal: ' + money(check.rate.pricePerHour * f.hours) + ' (' + money(check.rate.pricePerHour) + ' per hour). You pay after booking.';
+        if (!confirm(message)) return;
+
+        const done = await createReservation(currentUser(), f);
+        if (!done.ok) { alert(done.error); refresh(); return; }
+        alert('Your booking is confirmed! Your reservation code is ' + done.reservation.code + '. Your cat handler is ' + done.reservation.handler + '. You can pay on the Sessions page.');
+
+        // clear the form but keep the session, room and date so the schedule stays on screen
+        const keepSession = sessionEl.value, keepRoom = roomEl.value, keepDate = dateEl.value;
+        form.reset();
+        fillFromAccount();
+        fillSessions();
+        sessionEl.value = keepSession;
+        fillRooms();
+        roomEl.value = keepRoom;
+        dateEl.value = keepDate;
+        guestsEl.value = 1;
+        chosenCats = [];
+        refresh();
+      });
+
+      fillSessions();
+      fillRooms();
+      renderRoomsOverview();
+      refresh();
+
+      // other guests are booking too: ask the server for news every few seconds
+      setInterval(async function () {
+        try { await refreshData(); refresh(); } catch (e) { /* try again next time */ }
+      }, window.CATCAFE_POLL_MS || 10000);
+    }
+    });
+  </script>
+</body>
+</html>

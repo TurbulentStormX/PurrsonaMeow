@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Meet our cats</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="cats-design.css">
+  
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main class="cats-page">
+      <section class="cats-hero">
+        <div class="cats-hero-content">
+          <span class="cats-subtitle">Get to know our furry friends</span>
+          <h1>Meet Our Cats</h1>
+          <p>Every cat has a story and a personality of their own.</p>
+        </div>
+  </section>
+
+  <section class="cats-paper">
+    <div class="cats-intro">
+      <h2>Our Little Family</h2>
+      <p>
+        Meet the adorable residents of Purrsona Meow!
+        Each of our cats is unique, with their own
+        personality, quirks and favourite things.
+      </p>
+    </div>
+
+    <section class="cats-section">
+      <div class="cats-board">
+        <div class="cat-grid" id="catGrid"></div>
+      </div>
+    </section>
+  </section>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('cats.html');
+
+    // If a photo file is missing, show a grey box instead of a broken picture
+    function showPlaceholder(img) {
+      const box = document.createElement('div');
+      box.className = 'cat-photo placeholder';
+      box.textContent = 'Photo coming soon';
+      img.replaceWith(box);
+    }
+
+    const grid = document.getElementById('catGrid');
+    // The cats come from the list the admin manages (Manage Cats)
+    loadCats().forEach(function (cat) {
+      const card = document.createElement('div');
+      card.className = 'cat-card';
+
+      if (cat.photo) {
+        const img = document.createElement('img');
+        img.className = 'cat-photo';
+        img.src = cat.photo;
+        img.alt = 'Photo of ' + cat.name;
+        img.addEventListener('error', function () { showPlaceholder(img); });
+        card.appendChild(img);
+      } else {
+        const box = document.createElement('div');
+        box.className = 'cat-photo placeholder';
+        box.textContent = 'Photo coming soon';
+        card.appendChild(box);
+      }
+
+      const title = document.createElement('h2');
+      title.textContent = cat.name + (cat.relation ? ' (' + cat.relation + ')' : '');
+      card.appendChild(title);
+
+      (cat.notes || []).forEach(function (line) {
+        const p = document.createElement('p');
+        p.textContent = line;
+        card.appendChild(p);
+      });
+
+      const care = document.createElement('p');
+      care.textContent = 'Looked after by ' + handlerName(cat.handler);
+      card.appendChild(care);
+
+      const rating = catRating(cat.id);
+      const stars = document.createElement('p');
+      stars.className = 'stars';
+      stars.textContent = rating.count > 0 ? starsText(rating.avg) + ' ' + rating.avg + ' (' + rating.count + ' review' + (rating.count === 1 ? '' : 's') + ')' : 'No reviews yet';
+      card.appendChild(stars);
+
+      const state = personStatusNow('cat', cat.id);
+      if (state.state === 'resting') {
+        const rest = document.createElement('p');
+        rest.className = 'resting';
+        rest.textContent = 'Resting right now' + (cat.note ? ': ' + cat.note : '');
+        card.appendChild(rest);
+      }
+      grid.appendChild(card);
+    });
+    });
+  </script>
+</body>
+</html>

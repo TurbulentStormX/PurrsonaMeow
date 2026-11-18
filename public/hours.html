@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Opening hours</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="hours-design.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main class="hours-page">
+      <h1>Opening hours</h1>
+      <div class="status-banner" id="cafeStatus"></div>
+
+      <div class="card wide-card">
+        <h2>Every week</h2>
+        <table><thead><tr><th>Day</th><th>Hours</th></tr></thead><tbody id="weekRows"></tbody></table>
+        <div id="closedNote"></div>
+        <p class="hint" id="breakNote"></p>
+      </div>
+
+      <div class="card wide-card">
+        <h2>Public holidays</h2>
+        <p class="hint">Public holiday prices apply on these days. See the <a href="rate.html">Rates</a>.</p>
+        <table><thead><tr><th>Date</th><th>Day</th><th>Holiday</th><th>Hours</th></tr></thead><tbody id="holidayRows"></tbody></table>
+      </div>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('hours.html');
+
+    const cafe = cafeStatusNow();
+    const banner = document.getElementById('cafeStatus');
+    banner.className = 'status-banner' + (cafe.open ? '' : ' closed');
+    banner.textContent = (cafe.open ? 'We are open. ' : 'We are closed. ') + cafe.text + '.';
+
+    // Monday first
+    const hours = loadHours();
+    [1, 2, 3, 4, 5, 6, 0].forEach(function (d) {
+      const day = hours.weekly[d];
+      const row = document.getElementById('weekRows').insertRow();
+      row.insertCell().textContent = DAY_NAMES[d];
+      row.insertCell().textContent = day.open ? timeLabel(day.from) + ' to ' + timeLabel(day.to) : 'Closed';
+    });
+    const closed = document.getElementById('closedNote');
+    hours.closedPeriods.forEach(function (p) {
+      const line = document.createElement('p');
+      line.textContent = p.name + ': ' + timeLabel(p.from) + ' to ' + timeLabel(p.to) + ' every day. No sessions can be booked then.';
+      closed.appendChild(line);
+    });
+    const brk = loadSettings().breakMinutes;
+    document.getElementById('breakNote').textContent = brk > 0
+      ? 'Our cats and handlers rest for ' + brk + ' minutes after every session, so the next session for the same cat or handler can start ' + brk + ' minutes after the last one ends.'
+      : '';
+
+    const upcoming = loadHolidays().filter(h => h.date >= todayString()).sort((a, b) => a.date.localeCompare(b.date));
+    if (upcoming.length === 0) {
+      const td = document.getElementById('holidayRows').insertRow().insertCell();
+      td.colSpan = 4;
+      td.textContent = 'No public holidays are listed right now.';
+    }
+    upcoming.forEach(function (h) {
+      const row = document.getElementById('holidayRows').insertRow();
+      [formatDate(h.date), DAY_NAMES[parseDate(h.date).getDay()], h.name,
+       h.mode === 'closed' ? 'Closed' : timeLabel(h.from) + ' to ' + timeLabel(h.to)].forEach(v => { row.insertCell().textContent = v; });
+    });
+    });
+  </script>
+</body>
+</html>

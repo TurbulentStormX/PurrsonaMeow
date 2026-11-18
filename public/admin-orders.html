@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Orders</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main>
+      <div class="card wide-card">
+        <h1>Admin: Food and drink orders</h1>
+        <div class="summary" id="summary"></div>
+        <table>
+          <thead>
+            <tr><th>Order</th><th>Reservation</th><th>Guest</th><th>Room</th><th>Handler</th><th>Items</th><th>Total</th><th>Status</th><th>Action</th></tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('admin-orders.html');
+    if (guardPage(['admin'], 'see orders')) initOrders();
+
+    function initOrders() {
+      function render() {
+        const orders = loadOrders();
+        const reservations = loadReservations();
+        const body = document.getElementById('rows');
+        body.innerHTML = '';
+
+        orders.forEach(function (o) {
+          const res = reservations.find(r => r.code === o.reservation);
+          const tr = body.insertRow();
+          [o.code, o.reservation, res ? res.name : '-', o.zone, o.handler || '-', orderItemsText(o), money(o.total)]
+            .forEach(v => { tr.insertCell().textContent = v; });
+
+          const statusCell = tr.insertCell();
+          const pill = document.createElement('span');
+          pill.className = 'status-pill status-' + o.status;
+          pill.textContent = o.status;
+          statusCell.appendChild(pill);
+
+          const action = tr.insertCell();
+          if (o.status === 'Ordered') {
+            const btn = document.createElement('button');
+            btn.textContent = 'Mark served';
+            btn.addEventListener('click', async function () {
+              const done = await markOrderServed(o.code);
+              if (!done.ok) alert(done.error);
+              render();
+            });
+            action.appendChild(btn);
+          } else {
+            action.textContent = '-';
+          }
+        });
+
+        const served = orders.filter(o => o.status === 'Served');
+        document.getElementById('summary').textContent =
+          'Ordered: ' + orders.filter(o => o.status === 'Ordered').length +
+          '   Served: ' + served.length +
+          '   Sales (served): ' + money(served.reduce((sum, o) => sum + o.total, 0));
+      }
+      render();
+    }
+    });
+  </script>
+</body>
+</html>

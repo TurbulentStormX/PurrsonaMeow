@@ -1,0 +1,382 @@
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+/* =========================================
+   MY SESSIONS PAGE
+========================================= */
+
+.sessions-page {
+    min-height: 80vh;
+    padding: 55px 25px 85px;
+    background: #fff9f2;
+    color: #79523f;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.sessions-container {
+    max-width: 1180px;
+    margin: 0 auto;
+}
+
+/* =========================================
+   PAGE HEADING
+========================================= */
+
+.sessions-heading {
+    max-width: 780px;
+    margin: 0 auto 45px;
+    text-align: center;
+}
+
+.sessions-eyebrow {
+    display: inline-block;
+    margin-bottom: 15px;
+    color: #c98672;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+}
+
+.sessions-heading h1 {
+    margin: 0 0 20px;
+    color: #79523f;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(38px, 5vw, 58px);
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.sessions-heading h1::after {
+    content: "";
+    display: block;
+    width: 75px;
+    height: 3px;
+    margin: 20px auto 0;
+    background: #c98672;
+    border-radius: 10px;
+}
+
+.sessions-heading p {
+    margin: 0;
+    color: #8c6b59;
+    font-size: 16px;
+    line-height: 1.8;
+}
+
+/* =========================================
+   GENERAL CARDS
+========================================= */
+
+.sessions-card {
+    margin-bottom: 30px;
+    padding: 35px 38px;
+    background: #fffdf9;
+    border: 2px solid #eadbcf;
+    border-radius: 22px;
+    box-shadow: 0 8px 25px rgba(121, 82, 63, 0.07);
+    min-width: 0;
+}
+
+.sessions-card h2 {
+    margin: 0 0 15px;
+    color: #79523f;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 30px;
+    font-weight: 600;
+}
+
+.sessions-card p {
+    color: #76594b;
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+.sessions-card a {
+    color: #a65e47;
+    font-weight: 600;
+    text-underline-offset: 3px;
+}
+
+/* =========================================
+   BOOKING LOOKUP
+========================================= */
+
+.lookup-card {
+    max-width: 850px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.sessions-section-heading {
+    margin-bottom: 25px;
+}
+
+.sessions-section-heading p {
+    margin: 0;
+    color: #8c6b59;
+}
+
+.lookup-form label {
+    display: block;
+    margin-bottom: 10px;
+    color: #79523f;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.lookup-controls {
+    display: flex;
+    gap: 14px;
+    align-items: stretch;
+}
+
+#lookupCode {
+    flex: 1;
+    min-width: 0;
+    padding: 15px 18px;
+    border: 1px solid #dfcfc2;
+    border-radius: 12px;
+    background: #fffdf9;
+    color: #79523f;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    outline: none;
+}
+
+#lookupCode:focus {
+    border-color: #c98672;
+    box-shadow: 0 0 0 3px rgba(201, 134, 114, 0.16);
+}
+
+#lookupBtn {
+    padding: 15px 25px;
+    border: none;
+    border-radius: 12px;
+    background: #c98672;
+    color: #ffffff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+#lookupBtn:hover {
+    background: #a96b57;
+}
+
+/* =========================================
+   LOOKUP RESULTS
+========================================= */
+
+#lookupResult {
+    margin-top: 22px;
+}
+
+#lookupResult:empty {
+    display: none;
+}
+
+#lookupResult .result-box {
+    padding: 25px;
+    border: 1px solid #eadbcf;
+    border-radius: 15px;
+    background: #f7ece3;
+}
+
+#lookupResult .result-box p {
+    margin: 0;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5d6c8;
+    overflow-wrap: anywhere;
+}
+
+#lookupResult .result-box p:last-child {
+    border-bottom: none;
+}
+
+#lookupResult .result-box strong {
+    color: #79523f;
+}
+
+#lookupResult .msg-error {
+    padding: 17px 20px;
+    border: 1px solid #e8c89f;
+    border-radius: 12px;
+    background: #fff0dc;
+    color: #895b48;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+/* =========================================
+   BOOKINGS & ORDERS TABLES
+========================================= */
+
+.sessions-card .table-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+}
+
+.sessions-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.sessions-card th {
+    padding: 16px 14px;
+    background: #79523f;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.sessions-card td {
+    padding: 15px 14px;
+    border-bottom: 1px solid #eadbcf;
+    color: #76594b;
+    line-height: 1.6;
+    vertical-align: middle;
+}
+
+.sessions-card tbody tr:nth-child(even) {
+    background: #fff9f2;
+}
+
+.sessions-card tbody tr:hover {
+    background: #f7ece3;
+}
+
+.sessions-card .nowrap {
+    white-space: nowrap;
+}
+
+.sessions-card .flag {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #fff0dc;
+    color: #895b48;
+    font-size: 12px;
+    white-space: normal;
+}
+
+/* =========================================
+   ACTION BUTTONS
+========================================= */
+
+.sessions-card .cta,
+.sessions-card button {
+    display: inline-block;
+    padding: 10px 17px;
+    border: none;
+    border-radius: 25px;
+    background: #c98672;
+    color: #ffffff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.sessions-card .cta:hover,
+.sessions-card button:hover {
+    background: #a96b57;
+    color: #ffffff;
+}
+
+.sessions-card td a:not(.cta) {
+    display: inline-block;
+    padding: 8px 10px;
+    color: #a65e47;
+    font-size: 13px;
+    text-decoration: underline;
+}
+
+/* =========================================
+   STATUS PILLS
+========================================= */
+
+.sessions-card .pill,
+.sessions-card .status-pill,
+#lookupResult .pill,
+#lookupResult .status-pill {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* =========================================
+   ORDERS TABLE
+========================================= */
+
+.orders-card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* =========================================
+   RESPONSIVE DESIGN
+========================================= */
+
+@media (max-width: 900px) {
+    .sessions-page {
+        padding: 40px 20px 65px;
+    }
+
+    .sessions-card {
+        padding: 28px 25px;
+    }
+}
+
+@media (max-width: 600px) {
+    .sessions-page {
+        padding: 30px 15px 55px;
+    }
+
+    .sessions-heading p {
+        font-size: 14px;
+    }
+
+    .sessions-card {
+        padding: 25px 18px;
+        border-radius: 18px;
+    }
+
+    .sessions-card h2 {
+        font-size: 26px;
+    }
+
+    .lookup-controls {
+        flex-direction: column;
+    }
+
+    #lookupBtn {
+        width: 100%;
+    }
+
+    .sessions-card th,
+    .sessions-card td {
+        padding: 12px 10px;
+        font-size: 12px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #lookupBtn,
+    .sessions-card .cta,
+    .sessions-card button {
+        transition: none;
+    }
+}

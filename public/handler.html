@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Cat Handler</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main>
+      <div id="leaveNotice"></div>
+
+      <div class="card wide-card">
+        <h1>Cat Handler: My sessions</h1>
+        <p class="hint">Bookings come to you from the cats you look after. After each session you rest for a while (see the Opening hours page).</p>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th>Code</th><th>Guest</th><th>Session</th><th>Date</th><th>Time</th><th>Room</th><th>Guests booked</th>
+                  <th>Cats in this session</th><th>Payment</th><th>Status</th><th>Check in</th></tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <div id="cancelledBox"></div>
+      </div>
+
+      <div class="card wide-card">
+        <h2>The cats I look after</h2>
+        <div class="who-grid" id="myCats"></div>
+        <p class="hint">See which cats are booked, on a break or free on the <a href="cat-schedule.html">Cat schedule</a>.</p>
+      </div>
+
+      <div class="card wide-card">
+        <h2>My reviews from guests</h2>
+        <div id="myRating"></div>
+      </div>
+
+      <form class="card" id="leaveForm">
+        <h2>Cannot work? Report sick or urgent leave</h2>
+        <p class="hint">Your upcoming sessions on those days move to another free handler automatically.</p>
+        <label>From <input type="date" id="leaveStart" required></label>
+        <label>To (same day for one day) <input type="date" id="leaveEnd" required></label>
+        <label>Reason <select id="leaveReason"></select></label>
+        <label>Note (optional) <input type="text" id="leaveNote"></label>
+        <button type="submit">Report leave</button>
+        <div id="leaveResult"></div>
+      </form>
+
+      <div class="card wide-card">
+        <h2>Food and drink orders for my rooms</h2>
+        <table>
+          <thead><tr><th>Order</th><th>Room</th><th>Items</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="orderRows"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('handler.html');
+    if (guardPage(['handler'], 'see your sessions')) initHandler();
+
+    function initHandler() {
+      const POLL_MS = window.CATCAFE_POLL_MS || 5000;
+      const user = currentUser();
+      const el = id => document.getElementById(id);
+      let lastSignature = '';
+
+      function button(text, onClick) {
+        const b = document.createElement('button');
+        b.textContent = text;
+        b.addEventListener('click', onClick);
+        return b;
+      }
+      function say(target, lines, kind) {
+        target.innerHTML = '';
+        if (!lines.length) return;
+        const div = document.createElement('div');
+        div.className = 'notice ' + (kind || '');
+        lines.forEach(function (text) {
+          const p = document.createElement('p');
+          p.style.margin = '2px 0';
+          p.textContent = text;
+          div.appendChild(p);
+        });
+        target.appendChild(div);
+      }
+      const byTime = (a, b) => (a.date + a.time).localeCompare(b.date + b.time);
+
+      async function conclude(code, checkedIn) {
+        const done = await concludeReservation(code, user.username, checkedIn);
+        if (!done.ok) { alert(done.error); return; }
+        render();
+      }
+
+      // ----- my sessions, with the cats in each one -----
+      function renderMine() {
+        const body = el('rows');
+        body.innerHTML = '';
+        const mine = loadReservations().filter(r => handlerUsernameOf(r) === user.username && (r.status === 'Assigned' || r.status === 'Concluded')).sort(byTime);
+        if (mine.length === 0) {
+          const td = body.insertRow().insertCell();
+          td.colSpan = 11;
+          td.textContent = 'You have no sessions yet. Bookings appear here by themselves.';
+        }
+        mine.forEach(function (r) {
+          const tr = body.insertRow();
+          [r.code, r.name, r.session, r.date, timeRange(r), r.zone, r.guests].forEach(v => { tr.insertCell().textContent = v; });
+          const cats = tr.insertCell();
+          cats.appendChild(catChips(r));
+          if (r.changeNote) {
+            const note = document.createElement('div');
+            note.className = 'flag';
+            note.textContent = r.changeNote;
+            cats.appendChild(note);
+          }
+          tr.insertCell().appendChild(paymentPill(r));
+          tr.insertCell().appendChild(statusPill(r.status));
+          const cell = tr.insertCell();
+          cell.className = 'nowrap';
+          if (r.status === 'Assigned') {
+            const input = document.createElement('input');
+            input.type = 'number'; input.min = 0; input.max = r.guests; input.value = r.guests;
+            input.style.width = '60px';
+            cell.appendChild(input);
+            cell.appendChild(button('Check in & conclude', () => conclude(r.code, Number(input.value))));
+          } else {
+            cell.textContent = r.checkedIn !== undefined ? r.checkedIn + ' checked in' : '-';
+          }
+        });
+      }
+
+      // ----- the cats I look after, and who is busy now -----
+      function renderMyCats() {
+        const box = el('myCats');
+        box.innerHTML = '';
+        const mine = loadCats().filter(c => c.handler === user.username);
+        if (mine.length === 0) box.textContent = 'No cats are assigned to you yet. The admin chooses this on Manage Cats.';
+        mine.forEach(function (cat) {
+          const card = document.createElement('div');
+          card.className = 'who-card';
+          if (cat.photo) {
+            const img = document.createElement('img');
+            img.src = cat.photo; img.alt = cat.name;
+            card.appendChild(img);
+          }
+          const name = document.createElement('strong');
+          name.textContent = cat.name;
+          card.appendChild(name);
+          const st = personStatusNow('cat', cat.id);
+          const chip = document.createElement('span');
+          chip.className = 'chip ' + st.state;
+          chip.textContent = st.text;
+          card.appendChild(chip);
+          box.appendChild(card);
+        });
+      }
+
+      // ----- sessions a guest cancelled (so I know) -----
+      function renderCancelled() {
+        const today = todayString();
+        const cancelled = loadReservations().filter(r => r.status === 'Cancelled' && handlerUsernameOf(r) === user.username && r.date >= today).sort(byTime);
+        say(el('cancelledBox'), cancelled.map(r => 'Cancelled by ' + (r.cancelledBy || 'guest') + ': ' + r.code + ', ' + r.session + ', ' + formatDate(r.date) + ' ' + timeRange(r) + '. You are free then.'), 'warn');
+      }
+
+      // ----- my leave -----
+      function renderLeave() {
+        const today = todayString();
+        const mine = loadLeaves().filter(l => l.handler === user.username && l.end >= today).sort((a, b) => a.start.localeCompare(b.start));
+        say(el('leaveNotice'), mine.map(l => 'You are on leave (' + l.reason + ') from ' + formatDate(l.start) + ' to ' + formatDate(l.end) + '.'), 'warn');
+      }
+
+      // ----- my reviews from guests -----
+      function renderRating() {
+        const box = el('myRating');
+        box.innerHTML = '';
+        const rating = handlerRating(user.username);
+        const head = document.createElement('p');
+        head.textContent = rating.count ? 'Your average: ' + starsText(rating.avg) + ' ' + rating.avg + ' from ' + rating.count + ' review(s).' : 'No reviews yet. Guests can review you after a session.';
+        box.appendChild(head);
+        loadReviews().filter(v => v.handler === user.username && v.handlerComment).slice(-5).reverse().forEach(function (v) {
+          const p = document.createElement('p');
+          p.className = 'review-card';
+          p.textContent = starsText(v.handlerStars) + ' "' + v.handlerComment + '" - ' + v.name + ', ' + formatDate(v.date);
+          box.appendChild(p);
+        });
+      }
+
+      // ----- orders for my rooms -----
+      function renderOrders() {
+        const orderBody = el('orderRows');
+        orderBody.innerHTML = '';
+        loadOrders().filter(o => o.handler === user.name).forEach(function (o) {
+          const tr = orderBody.insertRow();
+          [o.code, o.zone, orderItemsText(o), money(o.total)].forEach(v => { tr.insertCell().textContent = v; });
+          tr.insertCell().appendChild(statusPill(o.status));
+          const action = tr.insertCell();
+          if (o.status === 'Ordered') {
+            action.appendChild(button('Mark served', async function () {
+              const done = await markOrderServed(o.code);
+              if (!done.ok) alert(done.error);
+              render();
+            }));
+          } else {
+            action.textContent = '-';
+          }
+        });
+      }
+
+      function signature() { return JSON.stringify([loadReservations(), loadLeaves(), loadOrders(), loadReviews(), loadCats()]); }
+      function render() {
+        renderLeave();
+        renderMine();
+        renderMyCats();
+        renderCancelled();
+        renderRating();
+        renderOrders();
+        lastSignature = signature();
+      }
+
+      // report leave
+      LEAVE_REASONS.forEach(function (reason) {
+        const o = document.createElement('option');
+        o.value = reason; o.textContent = reason;
+        el('leaveReason').appendChild(o);
+      });
+      el('leaveStart').value = todayString();
+      el('leaveEnd').value = todayString();
+      el('leaveForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const done = await addLeave(user.username, el('leaveStart').value, el('leaveEnd').value, el('leaveReason').value, el('leaveNote').value.trim());
+        if (!done.ok) { say(el('leaveResult'), [done.error], 'warn'); return; }
+        const lines = ['Your leave is recorded.'];
+        if (done.moved.length) lines.push(done.moved.length + ' session(s) moved to another handler: ' + done.moved.map(m => m.code + ' to ' + m.to).join(', ') + '.');
+        if (done.uncovered.length) lines.push(done.uncovered.length + ' session(s) have nobody free to cover them yet: ' + done.uncovered.join(', ') + '. The admin has been flagged.');
+        if (!done.moved.length && !done.uncovered.length) lines.push('None of your sessions were affected.');
+        say(el('leaveResult'), lines, done.uncovered.length ? 'warn' : 'good');
+        render();
+      });
+
+      // The page checks again every few seconds and is redrawn if anything changed
+      // (but not while a handler is typing a number or choosing something).
+      async function tick() {
+        try { await refreshData(); } catch (e) { /* keep the copy we have */ }
+        const active = document.activeElement;
+        const typing = active && ['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName);
+        if (signature() !== lastSignature && !typing) render();
+      }
+      render();
+      setInterval(tick, POLL_MS);
+    }
+    });
+  </script>
+</body>
+</html>

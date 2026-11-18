@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Admin - Hours and holidays</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main>
+      <div class="card wide-card">
+        <h1>Admin: Hours and holidays</h1>
+        <p class="hint">Guests can only book inside these hours. Changes do not move bookings that are already made.</p>
+        <h2>Every week</h2>
+        <table>
+          <thead><tr><th>Day</th><th>Open</th><th>From</th><th>To</th></tr></thead>
+          <tbody id="weekRows"></tbody>
+        </table>
+        <div class="form-buttons"><button type="button" id="saveWeek">Save weekly hours</button></div>
+        <div id="weekResult"></div>
+      </div>
+
+      <div class="card wide-card">
+        <h2>Closed every day (for example lunch)</h2>
+        <table>
+          <thead><tr><th>Name</th><th>From</th><th>To</th><th>Action</th></tr></thead>
+          <tbody id="closedRows"></tbody>
+        </table>
+        <form id="closedForm">
+          <h3 id="closedTitle">Add a closed period</h3>
+          <label>Name <input type="text" id="closedName" required placeholder="e.g. Lunch break"></label>
+          <label>From <input type="time" id="closedFrom" required></label>
+          <label>To <input type="time" id="closedTo" required></label>
+          <div class="form-buttons">
+            <button type="submit" id="closedSave">Add</button>
+            <button type="button" id="closedCancel" style="display:none">Cancel editing</button>
+          </div>
+          <div class="msg-error" id="closedError"></div>
+        </form>
+      </div>
+
+      <div class="card wide-card">
+        <h2>Public holidays</h2>
+        <p class="hint">Singapore public holidays are filled in from the Ministry of Manpower list. Choose whether you are open, and the hours. Public holiday rates apply (see Manage Rates).</p>
+        <table>
+          <thead><tr><th>Date</th><th>Holiday</th><th>Open or closed</th><th>Hours</th><th>Action</th></tr></thead>
+          <tbody id="holidayRows"></tbody>
+        </table>
+        <form id="holidayForm">
+          <h3 id="holidayTitle">Add a holiday or special day</h3>
+          <label>Date <input type="date" id="holidayDate" required></label>
+          <label>Name <input type="text" id="holidayName" required></label>
+          <label>Open or closed <select id="holidayMode"><option value="open">Open</option><option value="closed">Closed all day</option></select></label>
+          <label>Opens at <input type="time" id="holidayFrom" value="10:00"></label>
+          <label>Closes at <input type="time" id="holidayTo" value="18:00"></label>
+          <div class="form-buttons">
+            <button type="submit" id="holidaySave">Add</button>
+            <button type="button" id="holidayCancel" style="display:none">Cancel editing</button>
+          </div>
+          <div class="msg-error" id="holidayError"></div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('admin-hours.html');
+    if (guardPage(['admin'], 'manage opening hours')) initHours();
+
+    function initHours() {
+      const el = id => document.getElementById(id);
+      let editingClosed = null, editingHoliday = null;
+
+      // ----- every week (Monday first) -----
+      function drawWeek() {
+        const hours = loadHours();
+        el('weekRows').innerHTML = '';
+        [1, 2, 3, 4, 5, 6, 0].forEach(function (d) {
+          const day = hours.weekly[d];
+          const row = el('weekRows').insertRow();
+          row.insertCell().textContent = DAY_NAMES[d];
+          const open = document.createElement('input');
+          open.type = 'checkbox'; open.checked = day.open; open.dataset.day = d; open.className = 'day-open'; open.style.width = 'auto';
+          row.insertCell().appendChild(open);
+          const from = document.createElement('input');
+          from.type = 'time'; from.value = day.from; from.dataset.day = d; from.className = 'day-from';
+          row.insertCell().appendChild(from);
+          const to = document.createElement('input');
+          to.type = 'time'; to.value = day.to; to.dataset.day = d; to.className = 'day-to';
+          row.insertCell().appendChild(to);
+        });
+      }
+      el('saveWeek').addEventListener('click', function () {
+        const hours = loadHours();
+        const out = el('weekResult');
+        out.innerHTML = '';
+        for (const d of [0, 1, 2, 3, 4, 5, 6]) {
+          const open = document.querySelector('.day-open[data-day="' + d + '"]').checked;
+          const from = document.querySelector('.day-from[data-day="' + d + '"]').value;
+          const to = document.querySelector('.day-to[data-day="' + d + '"]').value;
+          if (open && (!from || !to || toMin(to) <= toMin(from))) {
+            out.innerHTML = '<div class="msg-error">' + DAY_NAMES[d] + ': the closing time must be after the opening time.</div>';
+            return;
+          }
+          hours.weekly[d] = { open: open, from: from || '10:00', to: to || '20:00' };
+        }
+        saveHours(hours);
+        out.innerHTML = '<div class="msg-ok">Saved.</div>';
+      });
+
+      // ----- closed every day -----
+      function drawClosed() {
+        const hours = loadHours();
+        el('closedRows').innerHTML = '';
+        hours.closedPeriods.forEach(function (p) {
+          const row = el('closedRows').insertRow();
+          [p.name, timeLabel(p.from), timeLabel(p.to)].forEach(v => { row.insertCell().textContent = v; });
+          const action = row.insertCell();
+          const edit = document.createElement('button');
+          edit.textContent = 'Edit';
+          edit.addEventListener('click', function () {
+            editingClosed = p.id;
+            el('closedName').value = p.name; el('closedFrom').value = p.from; el('closedTo').value = p.to;
+            el('closedTitle').textContent = 'Edit ' + p.name;
+            el('closedSave').textContent = 'Save changes';
+            el('closedCancel').style.display = 'inline-block';
+          });
+          const del = document.createElement('button');
+          del.textContent = 'Delete';
+          del.style.marginLeft = '6px';
+          del.addEventListener('click', function () {
+            if (!confirm('Delete "' + p.name + '"? Guests will be able to book that time.')) return;
+            const h = loadHours();
+            h.closedPeriods = h.closedPeriods.filter(x => x.id !== p.id);
+            saveHours(h);
+            drawClosed();
+          });
+          action.appendChild(edit);
+          action.appendChild(del);
+        });
+      }
+      function resetClosed() {
+        editingClosed = null;
+        el('closedForm').reset();
+        el('closedTitle').textContent = 'Add a closed period';
+        el('closedSave').textContent = 'Add';
+        el('closedCancel').style.display = 'none';
+        el('closedError').textContent = '';
+      }
+      el('closedCancel').addEventListener('click', resetClosed);
+      el('closedForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const name = el('closedName').value.trim(), from = el('closedFrom').value, to = el('closedTo').value;
+        if (!name) { el('closedError').textContent = 'Please enter a name.'; return; }
+        if (!from || !to || toMin(to) <= toMin(from)) { el('closedError').textContent = 'The end must be after the start.'; return; }
+        const h = loadHours();
+        if (editingClosed) Object.assign(h.closedPeriods.find(p => p.id === editingClosed), { name: name, from: from, to: to });
+        else h.closedPeriods.push({ id: 'cp' + Date.now(), name: name, from: from, to: to });
+        saveHours(h);
+        resetClosed();
+        drawClosed();
+      });
+
+      // ----- public holidays -----
+      function drawHolidays() {
+        el('holidayRows').innerHTML = '';
+        loadHolidays().sort((a, b) => a.date.localeCompare(b.date)).forEach(function (hol) {
+          const row = el('holidayRows').insertRow();
+          [formatDate(hol.date) + ' (' + DAY_NAMES[parseDate(hol.date).getDay()].slice(0, 3) + ')', hol.name, hol.mode === 'closed' ? 'Closed' : 'Open',
+           hol.mode === 'closed' ? '-' : timeLabel(hol.from) + ' to ' + timeLabel(hol.to)].forEach(v => { row.insertCell().textContent = v; });
+          const action = row.insertCell();
+          const edit = document.createElement('button');
+          edit.textContent = 'Edit';
+          edit.addEventListener('click', function () {
+            editingHoliday = hol.id;
+            el('holidayDate').value = hol.date; el('holidayName').value = hol.name; el('holidayMode').value = hol.mode;
+            el('holidayFrom').value = hol.from; el('holidayTo').value = hol.to;
+            el('holidayTitle').textContent = 'Edit ' + hol.name;
+            el('holidaySave').textContent = 'Save changes';
+            el('holidayCancel').style.display = 'inline-block';
+          });
+          const del = document.createElement('button');
+          del.textContent = 'Delete';
+          del.style.marginLeft = '6px';
+          del.addEventListener('click', function () {
+            if (!confirm('Delete ' + hol.name + '? That day then follows the normal weekly hours and rates.')) return;
+            saveHolidays(loadHolidays().filter(x => x.id !== hol.id));
+            drawHolidays();
+          });
+          action.appendChild(edit);
+          action.appendChild(del);
+        });
+      }
+      function resetHoliday() {
+        editingHoliday = null;
+        el('holidayForm').reset();
+        el('holidayFrom').value = '10:00'; el('holidayTo').value = '18:00';
+        el('holidayTitle').textContent = 'Add a holiday or special day';
+        el('holidaySave').textContent = 'Add';
+        el('holidayCancel').style.display = 'none';
+        el('holidayError').textContent = '';
+      }
+      el('holidayCancel').addEventListener('click', resetHoliday);
+      el('holidayForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const date = el('holidayDate').value, name = el('holidayName').value.trim(), mode = el('holidayMode').value;
+        const from = el('holidayFrom').value, to = el('holidayTo').value;
+        if (!date || !name) { el('holidayError').textContent = 'Please enter a date and a name.'; return; }
+        if (mode === 'open' && (!from || !to || toMin(to) <= toMin(from))) { el('holidayError').textContent = 'The closing time must be after the opening time.'; return; }
+        const list = loadHolidays();
+        if (list.some(h => h.date === date && h.id !== editingHoliday)) { el('holidayError').textContent = 'There is already a holiday on that date. Edit it instead.'; return; }
+        const data = { date: date, name: name, mode: mode, from: from || '10:00', to: to || '18:00' };
+        if (editingHoliday) Object.assign(list.find(h => h.id === editingHoliday), data);
+        else list.push(Object.assign({ id: 'h' + Date.now() }, data));
+        saveHolidays(list);
+        resetHoliday();
+        drawHolidays();
+      });
+
+      drawWeek(); drawClosed(); drawHolidays();
+    }
+    });
+  </script>
+</body>
+</html>

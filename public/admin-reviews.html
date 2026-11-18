@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Admin - Reviews</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main>
+      <div class="card wide-card">
+        <h1>Admin: Reviews</h1>
+        <p class="hint">Guests review their cats and cat handler after each finished session.</p>
+        <h2>Cats</h2>
+        <table>
+          <thead><tr><th>Cat</th><th>Handler</th><th>Average</th><th>Reviews</th></tr></thead>
+          <tbody id="catRows"></tbody>
+        </table>
+        <h2>Cat handlers</h2>
+        <table>
+          <thead><tr><th>Handler</th><th>Average</th><th>Reviews</th></tr></thead>
+          <tbody id="staffRows"></tbody>
+        </table>
+      </div>
+
+      <div class="card wide-card">
+        <h2>All reviews</h2>
+        <div id="allReviews"></div>
+      </div>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('admin-reviews.html');
+    if (guardPage(['admin'], 'see reviews')) initReviews();
+
+    function initReviews() {
+      loadCats().forEach(function (cat) {
+        const rating = catRating(cat.id);
+        const row = document.getElementById('catRows').insertRow();
+        [cat.name, handlerName(cat.handler), rating.count ? starsText(rating.avg) + ' ' + rating.avg : '-', rating.count].forEach(v => { row.insertCell().textContent = v; });
+      });
+      allHandlers().forEach(function (h) {
+        const rating = handlerRating(h.username);
+        const row = document.getElementById('staffRows').insertRow();
+        [h.name, rating.count ? starsText(rating.avg) + ' ' + rating.avg : '-', rating.count].forEach(v => { row.insertCell().textContent = v; });
+      });
+
+      const box = document.getElementById('allReviews');
+      const reviews = loadReviews().slice().reverse();
+      if (reviews.length === 0) box.textContent = 'No reviews yet.';
+      reviews.forEach(function (v) {
+        const card = document.createElement('div');
+        card.className = 'review-card';
+        const head = document.createElement('p');
+        head.innerHTML = '';
+        const strong = document.createElement('strong');
+        strong.textContent = v.name + ' - ' + v.session + ', ' + formatDate(v.date) + ' (' + v.code + ')';
+        head.appendChild(strong);
+        card.appendChild(head);
+        if (v.handler) {
+          const p = document.createElement('p');
+          p.textContent = 'Handler ' + v.handlerName + ': ' + starsText(v.handlerStars) + (v.handlerComment ? ' "' + v.handlerComment + '"' : '');
+          card.appendChild(p);
+        }
+        v.cats.forEach(function (c) {
+          const p = document.createElement('p');
+          p.textContent = c.name + ': ' + starsText(c.stars) + (c.comment ? ' "' + c.comment + '"' : '');
+          card.appendChild(p);
+        });
+        box.appendChild(card);
+      });
+    }
+    });
+  </script>
+</body>
+</html>

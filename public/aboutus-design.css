@@ -1,0 +1,180 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&display=swap');
+
+.about-page {
+    background: #fff9f2;
+    color: #79523f;
+    font-family: 'DM Sans', sans-serif;
+    padding: 48px 24px 80px;
+}
+
+.about-page .cats-section {
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.about-page .cats-section > h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(38px, 5vw, 60px);
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    text-align: center;
+    color: #79523f;
+    margin: 0 0 15px;
+}
+
+.about-page .cats-section > h1::after {
+    content: "";
+    display: block;
+    width: 75px;
+    height: 3px;
+    background: #c98672;
+    margin: 20px auto 0;
+    border-radius: 10px;
+}
+
+.about-page .card {
+    max-width: none;
+    margin: 35px 0;
+    padding: 55px 60px;
+    border-radius: 24px;
+    background: #e5d6c8;
+    box-shadow: 0 8px 25px rgba(121, 82, 63, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.about-page .card:first-of-type {
+    background: #f1e5d8;
+    text-align: center;
+    padding: 75px 60px;
+}
+
+.about-page .card:first-of-type::before,
+.about-page .card:first-of-type::after {
+    content: "✦";
+    position: absolute;
+    color: #c98672;
+    opacity: 0.45;
+    font-size: 45px;
+}
+
+.about-page .card:first-of-type::before {
+    top: 22px;
+    left: 30px;
+}
+
+.about-page .card:first-of-type::after {
+    right: 30px;
+    bottom: 22px;
+}
+
+.about-page .card h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    color: #79523f;
+    font-size: clamp(28px, 3.5vw, 40px);
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0 0 22px;
+}
+
+.about-page .card p {
+    color: #76594b;
+    font-size: 17px;
+    line-height: 1.9;
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+.about-page .card:nth-of-type(2) {
+    background: #fffdf9;
+    border: 2px solid #e5d6c8;
+    text-align: center;
+}
+
+.about-page .card:nth-of-type(2)::before {
+    content: "♡";
+    display: block;
+    font-size: 42px;
+    color: #c98672;
+    margin-bottom: 15px;
+}
+
+.about-page .cat-grid {
+    margin-top: 35px;
+    gap: 25px;
+}
+
+.about-page .cat-grid:empty {
+    display: none;
+}
+
+.about-page .cat-card {
+    background: #fffdf9;
+    border: 1px solid #e5d6c8;
+    border-radius: 20px;
+    padding: 22px;
+    box-shadow: 0 5px 18px rgba(121, 82, 63, 0.08);
+    transition: transform 0.25s ease;
+}
+
+.about-page .cat-card:hover {
+    transform: translateY(-5px);
+}
+
+.about-page .cat-photo {
+    width: 100%;
+    height: 230px;
+    object-fit: cover;
+    border-radius: 14px;
+}
+
+.about-page .cat-card h2 {
+    font-size: 23px;
+    margin: 16px 0 10px;
+}
+
+.about-page .cat-card p {
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .about-page {
+        padding: 35px 16px 55px;
+    }
+
+    .about-page .card {
+        padding: 35px 25px;
+        margin: 25px 0;
+        border-radius: 18px;
+    }
+
+    .about-page .card:first-of-type {
+        padding: 55px 25px;
+    }
+
+    .about-page .card p {
+        font-size: 15px;
+        line-height: 1.8;
+    }
+}
+
+@media (max-width: 480px) {
+    .about-page .cats-section > h1 {
+        font-size: 36px;
+    }
+
+    .about-page .card h2 {
+        font-size: 27px;
+    }
+
+    .about-page .card:first-of-type::before,
+    .about-page .card:first-of-type::after {
+        font-size: 28px;
+    }
+}

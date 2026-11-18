@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PURRSONA MEOW - About Us</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="aboutus-design.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main class="about-page">
+      <section class="cats-section">
+        <h1>About Us</h1>
+        <div class="card">
+                <h2>Welcome to Purrsona Meow</h2>
+                <p>This is our little, cozy cat cafe.Lounge around with our feline friends as you bask in the warm atmosphere.
+                  We have private sessions, events, tasty snacks, drinks and desserts!~
+                </p>
+            </div>
+        <div class="card">
+                <h2>Our Socials</h2>
+                <p>Follow us on social media for updates and special offers!</p>
+            </div>
+        <div class="cat-grid" id="catGrid"></div>
+      </section>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+  
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+    onDataReady(async function () {
+      renderLayout('aboutus.html');
+    });
+  </script>
+</body>
+</html>

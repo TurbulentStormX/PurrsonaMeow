@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Login</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main>
+      <form class="card" id="loginForm">
+        <h1>Login</h1>
+        <p>For guests, admin and cat handlers.</p>
+        <label>Email or username <input type="text" id="username" required></label>
+        <label>Password <input type="password" id="password" required></label>
+        <button type="submit">Log in</button>
+        <div class="msg-error" id="error"></div>
+        <p class="link-row"><a href="forgot.html">Forgot your password?</a></p>
+        <p class="link-row">New here? <a href="signup.html">Create a guest account</a></p>
+      </form>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('login.html');
+
+    document.getElementById('loginForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      const error = document.getElementById('error');
+      error.textContent = '';
+      try {
+        // send the email/username and password to the server...
+        const data = await api.post('/auth/login', {
+          username: document.getElementById('username').value,
+          password: document.getElementById('password').value
+        });
+        // ...it sends back { token, user }. Keep them in this browser and go to the right page.
+        saveAuth(data);
+        window.location.href = homePageFor(data.user.role);
+      } catch (e) {
+        error.textContent = errorText(e);
+      }
+    });
+    });
+  </script>
+</body>
+</html>

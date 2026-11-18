@@ -1,0 +1,235 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PURRSONA MEOW - Home</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="home-design.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main class="home-page">
+      <section class="home-hero" aria-label="Welcome to Purrsona Meow">
+        <div class="hero-copy">
+          <span class="hero-kicker">A cozy place for paws & people</span>
+          <h1>PURRSONA MEOW</h1>
+          <p>Sipping Happiness, Purrfectly Brewed</p>
+          <a class="hero-book" href="booking.html">
+            Book your purrfect visit
+            <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+        
+      </section>
+
+      <div class="home-paper">
+        <section class="home-intro" aria-labelledby="home-welcome">
+          <div class="section-eyebrow">
+            ✦ &nbsp; WELCOME TO PURRSONA MEOW &nbsp; ✦
+          </div>
+          <h2 id="home-welcome">
+            Enjoy the meow-ment with our cats~
+          </h2>
+          <p>
+            Reserve a private cat-interaction room or join a special
+            cat session. Choose your own start time and hours.
+          </p>
+          <div class="home-status">
+            <div class="status-banner" id="cafeStatus"></div>
+            <p class="hint-line" id="holidayNote"></p>
+          </div>
+        </section>
+
+        <section class="home-sessions" aria-labelledby="sessions-title">
+          <h2 id="sessions-title" class="handwritten-title">
+            Come spend time with us
+          </h2>
+          <div class="cards" id="sessionCards"></div>
+          <a class="cta" href="booking.html">
+            Book a session now ↗
+          </a>
+        </section>
+
+        <section class="home-today" aria-labelledby="today-title">
+          <div class="today-heading">
+            <h2 id="today-title">Today's Active Cats</h2>
+            <span>✿</span>
+          </div>
+          <div class="home-availability">
+            <div class="availability-group">
+              <h3>Our cats right now</h3>
+              <div class="who-grid" id="catStatus"></div>
+            </div>
+            <div class="availability-group">
+              <h3>Our cat handlers right now</h3>
+              <div class="who-grid" id="staffStatus"></div>
+            </div>
+          </div>
+          <p class="hint">
+            Cats and handlers rest for a while after every session.
+            This board updates by itself.
+          </p>
+        </section>
+
+        <div class="home-flourish" aria-hidden="true">
+          ❧ &nbsp; ♡ &nbsp; ❧
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('index.html');
+
+    function chip(status) {
+      const span = document.createElement('span');
+      span.className = 'chip ' + status.state;
+      span.textContent = status.text;
+      return span;
+    }
+
+    function renderStatus() {
+      const now = new Date();
+      const cafe = cafeStatusNow(now);
+      const banner = document.getElementById('cafeStatus');
+      banner.className = 'status-banner' + (cafe.open ? '' : ' closed');
+      banner.textContent = (cafe.open ? 'We are open. ' : 'We are closed. ') + cafe.text + '.';
+
+      const next = loadHolidays()
+        .filter(h => h.date >= todayString())
+        .sort((a, b) => a.date.localeCompare(b.date))[0];
+
+      document.getElementById('holidayNote').innerHTML = '';
+
+      if (next) {
+        document.getElementById('holidayNote').appendChild(
+          document.createTextNode(
+            'Next public holiday: ' + next.name + ', ' +
+            formatDate(next.date) + ' (' +
+            (next.mode === 'closed'
+              ? 'closed'
+              : 'open ' + timeLabel(next.from) + ' to ' + timeLabel(next.to)
+            ) + '). '
+          )
+        );
+
+        const link = document.createElement('a');
+        link.href = 'hours.html';
+        link.textContent = 'See all opening hours';
+        document.getElementById('holidayNote').appendChild(link);
+      }
+
+      const cats = document.getElementById('catStatus');
+      cats.innerHTML = '';
+
+      loadCats().forEach(function (cat) {
+        const card = document.createElement('div');
+        card.className = 'who-card';
+
+        if (cat.photo) {
+          const img = document.createElement('img');
+          img.src = cat.photo;
+          img.alt = cat.name;
+          card.appendChild(img);
+        } else {
+          const none = document.createElement('div');
+          none.className = 'noimg';
+          none.textContent = 'No photo';
+          card.appendChild(none);
+        }
+
+        const name = document.createElement('strong');
+        name.textContent = cat.name;
+        card.appendChild(name);
+
+        const rating = catRating(cat.id);
+
+        if (rating.count > 0) {
+          const stars = document.createElement('div');
+          stars.className = 'stars';
+          stars.textContent = starsText(rating.avg) + ' ' + rating.avg;
+          card.appendChild(stars);
+        }
+
+        card.appendChild(chip(personStatusNow('cat', cat.id, now)));
+        cats.appendChild(card);
+      });
+
+      const staff = document.getElementById('staffStatus');
+      staff.innerHTML = '';
+
+      allHandlers().forEach(function (h) {
+        const card = document.createElement('div');
+        card.className = 'who-card';
+
+        const none = document.createElement('div');
+        none.className = 'noimg';
+        none.textContent = h.name.charAt(0);
+        card.appendChild(none);
+
+        const name = document.createElement('strong');
+        name.textContent = h.name;
+        card.appendChild(name);
+
+        card.appendChild(chip(personStatusNow('handler', h.username, now)));
+        staff.appendChild(card);
+      });
+    }
+
+    const cards = document.getElementById('sessionCards');
+
+    loadSessions().filter(s => s.active).forEach(function (s) {
+      const prices = loadRates()
+        .filter(r => r.active && (r.sessionId === s.id || r.sessionId === ''))
+        .map(r => r.pricePerHour);
+
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const title = document.createElement('h2');
+      title.textContent = s.name;
+
+      const text = document.createElement('p');
+      text.textContent =
+        'Up to ' + s.max + ' guests. ' +
+        hoursText(s.minHours) +
+        (s.maxHours > s.minHours
+          ? ' to ' + hoursText(s.maxHours)
+          : '') +
+        '. ' +
+        (prices.length
+          ? 'From ' + money(Math.min.apply(null, prices)) + ' per hour.'
+          : '');
+
+      card.appendChild(title);
+      card.appendChild(text);
+      cards.appendChild(card);
+    });
+
+    renderStatus();
+    setInterval(async function () {
+      try { await refreshData(); } catch (e) { /* keep the copy we have */ }
+      renderStatus();
+    }, window.CATCAFE_POLL_MS || 30000);
+    });
+  </script>
+</body>
+</html>

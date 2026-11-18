@@ -1,0 +1,170 @@
+/* Login and sign up */
+.msg-error { color: crimson; margin-top: 12px; }
+.msg-ok { color: green; margin-top: 12px; }
+.link-row { margin-top: 12px; font-size: 14px; }
+.hint { font-size: 12px; color: #666; }
+
+/* Meet our cats */
+.cats-section { background: #d9c9b8; padding: 24px; border-radius: 12px; }
+.cats-section h1 { text-align: center; font-family: Georgia, 'Times New Roman', serif; letter-spacing: 1px; text-transform: uppercase; }
+.cat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 16px; }
+.cat-card { background: #dcdcdc; border-radius: 14px; padding: 20px; text-align: center; font-family: Georgia, 'Times New Roman', serif; }
+.cat-photo { width: 160px; height: 180px; object-fit: cover; border-radius: 14px; }
+.cat-photo.placeholder { display: flex; align-items: center; justify-content: center; background: #bbb; margin: 0 auto; color: #555; font-size: 13px; }
+.cat-card h2 { font-size: 18px; margin: 12px 0 8px; }
+.cat-card p { margin: 3px 0; font-size: 15px; }
+
+/* Events */
+.event-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; max-width: 640px; }
+.event-card h2 { margin: 0 0 6px; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; color: white; margin-left: 8px; vertical-align: middle; }
+.badge.ongoing { background: #2e8b57; }
+.badge.upcoming { background: #c77d1a; }
+.offer { color: #a5390f; font-weight: bold; }
+
+/* Sessions */
+.status-pill { padding: 2px 8px; border-radius: 10px; font-size: 12px; color: white; }
+.status-Requested { background: #c77d1a; }
+.status-Assigned { background: #2563eb; }
+.status-Concluded { background: #2e8b57; }
+.status-Cancelled { background: #888; }
+.wide-card { max-width: 900px; }
+.result-box { margin-top: 12px; padding: 12px; background: #fff7ee; border-radius: 8px; }
+.result-box p { margin: 4px 0; }
+
+/* ===== Added: header link, booking schedule, menu, orders ===== */
+.brand a { color: white; text-decoration: none; }
+.wide-card { max-width: 1100px; }
+input[readonly] { background: #f0f0f0; }
+
+/* Booking page: form on the left, schedule on the right */
+.booking-wrap { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+.booking-wrap .card { margin-bottom: 0; }
+.schedule { flex: 1; min-width: 300px; max-width: 480px; }
+.schedule table { font-size: 13px; }
+.slot { text-align: center; border-radius: 6px; padding: 6px; cursor: pointer; }
+.slot small { display: block; font-size: 11px; color: #555; }
+.slot.ok { background: #d8f0dc; }
+.slot.few { background: #fde8c4; }
+.slot.full { background: #f7c9c9; cursor: not-allowed; }
+.legend { font-size: 12px; margin-top: 8px; }
+
+/* Menu and ordering */
+.banner { background: #fff1d6; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; }
+.banner .cta { margin-left: 8px; }
+.menu-layout { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+.menu-list { flex: 2; min-width: 280px; }
+.cart { flex: 1; min-width: 260px; max-width: 380px; }
+.menu-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: white; padding: 12px 16px; border-radius: 10px; margin-bottom: 8px; }
+.menu-item.soldout { opacity: 0.5; }
+.menu-item button { margin-top: 0; }
+.price { font-weight: bold; margin-right: 8px; }
+.cart-line { display: flex; justify-content: space-between; align-items: center; margin: 6px 0; }
+.qty-btn { padding: 2px 8px; margin: 0 4px; }
+.total { font-weight: bold; margin-top: 12px; }
+.status-Ordered { background: #c77d1a; }
+.status-Served { background: #2e8b57; }
+.row-actions button { margin-top: 0; }
+.summary { margin: 12px 0; font-weight: bold; }
+.topbar-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+/* ===== Added: rooms, sessions, events, photos ===== */
+.slot.closed { background: #eeeeee; color: #999; cursor: default; }
+.rooms-overview { margin-top: 16px; }
+.rooms-overview table { font-size: 12px; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0 16px; }
+.checks label { display: inline-block; margin-right: 12px; margin-top: 6px; }
+.checks input { width: auto; margin-right: 4px; }
+.inline-check { display: flex; align-items: center; gap: 8px; }
+.inline-check input { width: auto; margin-top: 0; }
+.thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 8px; vertical-align: middle; }
+.thumb.empty { display: inline-flex; align-items: center; justify-content: center; background: #ddd; color: #777; font-size: 10px; text-align: center; }
+.menu-photo { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; margin-right: 12px; }
+.menu-photo.empty { display: inline-flex; align-items: center; justify-content: center; background: #eee; color: #999; font-size: 10px; text-align: center; }
+.menu-item .left { display: flex; align-items: center; }
+.preview { max-width: 120px; max-height: 120px; border-radius: 8px; margin-top: 8px; display: block; }
+.form-buttons { margin-top: 12px; }
+.form-buttons button { margin-right: 8px; }
+.note { font-size: 12px; color: #666; margin-top: 8px; }
+
+/* ===== Added: password checklist, booking lookup ===== */
+.pw-rules { list-style: none; padding: 0; margin: 8px 0 0; font-size: 12px; color: #777; }
+.pw-rules li::before { content: '\25CB  '; }
+.pw-rules li.met { color: green; }
+.pw-rules li.met::before { content: '\2713  '; }
+.practice-box { background: #fff1d6; border: 1px dashed #c77d1a; border-radius: 8px; padding: 12px; margin-top: 12px; font-size: 14px; }
+.practice-box strong.code { font-size: 22px; letter-spacing: 3px; }
+.msg-ok { color: green; margin-top: 12px; }
+
+/* ===== Added: cats, payment, rates, staff, lunch break ===== */
+.resting { color: #a5390f; font-weight: bold; }
+.cat-chip { display: inline-flex; align-items: center; gap: 4px; margin: 2px 8px 2px 0; font-size: 13px; }
+.cat-chip .thumb { width: 28px; height: 28px; border-radius: 6px; }
+.pay-Paid { background: #2e8b57; }
+.pay-Unpaid { background: #c77d1a; }
+.pay-Refunded { background: #7c3aed; }
+.pay-none { background: #888; }
+.slot.lunch { background: #e6e0f5; color: #6b5fa0; cursor: default; }
+.slot.booked { background: #dbe7ff; }
+.slot.resting { background: #eeeeee; color: #888; cursor: default; }
+.slot.mine { outline: 2px solid #2563eb; }
+.slot small { white-space: normal; }
+.cat-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 8px; }
+.cat-option { border: 2px solid #ddd; border-radius: 12px; padding: 8px; text-align: center; background: white; cursor: pointer; font-size: 13px; }
+.cat-option img, .cat-option .noimg { width: 70px; height: 70px; object-fit: cover; border-radius: 10px; }
+.cat-option .noimg { display: inline-flex; align-items: center; justify-content: center; background: #ddd; color: #777; font-size: 10px; }
+.cat-option strong { display: block; margin-top: 4px; }
+.cat-option small { display: block; color: #666; }
+.cat-option.chosen { border-color: #2563eb; background: #eef4ff; }
+.cat-option.unavailable { opacity: 0.5; cursor: not-allowed; }
+.notice { background: #eef4ff; border-left: 4px solid #2563eb; padding: 10px 14px; border-radius: 8px; margin: 12px 0; }
+.notice.warn { background: #fff1d6; border-left-color: #c77d1a; }
+.notice.good { background: #e3f6e8; border-left-color: #2e8b57; }
+.rate-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 16px; }
+.rate-card .big-price { font-size: 32px; font-weight: bold; color: #7a4b2a; }
+.rate-card ul { padding-left: 18px; margin: 8px 0; }
+.edit-row td { background: #f7f2ea; }
+.edit-row label { display: inline-block; margin-right: 12px; }
+.edit-row select { width: auto; }
+.table-scroll { overflow-x: auto; }
+.pay-methods label { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.pay-methods input { width: auto; margin-top: 0; }
+.receipt { background: #e3f6e8; border-radius: 10px; padding: 14px; margin-top: 12px; }
+.nowrap { white-space: nowrap; }
+
+/* ===== Added: status board, hours, reviews, FAQ, support, allergies ===== */
+.status-banner { padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; font-weight: bold; background: #e3f6e8; border-left: 5px solid #2e8b57; }
+.status-banner.closed { background: #fde8e8; border-left-color: #c0392b; }
+.who-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 8px 0 20px; }
+.who-card { background: white; border-radius: 12px; padding: 10px; text-align: center; font-size: 13px; }
+.who-card img, .who-card .noimg { width: 64px; height: 64px; object-fit: cover; border-radius: 50%; }
+.who-card .noimg { display: inline-flex; align-items: center; justify-content: center; background: #ddd; color: #777; font-size: 10px; }
+.who-card strong { display: block; margin-top: 4px; }
+.chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; color: white; margin-top: 4px; }
+.chip.free { background: #2e8b57; } .chip.session { background: #2563eb; } .chip.break { background: #c77d1a; }
+.chip.leave, .chip.resting { background: #888; }
+.stars { color: #e0a800; letter-spacing: 1px; white-space: nowrap; }
+.stars-input button { background: none; border: 0; font-size: 26px; padding: 0 2px; margin: 0; cursor: pointer; color: #ccc; }
+.stars-input button.on { color: #e0a800; }
+.review-card { background: white; border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; max-width: 700px; }
+.review-card p { margin: 4px 0; }
+.faq-item { background: white; border-radius: 10px; padding: 10px 16px; margin-bottom: 8px; max-width: 760px; }
+.faq-item summary { cursor: pointer; font-weight: bold; }
+.faq-item p { margin: 8px 0 2px; }
+.tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 16px; }
+.tier .big-price { font-size: 28px; font-weight: bold; color: #7a4b2a; }
+.tier.current { outline: 3px solid #2e8b57; }
+.allergen-tag { display: inline-block; background: #eee; border-radius: 8px; padding: 1px 7px; font-size: 11px; margin-right: 4px; }
+.allergen-tag.mine { background: #f7c9c9; color: #8a1f1f; font-weight: bold; }
+.item-info { display: block; }
+.item-info small { display: block; color: #555; }
+.menu-item.allergy-warning { border: 2px solid #c0392b; }
+.flag { color: #b03a00; font-weight: bold; font-size: 12px; }
+.timeline { table-layout: fixed; }
+.timeline th, .timeline td { text-align: center; padding: 3px; }
+.timeline td:first-child, .timeline th:first-child { width: 110px; text-align: left; }
+.slot.break { background: #fde8c4; color: #8a5a00; cursor: default; }
+.slot.shut { background: #e6e0f5; color: #6b5fa0; cursor: default; }
+.slot.out { background: #f3f3f3; color: #aaa; cursor: default; }
+.hint-line { margin: 6px 0; font-size: 13px; }
+.copy { font-size: 12px; color: #666; }

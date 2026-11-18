@@ -1,0 +1,30 @@
+# Render "Blueprint": describes the web service so it can be created in one go (see docs/DEPLOY.md).
+services:
+  - type: web
+    name: cat-cafe
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CAFE_TIMEZONE
+        value: Asia/Singapore
+      - key: RESET_CODE_MODE
+        value: console
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGODB_URI
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: AISHA_PASSWORD
+        sync: false
+      - key: BEN_PASSWORD
+        sync: false
+      - key: EMAIL_USER        # optional: sends booking emails
+        sync: false
+      - key: EMAIL_PASS        # optional: Gmail app password
+        sync: false

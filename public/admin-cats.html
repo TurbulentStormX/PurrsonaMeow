@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Admin - Cats</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main>
+      <div class="card wide-card">
+        <h1>Admin: Cats</h1>
+        <p class="hint">Add, edit or delete cats and their photos. Each cat has a handler: when a guest books a cat, that handler looks after the session. If a cat is unwell, untick Available: coming bookings get another free cat automatically.</p>
+        <div id="notice"></div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Photo</th><th>Name</th><th>About</th><th>Handler</th><th>Status</th><th>Upcoming bookings</th><th>Rating</th><th>Action</th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <form class="card" id="catForm">
+        <h2 id="formTitle">Add a cat</h2>
+        <label>Name <input type="text" id="catName" required></label>
+        <label>Who is it? (for example: Moody's Brother) <input type="text" id="catRelation"></label>
+        <label>Notes (one line each)
+          <textarea id="catNotes" rows="4" placeholder="Loves to eat&#10;May scratch if overstimulated"></textarea>
+        </label>
+        <label>Looked after by <select id="catHandler"></select></label>
+        <label>Photo <input type="file" id="catPhoto" accept="image/*"></label>
+        <img id="preview" class="preview" alt="" style="display:none">
+        <button type="button" id="removePhoto" style="display:none">Remove photo</button>
+        <label class="inline-check"><input type="checkbox" id="catActive" checked> Available for sessions</label>
+        <label>If not available, why? (guests can see it) <input type="text" id="catNote" placeholder="e.g. Vet visit"></label>
+        <div class="form-buttons">
+          <button type="submit" id="saveBtn">Add cat</button>
+          <button type="button" id="cancelBtn" style="display:none">Cancel editing</button>
+        </div>
+        <div class="msg-error" id="error"></div>
+      </form>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('admin-cats.html');
+    if (guardPage(['admin'], 'manage cats')) initCats();
+
+    function initCats() {
+      const el = id => document.getElementById(id);
+      let editingId = null;
+      let photoData = '';                      // the photo for the cat being added or edited
+
+      allHandlers().forEach(function (h) {
+        const o = document.createElement('option');
+        o.value = h.username; o.textContent = h.name;
+        el('catHandler').appendChild(o);
+      });
+
+      function showPhoto() {
+        el('preview').style.display = photoData ? 'block' : 'none';
+        if (photoData) el('preview').src = photoData;
+        el('removePhoto').style.display = photoData ? 'inline-block' : 'none';
+      }
+      function say(lines, kind) {
+        el('notice').innerHTML = '';
+        if (!lines.length) return;
+        const div = document.createElement('div');
+        div.className = 'notice ' + (kind || '');
+        lines.forEach(function (t) {
+          const p = document.createElement('p');
+          p.style.margin = '2px 0';
+          p.textContent = t;
+          div.appendChild(p);
+        });
+        el('notice').appendChild(div);
+      }
+      function resetForm() {
+        editingId = null;
+        el('catForm').reset();
+        photoData = '';
+        showPhoto();
+        el('catActive').checked = true;
+        el('formTitle').textContent = 'Add a cat';
+        el('saveBtn').textContent = 'Add cat';
+        el('cancelBtn').style.display = 'none';
+        el('error').textContent = '';
+      }
+      function startEdit(cat) {
+        editingId = cat.id;
+        el('catName').value = cat.name;
+        el('catRelation').value = cat.relation || '';
+        el('catNotes').value = (cat.notes || []).join('\n');
+        el('catHandler').value = cat.handler;
+        el('catActive').checked = cat.active;
+        el('catNote').value = cat.note || '';
+        photoData = cat.photo || '';
+        showPhoto();
+        el('formTitle').textContent = 'Edit ' + cat.name;
+        el('saveBtn').textContent = 'Save changes';
+        el('cancelBtn').style.display = 'inline-block';
+        el('error').textContent = '';
+        el('catForm').scrollIntoView();
+      }
+      function deleteCat(cat) {
+        const upcoming = upcomingBookingsForCat(cat.id);
+        if (upcoming.length > 0) {
+          alert(cat.name + ' is in ' + upcoming.length + ' upcoming booking(s) (' + upcoming.map(r => r.code).join(', ') + '), so it cannot be deleted. Untick Available instead: those bookings get another cat.');
+          return;
+        }
+        if (!confirm('Delete ' + cat.name + '?')) return;
+        saveCats(loadCats().filter(c => c.id !== cat.id));
+        if (editingId === cat.id) resetForm();
+        say([]);
+        render();
+      }
+
+      function render() {
+        const body = el('rows');
+        body.innerHTML = '';
+        loadCats().forEach(function (cat) {
+          const tr = body.insertRow();
+          const photoCell = tr.insertCell();
+          if (cat.photo) {
+            const img = document.createElement('img');
+            img.className = 'thumb'; img.src = cat.photo; img.alt = cat.name;
+            photoCell.appendChild(img);
+          } else {
+            const none = document.createElement('span');
+            none.className = 'thumb empty'; none.textContent = 'No photo';
+            photoCell.appendChild(none);
+          }
+          tr.insertCell().textContent = cat.name;
+          tr.insertCell().textContent = [cat.relation].concat(cat.notes || []).filter(Boolean).join(' | ') || '-';
+
+          // change who looks after this cat straight from the table
+          const handlerCell = tr.insertCell();
+          const select = document.createElement('select');
+          select.className = 'handler-select';
+          allHandlers().forEach(function (h) {
+            const o = document.createElement('option');
+            o.value = h.username; o.textContent = h.name;
+            select.appendChild(o);
+          });
+          select.value = cat.handler;
+          select.addEventListener('change', function () {
+            const list = loadCats();
+            list.find(c => c.id === cat.id).handler = select.value;
+            saveCats(list);
+            say([cat.name + ' is now looked after by ' + handlerName(select.value) + '. New bookings with ' + cat.name + ' go to ' + handlerName(select.value) + '.'], 'good');
+          });
+          handlerCell.appendChild(select);
+
+          tr.insertCell().textContent = cat.active ? 'Available' : 'Resting' + (cat.note ? ': ' + cat.note : '');
+          tr.insertCell().textContent = upcomingBookingsForCat(cat.id).length;
+          const rating = catRating(cat.id);
+          tr.insertCell().textContent = rating.count ? starsText(rating.avg) + ' ' + rating.avg + ' (' + rating.count + ')' : '-';
+          const action = tr.insertCell();
+          action.className = 'nowrap';
+          const edit = document.createElement('button');
+          edit.textContent = 'Edit';
+          edit.addEventListener('click', () => startEdit(cat));
+          const del = document.createElement('button');
+          del.textContent = 'Delete';
+          del.style.marginLeft = '6px';
+          del.addEventListener('click', () => deleteCat(cat));
+          action.appendChild(edit);
+          action.appendChild(del);
+        });
+      }
+
+      el('catPhoto').addEventListener('change', function () {
+        const file = el('catPhoto').files[0];
+        if (!file) return;
+        resizeImage(file, 400, function (data) { photoData = data; showPhoto(); el('error').textContent = ''; },
+                    function (message) { el('error').textContent = message; });
+      });
+      el('removePhoto').addEventListener('click', function () { photoData = ''; el('catPhoto').value = ''; showPhoto(); });
+
+      el('catForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const name = el('catName').value.trim();
+        const cats = loadCats();
+        if (!name) { el('error').textContent = 'Please enter a name.'; return; }
+        if (cats.some(c => c.name.toLowerCase() === name.toLowerCase() && c.id !== editingId)) { el('error').textContent = 'There is already a cat with that name.'; return; }
+
+        const data = {
+          name: name, relation: el('catRelation').value.trim(),
+          notes: el('catNotes').value.split('\n').map(l => l.trim()).filter(Boolean),
+          handler: el('catHandler').value, photo: photoData,
+          active: el('catActive').checked, note: el('catActive').checked ? '' : el('catNote').value.trim()
+        };
+        let id = editingId;
+        if (editingId) {
+          Object.assign(cats.find(c => c.id === editingId), data);
+        } else {
+          id = 'c' + Date.now();
+          cats.push(Object.assign({ id: id }, data));
+        }
+        saveCats(cats);
+
+        // a cat switched off (unwell or resting): its coming bookings get another free cat
+        const lines = [];
+        let kind = 'good';
+        if (!data.active) {
+          await flushSaves();                                   // make sure the server knows the cat is switched off
+          const out = await replaceCatInUpcomingBookings(id);
+          if (out.error) { lines.push(out.error); kind = 'warn'; }
+          else {
+            out.replaced.forEach(r => lines.push(r.code + ': ' + r.from + ' was replaced by ' + r.to + '. The guest sees a note.'));
+            out.stuck.forEach(c => lines.push(c + ': no other cat is free then. Open Reservations and use Edit, or cancel it with a full refund.'));
+            if (out.stuck.length) kind = 'warn';
+          }
+          if (lines.length === 0) lines.push(data.name + ' is switched off. No coming bookings are affected.');
+        }
+        say(lines, kind);
+        resetForm();
+        render();
+      });
+      el('cancelBtn').addEventListener('click', resetForm);
+
+      resetForm();
+      render();
+    }
+    });
+  </script>
+</body>
+</html>

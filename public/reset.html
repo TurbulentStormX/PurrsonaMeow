@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Reset password</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main>
+      <form class="card" id="resetForm">
+        <h1>Reset your password</h1>
+        <label>Email <input type="email" id="email" required></label>
+        <label>6-digit reset code <input type="text" id="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required></label>
+        <label>New password <input type="password" id="password" maxlength="12" autocomplete="new-password" required></label>
+        <ul class="pw-rules" id="pwRules"></ul>
+        <label>Confirm new password <input type="password" id="confirm" maxlength="12" autocomplete="new-password" required></label>
+        <button type="submit">Change password</button>
+        <div class="msg-error" id="error"></div>
+        <p class="link-row">No code yet? <a href="forgot.html">Request one</a> &nbsp;|&nbsp; <a href="login.html">Back to login</a></p>
+      </form>
+
+      <div class="card" id="done" style="display:none">
+        <h1>Password changed</h1>
+        <p>You can now log in with your new password.</p>
+        <a class="cta" href="login.html">Log in</a>
+      </div>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('reset.html');
+    showPasswordChecklist(document.getElementById('password'), document.getElementById('pwRules'));
+
+    // The "I have my code" link on the previous page fills in the email
+    const fromLink = new URLSearchParams(window.location.search).get('email');
+    if (fromLink) document.getElementById('email').value = fromLink;
+
+    document.getElementById('resetForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      const error = document.getElementById('error');
+      const password = document.getElementById('password').value;
+
+      const problem = passwordProblem(password);
+      if (problem) { error.textContent = problem; return; }
+      if (password !== document.getElementById('confirm').value) { error.textContent = 'The two passwords do not match.'; return; }
+      error.textContent = '';
+
+      try {
+        await api.post('/auth/reset', {
+          email: document.getElementById('email').value,
+          code: document.getElementById('code').value,
+          password: password
+        });
+        document.getElementById('resetForm').style.display = 'none';
+        document.getElementById('done').style.display = 'block';
+      } catch (e) {
+        error.textContent = errorText(e);
+      }
+    });
+    });
+  </script>
+</body>
+</html>

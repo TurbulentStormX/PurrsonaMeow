@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Admin - Staff and leave</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main>
+      <div class="card wide-card">
+        <h1>Admin: Staff and leave</h1>
+
+        <h2>Breaks</h2>
+        <p>After every session, the cats and the handler who were in it rest. Nobody can book them again until the break is over.</p>
+        <label>Break after each session (minutes) <input type="number" id="breakMinutes" min="0" max="240" step="5" style="width:120px"></label>
+        <div class="form-buttons"><button type="button" id="saveBreak">Save break length</button></div>
+        <div id="breakResult"></div>
+      </div>
+
+      <div class="card wide-card">
+        <h2>Handlers</h2>
+        <p class="hint">Which cats each handler looks after is set on <a href="admin-cats.html">Manage Cats</a>.</p>
+        <table>
+          <thead><tr><th>Handler</th><th>Contact</th><th>Cats</th><th>Upcoming sessions</th><th>Right now</th></tr></thead>
+          <tbody id="handlerRows"></tbody>
+        </table>
+      </div>
+
+      <form class="card" id="leaveForm">
+        <h2>Record leave (sick, urgent leave, ...)</h2>
+        <p class="hint">Their upcoming sessions on those days move to another free handler automatically. A session nobody can cover is flagged on Reservations.</p>
+        <label>Handler <select id="leaveHandler"></select></label>
+        <label>From <input type="date" id="leaveStart" required></label>
+        <label>To (same day for one day) <input type="date" id="leaveEnd" required></label>
+        <label>Reason <select id="leaveReason"></select></label>
+        <label>Note (optional) <input type="text" id="leaveNote"></label>
+        <button type="submit">Record leave and move sessions</button>
+        <div id="leaveResult"></div>
+      </form>
+
+      <div class="card wide-card">
+        <h2>Leave list</h2>
+        <table>
+          <thead><tr><th>Handler</th><th>From</th><th>To</th><th>Reason</th><th>Note</th><th>Action</th></tr></thead>
+          <tbody id="leaveRows"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('admin-staff.html');
+    if (guardPage(['admin'], 'manage staff')) initStaff();
+
+    function initStaff() {
+      const el = id => document.getElementById(id);
+      const today = todayString();
+
+      function show(target, lines, kind) {
+        target.innerHTML = '';
+        const div = document.createElement('div');
+        div.className = 'notice ' + (kind || '');
+        lines.forEach(function (text) {
+          const p = document.createElement('p');
+          p.style.margin = '2px 0';
+          p.textContent = text;
+          div.appendChild(p);
+        });
+        target.appendChild(div);
+      }
+
+      // ----- the break after each session -----
+      el('breakMinutes').value = loadSettings().breakMinutes;
+      el('saveBreak').addEventListener('click', function () {
+        const minutes = Number(el('breakMinutes').value);
+        if (!(minutes >= 0 && minutes <= 240) || el('breakMinutes').value === '') { show(el('breakResult'), ['Please enter a number of minutes from 0 to 240.'], 'warn'); return; }
+        saveSettings({ breakMinutes: minutes });
+        show(el('breakResult'), ['Saved. Cats and handlers now rest ' + minutes + ' minutes after every session. Bookings already made are not changed.'], 'good');
+      });
+
+      // ----- handlers and leave -----
+      function render() {
+        const body = el('handlerRows');
+        body.innerHTML = '';
+        const all = loadReservations();
+        allHandlers().forEach(function (h) {
+          const tr = body.insertRow();
+          tr.insertCell().textContent = h.name;
+          tr.insertCell().textContent = h.contact;
+          tr.insertCell().textContent = loadCats().filter(c => c.handler === h.username).map(c => c.name).join(', ') || '-';
+          tr.insertCell().textContent = all.filter(r => r.status === 'Assigned' && handlerUsernameOf(r) === h.username && r.date >= today).length;
+          tr.insertCell().textContent = personStatusNow('handler', h.username).text;
+        });
+
+        const leaves = loadLeaves().sort((a, b) => a.start.localeCompare(b.start));
+        const lb = el('leaveRows');
+        lb.innerHTML = '';
+        if (leaves.length === 0) {
+          const td = lb.insertRow().insertCell();
+          td.colSpan = 6;
+          td.textContent = 'No leave recorded.';
+        }
+        leaves.forEach(function (l) {
+          const tr = lb.insertRow();
+          [handlerName(l.handler), formatDate(l.start), formatDate(l.end), l.reason, l.note || '-'].forEach(v => { tr.insertCell().textContent = v; });
+          const btn = document.createElement('button');
+          btn.textContent = 'Remove';
+          btn.addEventListener('click', async function () {
+            if (!confirm('Remove this leave? Sessions that were already moved stay where they are.')) return;
+            await removeLeave(l.id);
+            render();
+          });
+          tr.insertCell().appendChild(btn);
+        });
+      }
+
+      allHandlers().forEach(function (h) {
+        const o = document.createElement('option');
+        o.value = h.username; o.textContent = h.name;
+        el('leaveHandler').appendChild(o);
+      });
+      LEAVE_REASONS.forEach(function (reason) {
+        const o = document.createElement('option');
+        o.value = reason; o.textContent = reason;
+        el('leaveReason').appendChild(o);
+      });
+      el('leaveStart').value = today;
+      el('leaveEnd').value = today;
+
+      el('leaveForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const done = await addLeave(el('leaveHandler').value, el('leaveStart').value, el('leaveEnd').value, el('leaveReason').value, el('leaveNote').value.trim());
+        if (!done.ok) { show(el('leaveResult'), [done.error], 'warn'); return; }
+        const lines = ['Leave recorded.'];
+        done.moved.forEach(m => lines.push(m.code + ' moved to ' + m.to + '.'));
+        done.uncovered.forEach(c => lines.push(c + ' could not be covered. It is flagged on Reservations: choose a handler with Edit.'));
+        if (done.moved.length + done.uncovered.length === 0) lines.push('No upcoming sessions were affected.');
+        show(el('leaveResult'), lines, done.uncovered.length ? 'warn' : 'good');
+        render();
+      });
+      render();
+    }
+    });
+  </script>
+</body>
+</html>

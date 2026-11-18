@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Support us</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="support-design.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    
+<main class="support-page">
+  <div class="support-container">
+
+    <section class="support-heading">
+      <span class="support-eyebrow">A LITTLE LOVE GOES A LONG WAY</span>
+      <h1>Support Our Furry Friends</h1>
+      <p>
+        Every little act of kindness makes a difference.
+        Help us provide our beloved cats with nutritious meals,
+        veterinary care, and a warm, loving home.
+      </p>
+    </section>
+
+    <div class="support-notice notice warn">
+      PRACTICE ONLY: No money is taken and no card details are asked for.
+    </div>
+
+    <div id="current" class="support-current"></div>
+
+    <section class="support-plans">
+      <div class="support-section-heading">
+        <h2>Choose Your Way to Help</h2>
+        <p>
+          Become a monthly supporter and make a difference
+          in the lives of our café cats.
+        </p>
+      </div>
+
+      <div class="tiers support-tiers" id="tiers"></div>
+    </section>
+
+    <section class="support-bottom">
+      <h2>Thank You for Caring!</h2>
+      <p>
+        Your kindness helps keep our cats happy, healthy,
+        and surrounded by love.
+      </p>
+      <p class="support-terms">
+        You can cancel your subscription anytime.
+        <a href="terms.html">Terms and Conditions</a>
+      </p>
+    </section>
+
+  </div>
+</main>
+
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('support.html');
+    const me = currentUser();
+    const isGuest = !!me && me.role === 'guest';
+
+    function mine() {
+      return loadSubscriptions().find(s => s.email === me.email && s.status === 'active') || null;
+    }
+
+    function render() {
+      const current = document.getElementById('current');
+      const tiers = document.getElementById('tiers');
+      current.innerHTML = '';
+      tiers.innerHTML = '';
+      const active = isGuest ? mine() : null;
+
+      if (active) {
+        const tier = SUPPORT_TIERS.find(t => t.id === active.tier);
+        const box = document.createElement('div');
+        box.className = 'notice good';
+        box.appendChild(document.createTextNode('Thank you! You support us as a ' + tier.name + ' (' + money(tier.price) + ' a month) since ' + formatDate(active.startedAt.slice(0, 10)) + '. '));
+        const cancel = document.createElement('button');
+        cancel.textContent = 'Cancel my subscription';
+        cancel.addEventListener('click', async function () {
+          if (!confirm('Cancel your ' + tier.name + ' subscription?')) return;
+          const done = await cancelSubscription();
+          if (!done.ok) alert(done.error);
+          render();
+        });
+        box.appendChild(cancel);
+        current.appendChild(box);
+      } else if (!isGuest) {
+        const box = document.createElement('div');
+        box.className = 'notice';
+        box.innerHTML = 'Log in or sign up to subscribe. &nbsp;';
+        box.innerHTML += '<a class="cta" href="login.html">Log in</a> &nbsp; <a class="cta" href="signup.html">Sign up</a>';
+        current.appendChild(box);
+      }
+
+      SUPPORT_TIERS.forEach(function (tier) {
+        const card = document.createElement('div');
+        card.className = 'card tier' + (active && active.tier === tier.id ? ' current' : '');
+        const h = document.createElement('h2');
+        h.textContent = tier.name;
+        const price = document.createElement('div');
+        price.className = 'big-price';
+        price.textContent = money(tier.price);
+        const per = document.createElement('small');
+        per.textContent = ' a month';
+        price.appendChild(per);
+        const p = document.createElement('p');
+        p.textContent = tier.text;
+        card.appendChild(h); card.appendChild(price); card.appendChild(p);
+        if (isGuest) {
+          const btn = document.createElement('button');
+          btn.textContent = active && active.tier === tier.id ? 'Your plan' : (active ? 'Switch to this plan' : 'Subscribe');
+          btn.disabled = !!active && active.tier === tier.id;
+          btn.addEventListener('click', async function () {
+            const done = await subscribe(me, tier.id);
+            if (!done.ok) alert(done.error);
+            render();
+          });
+          card.appendChild(btn);
+        }
+        tiers.appendChild(card);
+      });
+    }
+    render();
+    });
+  </script>
+</body>
+</html>

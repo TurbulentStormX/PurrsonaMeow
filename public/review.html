@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Review your session</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="review-design.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main class="review-page">
+  <div class="review-container">
+
+    <section class="review-heading">
+      <span class="review-eyebrow">PURRSONA MEOW</span>
+      <h1>Share Your Experience</h1>
+      <p>
+        We hope you had a pawsome time with our furry friends!
+        Tell us about your visit and help us make every
+        experience even more special.
+      </p>
+    </section>
+
+    <section class="review-card" id="reviewBox"></section>
+
+  </div>
+</main> 
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('review.html');
+    if (guardPage(['guest'], 'review a session')) initReview();
+
+    function initReview() {
+      const user = currentUser();
+      const code = (new URLSearchParams(window.location.search).get('code') || '').toUpperCase();
+      const box = document.getElementById('reviewBox');
+      const picked = {};                                  // key -> stars chosen
+
+      function notice(text, kind) {
+        const div = document.createElement('div');
+        div.className = 'notice ' + (kind || '');
+        div.textContent = text;
+        box.appendChild(div);
+      }
+      function back() {
+        const a = document.createElement('a');
+        a.className = 'cta';
+        a.href = 'sessions.html';
+        a.textContent = 'Back to my sessions';
+        box.appendChild(a);
+      }
+      // five stars you can click
+      function starInput(key) {
+        const wrap = document.createElement('div');
+        wrap.className = 'stars-input';
+        wrap.dataset.key = key;
+        const buttons = [];
+        for (let i = 1; i <= 5; i++) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.textContent = '\u2605';
+          b.setAttribute('aria-label', i + ' star' + (i === 1 ? '' : 's'));
+          b.addEventListener('click', function () {
+            picked[key] = i;
+            buttons.forEach((x, n) => x.classList.toggle('on', n < i));
+          });
+          buttons.push(b);
+          wrap.appendChild(b);
+        }
+        return wrap;
+      }
+      function commentBox(key) {
+        const t = document.createElement('textarea');
+        t.rows = 2; t.maxLength = 300; t.placeholder = 'Anything you would like to say? (optional)';
+        t.dataset.comment = key;
+        return t;
+      }
+
+      function render() {
+        box.innerHTML = '';
+        const title = document.createElement('h1');
+        title.textContent = 'Review your session';
+        box.appendChild(title);
+        const r = loadReservations().find(x => x.code === code && (x.email || '').toLowerCase() === user.email);
+
+        if (!r) { notice('We could not find that booking in your account.', 'warn'); back(); return; }
+        const sub = document.createElement('p');
+        sub.textContent = r.session + ', ' + formatDate(r.date) + ', ' + timeRange(r) + '.';
+        box.appendChild(sub);
+        if (r.status !== 'Concluded') { notice('You can review a session after it has finished.'); back(); return; }
+        const existing = reviewOf(r.code);
+        if (existing) {
+          notice('Thank you! You already reviewed this session.', 'good');
+          back();
+          return;
+        }
+
+        const handlerUser = handlerUsernameOf(r);
+        if (handlerUser) {
+          const h = document.createElement('h2');
+          h.textContent = 'Your cat handler: ' + handlerName(handlerUser);
+          box.appendChild(h);
+          box.appendChild(starInput('handler'));
+          box.appendChild(commentBox('handler'));
+        }
+        (r.cats || []).forEach(function (id, i) {
+          const h = document.createElement('h2');
+          h.textContent = catNamesOf(r)[i];
+          box.appendChild(h);
+          box.appendChild(starInput('cat:' + id));
+          box.appendChild(commentBox('cat:' + id));
+        });
+
+        const error = document.createElement('div');
+        error.className = 'msg-error';
+        error.id = 'reviewError';
+        const send = document.createElement('button');
+        send.id = 'sendReview';
+        send.textContent = 'Send my review';
+        send.addEventListener('click', async function () {
+          const comment = key => (box.querySelector('[data-comment="' + key + '"]') || {}).value || '';
+          const done = await addReview(r.code, user.email, {
+            handlerStars: picked.handler,
+            handlerComment: comment('handler'),
+            cats: (r.cats || []).map(id => ({ id: id, stars: picked['cat:' + id], comment: comment('cat:' + id) }))
+          });
+          if (!done.ok) { error.textContent = done.error; return; }
+          render();
+        });
+        box.appendChild(send);
+        box.appendChild(error);
+      }
+      render();
+    }
+    });
+  </script>
+</body>
+</html>

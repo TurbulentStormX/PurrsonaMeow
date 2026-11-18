@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Forgot password</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main>
+      <form class="card" id="forgotForm">
+        <h1>Forgot your password?</h1>
+        <p>Enter the email you signed up with. We will send you a 6-digit reset code.</p>
+        <label>Email <input type="email" id="email" required></label>
+        <button type="submit">Send reset code</button>
+        <div id="result"></div>
+        <p class="link-row"><a href="login.html">Back to login</a></p>
+      </form>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('forgot.html');
+
+    document.getElementById('forgotForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      const email = document.getElementById('email').value;
+      const result = document.getElementById('result');
+      result.innerHTML = '';
+      try {
+        const data = await api.post('/auth/forgot', { email: email });
+
+        // The message is the same whether or not the email has an account,
+        // so nobody can use this page to find out who has registered.
+        const message = document.createElement('p');
+        message.className = 'msg-ok';
+        message.textContent = data.message;
+        result.appendChild(message);
+
+        const box = document.createElement('div');
+        box.className = 'practice-box';
+        if (data.practiceCode) {
+          // Only when RESET_CODE_MODE=page (you are the only user). Normally the code is NOT sent to the page.
+          box.appendChild(document.createTextNode('Practice mode: this is the code the email would contain. '));
+          const strong = document.createElement('strong');
+          strong.className = 'code';
+          strong.textContent = data.practiceCode;
+          box.appendChild(strong);
+        } else {
+          box.textContent = 'Practice mode: there is no email service yet, so the code appears in the window where the server is running.';
+        }
+        result.appendChild(box);
+
+        const link = document.createElement('a');
+        link.className = 'cta';
+        link.style.marginTop = '12px';
+        link.href = 'reset.html?email=' + encodeURIComponent(email.trim().toLowerCase());
+        link.textContent = 'I have my code';
+        result.appendChild(link);
+      } catch (e) {
+        result.innerHTML = '';
+        const div = document.createElement('div');
+        div.className = 'msg-error';
+        div.textContent = errorText(e);
+        result.appendChild(div);
+      }
+    });
+    });
+  </script>
+</body>
+</html>

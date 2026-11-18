@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - FAQ</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="faq-design.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <<main class="faq-page">
+      <h1>Frequently asked questions</h1>
+      <div id="faqList"></div>
+
+      <form class="card" id="feedbackForm">
+        <h2>Feedback, or ask us a question</h2>
+        <p class="hint">Cannot find your answer? Tell us. If your question helps other guests, we may add the answer here.</p>
+        <label>Is this a... <select id="fbType"><option>Feedback</option><option>Question</option><option>Complaint</option><option>Compliment</option></select></label>
+        <label>Name <input type="text" id="fbName" required></label>
+        <label>Email <input type="email" id="fbEmail" required></label>
+        <label>Your message <textarea id="fbMessage" rows="4" maxlength="1000" required></textarea></label>
+        <button type="submit">Send</button>
+        <div id="fbResult"></div>
+      </form>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('faq.html');
+
+    loadFaq().forEach(function (item) {
+      const d = document.createElement('details');
+      d.className = 'faq-item';
+      const s = document.createElement('summary');
+      s.textContent = item.q;
+      const p = document.createElement('p');
+      p.textContent = item.a;
+      d.appendChild(s);
+      d.appendChild(p);
+      document.getElementById('faqList').appendChild(d);
+    });
+
+    // a logged-in guest does not need to type their details again
+    const me = currentUser();
+    if (me && me.role === 'guest') {
+      document.getElementById('fbName').value = me.name || '';
+      document.getElementById('fbEmail').value = me.email || '';
+    }
+
+    document.getElementById('feedbackForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      const message = document.getElementById('fbMessage').value.trim();
+      const result = document.getElementById('fbResult');
+      if (!message) { result.innerHTML = '<div class="msg-error">Please write your message.</div>'; return; }
+      const done = await submitFeedback({
+        type: document.getElementById('fbType').value,
+        name: document.getElementById('fbName').value,
+        email: document.getElementById('fbEmail').value,
+        message: message
+      });
+      if (!done.ok) {
+        result.innerHTML = '';
+        const bad = document.createElement('div');
+        bad.className = 'msg-error';
+        bad.textContent = done.error;
+        result.appendChild(bad);
+        return;
+      }
+      document.getElementById('fbMessage').value = '';
+      result.innerHTML = '<div class="msg-ok">Thank you! We have your message.</div>';
+    });
+    });
+  </script>
+</body>
+</html>

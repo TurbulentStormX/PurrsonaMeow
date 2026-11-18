@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Admin - Reservations</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main>
+      <div class="card wide-card">
+        <div class="topbar-row">
+          <h1>Admin: Reservations</h1>
+          <button type="button" id="resetBtn">Clear all practice data</button>
+        </div>
+        <p class="hint">Bookings are first come, first served and confirm themselves. The cat handler is chosen from the cats (change who looks after a cat on Manage Cats). Use Edit to change a handler, room or cats, for example if a handler or a cat is unwell.</p>
+        <div class="summary" id="summary"></div>
+        <div id="attention"></div>
+        <p class="hint" id="live"></p>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th>Code</th><th>Guest</th><th>Session</th><th>Date</th><th>Time</th><th>Guests</th><th>Cats</th>
+                  <th>Status</th><th>Payment</th><th>Room</th><th>Handler</th><th>Action</th></tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('admin.html');
+    if (guardPage(['admin'], 'manage reservations')) initAdmin();
+
+    function initAdmin() {
+      const POLL_MS = window.CATCAFE_POLL_MS || 5000;
+      const body = document.getElementById('rows');
+      const openEdits = new Set();             // codes whose edit panel is open
+      let lastSignature = '';
+
+      function makeSelect(options, value) {    // options: [[value, text], ...]
+        const select = document.createElement('select');
+        options.forEach(o => {
+          const option = document.createElement('option');
+          option.value = o[0];
+          option.textContent = o[1];
+          select.appendChild(option);
+        });
+        if (value !== undefined) select.value = value;
+        return select;
+      }
+      function button(text, onClick) {
+        const b = document.createElement('button');
+        b.textContent = text;
+        b.addEventListener('click', onClick);
+        return b;
+      }
+
+      // ----- the edit panel under a booking: change the room, handler or cats, or cancel it -----
+      function editPanel(r) {
+        const tr = document.createElement('tr');
+        tr.className = 'edit-row';
+        const td = tr.insertCell();
+        td.colSpan = 12;
+        const title = document.createElement('strong');
+        title.textContent = 'Edit ' + r.code + (r.requests ? ' (guest note: ' + r.requests + ')' : '');
+        td.appendChild(title);
+        td.appendChild(document.createElement('br'));
+
+        const session = loadSessions().find(s => s.id === r.sessionId);
+        const hours = bookingHours(r);
+        const rooms = loadRooms().filter(x => x.active && (!session || session.rooms.includes(x.id)));
+        const roomSelect = makeSelect(rooms.map(x => [x.id, roomLabel(x)]), r.roomId);
+        const handlerSelect = makeSelect(allHandlers().map(h => [h.username, h.name + (leaveOn(h.username, r.date) ? ' (on leave)' : '')]), handlerUsernameOf(r) || undefined);
+        const l1 = document.createElement('label'); l1.appendChild(document.createTextNode('Room ')); l1.appendChild(roomSelect);
+        const l2 = document.createElement('label'); l2.appendChild(document.createTextNode('Handler ')); l2.appendChild(handlerSelect);
+        td.appendChild(l1); td.appendChild(l2);
+        td.appendChild(document.createElement('br'));
+
+        const catBoxes = [];
+        if (session && session.catChoice) {
+          const label = document.createElement('span');
+          label.textContent = 'Cats (up to ' + session.maxCats + '): ';
+          td.appendChild(label);
+          loadCats().forEach(function (cat) {
+            const st = catState(cat, r.date, r.time, hours, r.code);
+            const mine = (r.cats || []).includes(cat.id);
+            const l = document.createElement('label');
+            const box = document.createElement('input');
+            box.type = 'checkbox'; box.value = cat.id; box.checked = mine;
+            box.style.width = 'auto';
+            box.disabled = !mine && st.state !== 'free';
+            l.appendChild(box);
+            l.appendChild(document.createTextNode(' ' + cat.name + (st.state === 'resting' ? ' (resting)' : st.state === 'booked' ? ' (booked)' : st.state === 'break' ? ' (on a break)' : '')));
+            td.appendChild(l);
+            catBoxes.push(box);
+          });
+          td.appendChild(document.createElement('br'));
+        }
+
+        const save = button('Save changes', async function () {
+          const changes = { roomId: roomSelect.value, handler: handlerSelect.value };
+          if (catBoxes.length) {
+            const ids = catBoxes.filter(b => b.checked).map(b => b.value);
+            const same = ids.length === (r.cats || []).length && ids.every(id => (r.cats || []).includes(id));
+            if (!same) changes.cats = ids;
+          }
+          const done = await editReservation(r.code, changes);
+          if (!done.ok) { alert(done.error); return; }
+          openEdits.delete(r.code);
+          render();
+        });
+        const cancel = button('Cancel this booking (full refund)', async function () {
+          if (!confirm('Cancel booking ' + r.code + ' for ' + r.name + '? ' + (r.paid ? 'They will be refunded in full.' : 'They have not paid.'))) return;
+          const done = await cancelReservation(r.code);
+          if (!done.ok) { alert(done.error); return; }
+          openEdits.delete(r.code);
+          render();
+        });
+        const close = button('Close', function () { openEdits.delete(r.code); render(); });
+        [save, cancel, close].forEach(b => { b.style.marginRight = '8px'; td.appendChild(b); });
+        return tr;
+      }
+
+      function render() {
+        body.innerHTML = '';
+        loadReservations().forEach(function (r) {
+          const tr = body.insertRow();
+          tr.insertCell().textContent = r.code;
+          const guestCell = tr.insertCell();
+          guestCell.textContent = r.name + ' (' + r.phone + ')';
+          if (r.requests) {
+            const note = document.createElement('div');
+            note.className = 'hint';
+            note.textContent = 'Note: ' + r.requests;
+            guestCell.appendChild(note);
+          }
+          [r.session, r.date, timeRange(r), r.guests].forEach(v => { tr.insertCell().textContent = v; });
+          tr.insertCell().appendChild(catChips(r));
+          const statusCell = tr.insertCell();
+          statusCell.appendChild(statusPill(r.status));
+          if (r.needsAttention && (r.status === 'Assigned' || r.status === 'Requested')) {
+            const flag = document.createElement('div');
+            flag.className = 'msg-error';
+            flag.textContent = r.needsAttention;
+            statusCell.appendChild(flag);
+          }
+          if (r.changeNote && r.status === 'Assigned') {
+            const note = document.createElement('div');
+            note.className = 'flag';
+            note.textContent = r.changeNote;
+            statusCell.appendChild(note);
+          }
+          tr.insertCell().appendChild(paymentPill(r));
+          tr.insertCell().textContent = r.zone || r.roomName || '-';
+          const handlerCell = tr.insertCell();
+          handlerCell.textContent = r.handler || (r.status === 'Cancelled' ? '-' : 'None yet');
+          if (r.handler && r.handlerBy && r.status === 'Assigned') {
+            const how = document.createElement('div');
+            how.className = 'hint';
+            how.textContent = { cat: 'chosen by the cats', random: 'picked at random', fallback: 'stepped in', leave: 'moved (leave)', admin: 'set by admin' }[r.handlerBy] || '';
+            handlerCell.appendChild(how);
+          }
+          const actionCell = tr.insertCell();
+          actionCell.className = 'nowrap';
+          if (r.status === 'Requested' || r.status === 'Assigned') {
+            actionCell.appendChild(button(openEdits.has(r.code) ? 'Close' : 'Edit', function () {
+              if (openEdits.has(r.code)) openEdits.delete(r.code); else openEdits.add(r.code);
+              render();
+            }));
+          } else if (r.status === 'Cancelled') {
+            actionCell.textContent = r.cancelledBy ? 'by ' + r.cancelledBy : '-';
+          } else {
+            actionCell.textContent = '-';
+          }
+          if (openEdits.has(r.code) && (r.status === 'Requested' || r.status === 'Assigned')) body.appendChild(editPanel(r));
+        });
+        lastSignature = signature();
+        updateSummary();
+      }
+
+      function updateSummary() {
+        const list = loadReservations();
+        const count = status => list.filter(r => r.status === status).length;
+        const attention = list.filter(r => r.needsAttention && (r.status === 'Assigned' || r.status === 'Requested'));
+        document.getElementById('summary').textContent =
+          'Confirmed: ' + (count('Assigned') + count('Requested')) + '   Concluded: ' + count('Concluded') + '   Cancelled: ' + count('Cancelled') +
+          '   Needs attention: ' + attention.length + '   Orders: ' + loadOrders().length;
+        const box = document.getElementById('attention');
+        box.innerHTML = '';
+        if (attention.length) {
+          const div = document.createElement('div');
+          div.className = 'notice warn';
+          div.textContent = attention.length + ' booking(s) need you: ' + attention.map(r => r.code).join(', ') + '. Use Edit on each one.';
+          box.appendChild(div);
+        }
+        document.getElementById('live').textContent = 'Updates by itself. Last checked ' + new Date().toLocaleTimeString('en-SG');
+      }
+      function signature() { return JSON.stringify([loadReservations(), loadLeaves(), loadCats()]); }
+
+      // The page checks again every few seconds and redraws only if something changed
+      // and the admin is not in the middle of choosing something.
+      async function tick() {
+        try { await refreshData(); } catch (e) { /* keep the copy we have */ }
+        const active = document.activeElement;
+        const busy = openEdits.size > 0 || (active && body.contains(active) && ['SELECT', 'INPUT', 'BUTTON'].includes(active.tagName));
+        if (signature() !== lastSignature && !busy) render(); else updateSummary();
+      }
+
+      document.getElementById('resetBtn').addEventListener('click', async function () {
+        if (!confirm('Delete ALL practice reservations, orders and reviews?')) return;
+        await clearPracticeData();
+        openEdits.clear();
+        render();
+      });
+
+      render();
+      setInterval(tick, POLL_MS);
+    }
+    });
+  </script>
+</body>
+</html>

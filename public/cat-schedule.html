@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Cat schedule</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main>
+      <div class="card wide-card">
+        <h1>Cat and staff schedule</h1>
+        <p class="hint">Who is in a session, resting after one, or free, hour by hour. A cat or handler can only be in one session at a time and rests after each one.</p>
+        <label>Date <input type="date" id="scheduleDate"></label>
+        <p class="summary" id="summary"></p>
+        <h2>Cats</h2>
+        <div class="table-scroll"><table id="catTable" class="timeline"></table></div>
+        <h2>Cat handlers</h2>
+        <div class="table-scroll"><table id="staffTable" class="timeline"></table></div>
+        <p class="legend">Green: free &nbsp; Blue: in a session &nbsp; Blue with outline: mine &nbsp; Orange: break after a session &nbsp; Grey: resting, on leave or outside opening hours &nbsp; Purple: lunch</p>
+      </div>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('cat-schedule.html');
+    if (guardPage(['handler', 'admin'], 'see the cat schedule')) initCatSchedule();
+
+    function initCatSchedule() {
+      const me = currentUser();
+      const dateEl = document.getElementById('scheduleDate');
+      dateEl.value = todayString();
+
+      // one table: a row per cat (or handler) and a cell per hour
+      function drawTable(table, people, kind, date, info) {
+        table.innerHTML = '';
+        const startHour = Math.floor(toMin(info.from) / 60), endHour = Math.ceil(toMin(info.to) / 60);
+        const head = table.insertRow();
+        head.insertCell().outerHTML = '<th>' + (kind === 'cat' ? 'Cat' : 'Handler') + '</th>';
+        for (let h = startHour; h < endHour; h++) head.insertCell().outerHTML = '<th>' + timeLabel(fromMin(h * 60)).replace(':00 ', '').replace(' ', '') + '</th>';
+        let used = 0;
+        people.forEach(function (p) {
+          const row = table.insertRow();
+          row.insertCell().textContent = p.name;
+          for (let h = startHour; h < endHour; h++) {
+            const box = document.createElement('div');
+            const lunch = loadHours().closedPeriods.some(c => toMin(c.from) <= h * 60 && h * 60 < toMin(c.to));
+            const st = personHourState(kind, p.id, date, h * 60);
+            if (p.off) {
+              box.className = 'slot resting';
+              box.textContent = p.off;
+            } else if (st.state === 'booked') {
+              used++;
+              const b = st.booking;
+              const mineHere = kind === 'handler' ? p.id === me.username : (p.handler === me.username || handlerUsernameOf(b) === me.username);
+              box.className = 'slot booked' + (mineHere ? ' mine' : '');
+              box.textContent = b.roomCode;
+              box.title = b.code + ' - ' + b.session + (b.handler ? ' - ' + b.handler : '');
+            } else if (st.state === 'break') {
+              box.className = 'slot break';
+              box.textContent = 'Break';
+            } else if (lunch) {
+              box.className = 'slot shut';
+              box.textContent = 'Lunch';
+            } else {
+              box.className = 'slot ok';
+              box.textContent = 'Free';
+            }
+            row.insertCell().appendChild(box);
+          }
+        });
+        return used;
+      }
+
+      function render() {
+        const date = dateEl.value || todayString();
+        const info = dayInfo(date);
+        const summary = document.getElementById('summary');
+        if (!info.open) {
+          summary.textContent = formatDate(date) + ': ' + info.text + '.';
+          document.getElementById('catTable').innerHTML = '';
+          document.getElementById('staffTable').innerHTML = '';
+          return;
+        }
+        const cats = loadCats().map(c => ({ id: c.id, name: c.name, handler: c.handler, off: c.active ? '' : 'Resting' }));
+        const staff = allHandlers().map(h => ({ id: h.username, name: h.name, off: leaveOn(h.username, date) ? 'Leave' : '' }));
+        const catHours = drawTable(document.getElementById('catTable'), cats, 'cat', date, info);
+        drawTable(document.getElementById('staffTable'), staff, 'handler', date, info);
+        summary.textContent = formatDate(date) + ': ' + info.text + '. ' + catHours + ' cat-hour(s) booked.';
+      }
+      dateEl.addEventListener('change', render);
+      render();
+    }
+    });
+  </script>
+</body>
+</html>

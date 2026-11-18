@@ -1,0 +1,380 @@
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Great+Vibes&family=Playfair+Display:wght@500;600;700&display=swap');
+
+body:has(.home-page) {
+    background: #e4d3c3;
+    color: #3f302b;
+}
+
+body:has(.home-page) .site-header {
+    background: #f6eae0;
+    color: #45332e;
+    border-bottom: 1px solid #dfc5b4;
+}
+
+body:has(.home-page) .brand a {
+    color: #45332e;
+}
+
+body:has(.home-page) .menu-toggle span {
+    background: #45332e;
+}
+
+body:has(.home-page) .header-right .btn {
+    background: #c98672;
+    color: #fff;
+}
+
+body:has(.home-page) .site-footer {
+    background: #c98672;
+    color: #fff9f4;
+}
+
+body:has(.home-page) .site-footer a {
+    color: #fff9f4;
+}
+
+.home-page {
+    padding: 0;
+    min-width: 0;
+    font-family: 'DM Sans', Arial, sans-serif;
+}
+
+.home-hero {
+    min-height: 400px;
+    position: relative;
+    overflow: hidden;
+    background: #c98672;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    text-align: center;
+    padding: 56px 20px 0;
+}
+
+.home-hero::before,
+.home-hero::after {
+    content: '✧';
+    position: absolute;
+    color: #f4d9c7;
+    font-size: 36px;
+    opacity: .75;
+}
+
+.home-hero::before {
+    left: 9%;
+    top: 27%;
+}
+
+.home-hero::after {
+    right: 11%;
+    top: 18%;
+}
+
+.hero-copy {
+    position: relative;
+    z-index: 2;
+    color: #fff8f0;
+    text-shadow: 0 2px 9px #6d473c45;
+}
+
+.hero-kicker {
+    font-size: 12px;
+    letter-spacing: .26em;
+    text-transform: uppercase;
+}
+
+.hero-copy h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(40px, 7vw, 90px);
+    font-weight: 600;
+    font-style: italic;
+    letter-spacing: .015em;
+    line-height: 1.08;
+    margin: 14px 0 2px;
+}
+
+.hero-copy p {
+    font-family: 'Great Vibes', cursive;
+    font-size: clamp(25px, 3.4vw, 42px);
+    margin: 0 0 18px;
+}
+
+.hero-book {
+    display: inline-block;
+    background: #fff8f1;
+    color: #724e41;
+    text-shadow: none;
+    padding: 11px 22px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 13px;
+    text-decoration: none;
+    box-shadow: 0 4px 15px #73453640;
+}
+
+.hero-book:hover,
+.home-page .cta:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+}
+
+.hero-cat {
+    position: absolute;
+    width: min(430px, 56vw);
+    height: 250px;
+    object-fit: contain;
+    object-position: center bottom;
+    bottom: -72px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.home-paper {
+    background-color: #e5d6c8;
+    background-image:
+        radial-gradient(#b18f7c32 .8px, transparent .8px);
+    background-size: 9px 9px;
+    padding: 64px clamp(18px, 5vw, 75px) 28px;
+}
+
+.home-intro {
+    text-align: center;
+    max-width: 780px;
+    margin: auto;
+}
+
+.section-eyebrow {
+    font-size: 11px;
+    letter-spacing: .22em;
+    color: #926b55;
+    font-weight: 700;
+}
+
+.home-intro h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(25px, 3.6vw, 43px);
+    margin: 12px 0;
+    color: #6f493b;
+}
+
+.home-intro > p {
+    max-width: 580px;
+    margin: 0 auto 16px;
+    line-height: 1.7;
+}
+
+.home-status {
+    margin: 20px auto 0;
+    max-width: 650px;
+}
+
+.home-page .status-banner {
+    background: #fff9f4;
+    color: #694b3c;
+    border: 1px solid #d7bba8;
+    border-radius: 100px;
+    padding: 11px 18px;
+    font-size: 13px;
+}
+
+.home-page .status-banner.closed {
+    background: #f9e5dc;
+}
+
+.home-page .hint-line {
+    font-size: 12px;
+}
+
+.home-page a {
+    transition: transform .2s ease, filter .2s ease;
+}
+
+.home-sessions {
+    max-width: 1000px;
+    margin: 48px auto 0;
+    text-align: center;
+}
+
+.handwritten-title {
+    font-family: 'Great Vibes', cursive;
+    font-weight: 400;
+    font-size: 48px;
+    margin: 0 0 16px;
+    color: #865d49;
+}
+
+.home-page .cards {
+    justify-content: center;
+}
+
+.home-page .cards .card {
+    background: #fff9f4;
+    border: 1px solid #d5bba9;
+    box-shadow: 0 5px 15px #77543a12;
+    border-radius: 24px;
+    text-align: left;
+    max-width: none;
+}
+
+.home-page .cards .card h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 20px;
+    margin: 0 0 8px;
+    color: #825847;
+}
+
+.home-page .cards .card p {
+    line-height: 1.6;
+    font-size: 13px;
+    margin: 0;
+}
+
+.home-page .cta {
+    background: #a48a5d;
+    color: white;
+    border-radius: 999px;
+    margin-top: 8px;
+    padding: 12px 24px;
+    font-weight: 700;
+}
+
+.home-today {
+    max-width: 1050px;
+    margin: 44px auto 0;
+}
+
+.today-heading {
+    background: #a48a5d;
+    color: #fff9f0;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 12px 12px 0 0;
+}
+
+.today-heading h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 22px;
+    margin: 0;
+}
+
+.today-heading span {
+    font-size: 24px;
+}
+
+.home-availability {
+    background: #f4e9dd;
+    padding: 20px;
+    border: 1px solid #d6bba7;
+    border-top: 0;
+    border-radius: 0 0 12px 12px;
+}
+
+.availability-group + .availability-group {
+    margin-top: 20px;
+}
+
+.availability-group h3 {
+    margin: 0 0 12px;
+    font-family: 'Playfair Display', Georgia, serif;
+    color: #785442;
+    font-size: 19px;
+}
+
+.home-page .who-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.home-page .who-card {
+    background: #fffdf8;
+    border: 1px solid #e3cdbd;
+    border-radius: 15px;
+    padding: 12px;
+    text-align: center;
+    min-width: 0;
+}
+
+.home-page .who-card img,
+.home-page .who-card .noimg {
+    display: block;
+    width: 74px;
+    height: 74px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin: 0 auto 8px;
+}
+
+.home-page .who-card .noimg {
+    background: #d9c2b0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.home-page .who-card strong {
+    display: block;
+    margin: 4px 0;
+}
+
+.home-page .who-card .chip {
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.home-page .hint {
+    text-align: center;
+    margin-top: 12px;
+}
+
+.home-flourish {
+    text-align: right;
+    color: #9b7862;
+    font-size: 25px;
+    margin-top: 15px;
+}
+
+@media (max-width: 700px) {
+    .home-hero {
+        min-height: 340px;
+        padding-top: 46px;
+    }
+
+    .hero-cat {
+        width: 70vw;
+        height: 210px;
+        bottom: -62px;
+    }
+
+    .home-paper {
+        padding-top: 50px;
+    }
+
+    .handwritten-title {
+        font-size: 40px;
+    }
+
+    .home-page .cards {
+        flex-direction: column;
+    }
+
+    .home-page .cards .card {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .home-availability {
+        padding: 13px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .home-page a {
+        transition: none;
+    }
+}

@@ -1,0 +1,207 @@
+// Needs auth.js loaded first (for currentUser and logout).
+// Draws the header, the fixed side menu (with a search box for screens), and the footer on every page.
+
+// The address of the dashboard (the React app). It is told where THIS website lives, so its
+// "Back to main page" button always returns to the right place, whatever address Live Server uses.
+const DASHBOARD_URL = '/dashboard/';           // the React dashboard, served by this same server once it is built (see docs/REACT.md)
+function dashboardUrl() {
+  const here = window.location.href.split('#')[0].split('?')[0];
+  return DASHBOARD_URL + '?back=' + encodeURIComponent(here.replace(/[^\/]*$/, 'index.html'));
+}
+
+// Every screen, for the menu and for the search box: [file, title, words people might type, who can see it]
+// who: 'all', or a list of 'visitor' (not logged in), 'guest', 'handler', 'admin'
+const PAGES = [
+  ['index.html', 'Home', 'main page start welcome status today cats staff open', 'all'],
+  ['aboutus.html', 'About Us', 'about us our story cafe mission team who we are socials follow', 'all'],
+  ['menu.html', 'Menu', 'food drinks snacks allergy allergies allergens order coffee', 'all'],
+  ['cats.html', 'Meet our cats', 'cats photos reviews rating stars', 'all'],
+  ['rate.html', 'Rates', 'price prices per hour cost charge refund pay', 'all'],
+  ['hours.html', 'Opening hours', 'open hours public holiday holidays schedule lunch closed', 'all'],
+  ['events.html', 'Events', 'event events offers special guest', 'all'],
+  ['faq.html', 'FAQ', 'questions answers help feedback contact ask', 'all'],
+  ['rules.html', 'Cafe rules', 'rules cats safety children behaviour', 'all'],
+  ['terms.html', 'Terms and conditions', 'terms conditions legal privacy copyright', 'all'],
+  ['support.html', 'Support us', 'subscribe subscription donate membership supporter', 'all'],
+  ['sessions.html', 'Sessions', 'booking code check my bookings cancel pay review', ['visitor', 'guest']],
+  ['booking.html', 'Book a Session', 'book reserve reservation hours time cats room', ['visitor', 'guest']],
+  ['login.html', 'Login', 'log in sign in password', ['visitor']],
+  ['signup.html', 'Sign up', 'register account create guest', ['visitor']],
+  ['forgot.html', 'Forgot password', 'reset password code', ['visitor']],
+  ['handler.html', 'My Sessions', 'sessions check in conclude leave sick cats reviews', ['handler']],
+  ['cat-schedule.html', 'Cat schedule', 'cats booked break free resting timeline', ['handler', 'admin']],
+  ['admin.html', 'Reservations', 'bookings reservations edit cancel handlers refund', ['admin']],
+  ['admin-orders.html', 'Orders', 'food orders served drinks', ['admin']],
+  ['admin-menu.html', 'Manage Menu', 'menu items allergens descriptions photos prices', ['admin']],
+  ['admin-rooms.html', 'Manage Rooms', 'rooms capacity hours private lounge', ['admin']],
+  ['admin-sessions.html', 'Manage Sessions', 'sessions hours cats maximum minimum', ['admin']],
+  ['admin-rates.html', 'Manage Rates', 'rates price per hour weekend holiday charge', ['admin']],
+  ['admin-hours.html', 'Hours and holidays', 'opening hours public holiday lunch break closed', ['admin']],
+  ['admin-cats.html', 'Manage Cats', 'cats sick unwell handler photo resting', ['admin']],
+  ['admin-staff.html', 'Staff and leave', 'staff handlers leave sick urgent break', ['admin']],
+  ['admin-reviews.html', 'Reviews', 'ratings reviews stars cats staff', ['admin']],
+  ['admin-faq.html', 'FAQ and feedback', 'faq feedback questions supporters subscribers', ['admin']],
+  ['admin-events.html', 'Manage Events', 'events offers', ['admin']]
+];
+
+function roleOf(user) { return user ? user.role : 'visitor'; }
+function canSee(page, role) { return page[3] === 'all' || page[3].includes(role); }
+
+// The side menu: which screens each kind of user sees, in order.
+function menuFor(user) {
+  const role = roleOf(user);
+  const byFile = file => PAGES.find(p => p[0] === file);
+  const pick = files => files.map(f => f === 'DASHBOARD' ? [dashboardUrl(), 'Dashboard'] : [f, byFile(f)[1]]);
+  if (role === 'visitor') return pick(['index.html', 'menu.html', 'cats.html', 'rate.html', 'hours.html', 'sessions.html', 'events.html', 'aboutus.html', 'faq.html', 'support.html']);
+  if (role === 'guest') return pick(['index.html', 'booking.html', 'menu.html', 'cats.html', 'rate.html', 'hours.html', 'sessions.html', 'events.html', 'aboutus.html', 'faq.html', 'support.html']);
+  if (role === 'handler') return pick(['index.html', 'DASHBOARD', 'handler.html', 'cat-schedule.html', 'menu.html', 'cats.html', 'rate.html', 'hours.html', 'events.html', 'aboutus.html', 'faq.html']);
+  return pick(['index.html', 'DASHBOARD', 'admin.html', 'admin-orders.html', 'admin-menu.html', 'admin-rooms.html', 'admin-sessions.html', 'admin-rates.html',
+               'admin-hours.html', 'admin-cats.html', 'admin-staff.html', 'cat-schedule.html', 'admin-reviews.html', 'admin-faq.html', 'admin-events.html']);
+}
+
+// Screens that match what was typed (every word must appear in the title or the keywords)
+function searchPages(query, user) {
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [];
+  const role = roleOf(user);
+  const pool = PAGES.filter(p => canSee(p, role)).map(p => [p[0], p[1], (p[1] + ' ' + p[2]).toLowerCase()]);
+  if (role === 'handler' || role === 'admin') pool.push([dashboardUrl(), 'Dashboard', 'dashboard charts reports overview']);
+  return pool.filter(p => words.every(w => p[2].includes(w)))
+             .sort((a, b) => (b[1].toLowerCase().startsWith(words[0]) ? 1 : 0) - (a[1].toLowerCase().startsWith(words[0]) ? 1 : 0))
+             .slice(0, 8);
+}
+
+// A computer screen is 1024 pixels wide or more. Tablets and phones are narrower.
+const DESKTOP_QUERY = '(min-width: 1024px)';
+function isDesktop() {
+  if (window.matchMedia) return window.matchMedia(DESKTOP_QUERY).matches;
+  return window.innerWidth >= 1024;
+}
+
+// The three-line button: click to show the menu, click again to hide it.
+//  - computer: a fixed sidebar on the left (shown when the page loads)
+//  - tablet and phone: the menu slides in from the left (hidden when the page loads)
+function setupMenuToggle() {
+  const nav = document.getElementById('side-nav');
+  const button = document.getElementById('menuToggle');
+  const overlay = document.getElementById('navOverlay');
+
+  function setOpen(open) {
+    nav.classList.toggle('open', open);
+    button.classList.toggle('active', open);
+    button.setAttribute('aria-expanded', open ? 'true' : 'false');
+    overlay.classList.toggle('show', open && !isDesktop());   // dark backdrop only on tablet and phone
+  }
+
+  button.addEventListener('click', function () { setOpen(!nav.classList.contains('open')); });
+  overlay.addEventListener('click', function () { setOpen(false); });
+  nav.addEventListener('click', function (e) {
+    if (e.target.tagName === 'A' && !isDesktop()) setOpen(false);   // close the drawer after choosing a page
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !isDesktop()) setOpen(false);
+  });
+
+  setOpen(isDesktop());
+  if (window.matchMedia) {
+    const query = window.matchMedia(DESKTOP_QUERY);
+    const onChange = function () { setOpen(isDesktop()); };      // reset when the window is resized
+    if (query.addEventListener) query.addEventListener('change', onChange);
+    else if (query.addListener) query.addListener(onChange);
+  }
+}
+
+// The search box at the top of the menu: type a word, get the screens that match
+function setupSearch(user) {
+  const input = document.getElementById('navSearch');
+  const results = document.getElementById('navResults');
+  const links = document.getElementById('navLinks');
+
+  function update() {
+    const query = input.value.trim();
+    results.innerHTML = '';
+    links.style.display = query ? 'none' : 'contents';
+    if (!query) return;
+    const found = searchPages(query, user);
+    if (found.length === 0) {
+      const none = document.createElement('div');
+      none.className = 'none';
+      none.textContent = 'No screen found for "' + query + '".';
+      results.appendChild(none);
+      return;
+    }
+    found.forEach(function (p) {
+      const a = document.createElement('a');
+      a.href = p[0];
+      a.textContent = p[1];
+      results.appendChild(a);
+    });
+  }
+  input.addEventListener('input', update);
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {                                     // Enter opens the first match
+      e.preventDefault();
+      const first = results.querySelector('a');
+      if (first) window.location.href = first.getAttribute('href');
+    } else if (e.key === 'Escape') {
+      input.value = '';
+      update();
+    }
+  });
+}
+
+function renderLayout(activePage) {
+  const user = currentUser();
+
+  // Header: menu button and title on the left, login / sign up (or log out) on the right
+  const header = document.getElementById('site-header');
+  header.innerHTML =
+    '<button type="button" class="menu-toggle" id="menuToggle" aria-label="Open or close the menu" aria-controls="side-nav" aria-expanded="false">' +
+    '<span></span><span></span><span></span></button>' +
+    '<div class="brand"><a href="index.html">PURRSONA MEOW</a></div>' +
+    '<div class="header-right" id="headerRight"></div>';
+  const right = document.getElementById('headerRight');
+
+  if (user) {
+    const who = document.createElement('span');
+    who.className = 'who';
+    who.textContent = 'Logged in as ' + user.name;
+    const out = document.createElement('a');
+    out.className = 'btn';
+    out.textContent = 'Log out';
+    out.href = '#';
+    out.addEventListener('click', function (e) { e.preventDefault(); logout(); });
+    right.appendChild(who);
+    right.appendChild(out);
+  } else {
+    right.innerHTML = '<a class="btn" href="login.html">Login</a><a class="btn" href="signup.html">Sign up</a>';
+  }
+
+  // Menu: a search box, then the links
+  const nav = document.getElementById('side-nav');
+  nav.setAttribute('aria-label', 'Main menu');
+  nav.innerHTML =
+    '<div class="nav-search"><input type="search" id="navSearch" placeholder="Search screens..." aria-label="Search screens" autocomplete="off"></div>' +
+    '<div class="nav-results" id="navResults"></div>' +
+    '<div class="nav-links" id="navLinks">' +
+    menuFor(user).map(p => '<a href="' + p[0] + '"' + (p[0] === activePage ? ' class="active"' : '') + '>' + p[1] + '</a>').join('') +
+    '</div>';
+
+  // Dark backdrop behind the menu on tablet and phone
+  if (!document.getElementById('navOverlay')) {
+    const overlay = document.createElement('div');
+    overlay.id = 'navOverlay';
+    overlay.className = 'nav-overlay';
+    document.body.appendChild(overlay);
+  }
+
+  // Footer: copyright and the pages people look for
+  document.getElementById('site-footer').innerHTML =
+    '<p class="footer-links"><a href="terms.html">Terms and conditions</a><a href="rules.html">Cafe rules</a><a href="aboutus.html">About Us</a><a href="faq.html">FAQ</a>' +
+    '<a href="hours.html">Opening hours</a><a href="support.html">Support us</a></p>' +
+    '<p>\u00a9 ' + new Date().getFullYear() + ' Cat Caf\u00e9 Reservations. All rights reserved. &nbsp;|&nbsp; Practice project &nbsp;|&nbsp; Contact: hello@example.com</p>';
+
+  setupMenuToggle();
+  setupSearch(user);
+
+}

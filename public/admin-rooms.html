@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Admin - Rooms</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main>
+      <div class="card wide-card">
+        <h1>Admin: Rooms</h1>
+        <p class="hint">Private rooms take one booking at a time. Open rooms are shared by many guests up to their limit. Guests choose their own start time, so rooms follow the cafe opening hours (set on <a href="admin-hours.html">Hours and holidays</a>). You can also give a room shorter hours of its own.</p>
+        <table>
+          <thead><tr><th>Code</th><th>Name</th><th>Type</th><th>Up to</th><th>Own hours</th><th>Active</th><th>Action</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <form class="card" id="roomForm">
+        <h2 id="formTitle">Add a room</h2>
+        <label>Code (short, e.g. P4) <input type="text" id="roomCode" maxlength="6" required></label>
+        <label>Name <input type="text" id="roomName" required></label>
+        <label>Type
+          <select id="roomType"><option>Private</option><option>Open</option></select>
+        </label>
+        <label>Most people the room holds <input type="number" id="roomCapacity" min="1" value="6" required></label>
+        <label>Room opens at (leave empty to follow the cafe) <input type="time" id="roomFrom"></label>
+        <label>Room closes at (leave empty to follow the cafe) <input type="time" id="roomTo"></label>
+        <label class="inline-check"><input type="checkbox" id="roomActive" checked> Active (guests can book it)</label>
+        <div class="form-buttons">
+          <button type="submit" id="saveBtn">Add room</button>
+          <button type="button" id="cancelBtn" style="display:none">Cancel editing</button>
+        </div>
+        <div class="msg-error" id="error"></div>
+      </form>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('admin-rooms.html');
+    if (guardPage(['admin'], 'manage rooms')) initRooms();
+
+    function initRooms() {
+      let editingId = null;
+      const el = id => document.getElementById(id);
+      const form = el('roomForm');
+      const error = el('error');
+
+      function resetForm() {
+        editingId = null;
+        form.reset();
+        el('roomActive').checked = true;
+        el('formTitle').textContent = 'Add a room';
+        el('saveBtn').textContent = 'Add room';
+        el('cancelBtn').style.display = 'none';
+        error.textContent = '';
+      }
+      function startEdit(room) {
+        editingId = room.id;
+        el('roomCode').value = room.code;
+        el('roomName').value = room.name;
+        el('roomType').value = room.type;
+        el('roomCapacity').value = room.capacity;
+        el('roomFrom').value = room.from || '';
+        el('roomTo').value = room.to || '';
+        el('roomActive').checked = room.active;
+        el('formTitle').textContent = 'Edit room ' + room.code;
+        el('saveBtn').textContent = 'Save changes';
+        el('cancelBtn').style.display = 'inline-block';
+        error.textContent = '';
+        form.scrollIntoView();
+      }
+      function deleteRoom(room) {
+        const used = loadReservations().some(r => r.roomId === room.id && r.status !== 'Cancelled');
+        if (used) { alert(room.name + ' has bookings, so it cannot be deleted. Untick Active instead to stop new bookings.'); return; }
+        const inSession = loadSessions().filter(s => s.rooms.includes(room.id));
+        if (inSession.length > 0) {
+          alert(room.name + ' is used by: ' + inSession.map(s => s.name).join(', ') + '. Remove it from those sessions first (Manage Sessions).');
+          return;
+        }
+        if (!confirm('Delete ' + room.name + '?')) return;
+        saveRooms(loadRooms().filter(r => r.id !== room.id));
+        if (editingId === room.id) resetForm();
+        render();
+      }
+      function render() {
+        const body = el('rows');
+        body.innerHTML = '';
+        loadRooms().forEach(function (room) {
+          const tr = body.insertRow();
+          [room.code, room.name, room.type, room.capacity,
+           room.from || room.to ? (room.from ? timeLabel(room.from) : 'cafe opening') + ' to ' + (room.to ? timeLabel(room.to) : 'cafe closing') : 'Cafe hours',
+           room.active ? 'Yes' : 'No'].forEach(v => { tr.insertCell().textContent = v; });
+          const action = tr.insertCell();
+          const edit = document.createElement('button');
+          edit.textContent = 'Edit';
+          edit.addEventListener('click', () => startEdit(room));
+          const del = document.createElement('button');
+          del.textContent = 'Delete';
+          del.style.marginLeft = '6px';
+          del.addEventListener('click', () => deleteRoom(room));
+          action.appendChild(edit);
+          action.appendChild(del);
+        });
+      }
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        const code = el('roomCode').value.trim().toUpperCase();
+        const name = el('roomName').value.trim();
+        const capacity = Number(el('roomCapacity').value);
+        const from = el('roomFrom').value, to = el('roomTo').value;
+        const rooms = loadRooms();
+
+        if (!code || !name) { error.textContent = 'Please enter a code and a name.'; return; }
+        if (!(capacity >= 1)) { error.textContent = 'The room must hold at least 1 person.'; return; }
+        if (from && to && toMin(to) <= toMin(from)) { error.textContent = 'The room must close after it opens.'; return; }
+        if (rooms.some(r => r.code.toUpperCase() === code && r.id !== editingId)) { error.textContent = 'That code is already used by another room.'; return; }
+
+        const data = { code: code, name: name, type: el('roomType').value, capacity: capacity, from: from, to: to, active: el('roomActive').checked };
+        if (editingId) {
+          Object.assign(rooms.find(r => r.id === editingId), data);
+        } else {
+          rooms.push(Object.assign({ id: 'r' + Date.now() }, data));
+        }
+        saveRooms(rooms);
+        resetForm();
+        render();
+      });
+      el('cancelBtn').addEventListener('click', resetForm);
+
+      resetForm();
+      render();
+    }
+    });
+  </script>
+</body>
+</html>

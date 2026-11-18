@@ -1,0 +1,343 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+.rate-page {
+    background: #fff9f2;
+    color: #79523f;
+    font-family: 'DM Sans', sans-serif;
+    padding: 50px 28px 85px;
+    min-height: 80vh;
+}
+
+.rate-page > h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(38px, 5vw, 60px);
+    font-weight: 600;
+    text-align: center;
+    color: #79523f;
+    margin: 0 0 20px;
+}
+
+.rate-page > h1::after {
+    content: "";
+    display: block;
+    width: 80px;
+    height: 3px;
+    background: #c98672;
+    border-radius: 10px;
+    margin: 20px auto 0;
+}
+
+.rate-page > .hint {
+    max-width: 780px;
+    margin: 0 auto 48px;
+    text-align: center;
+    color: #8c6b59;
+    font-size: 16px;
+    line-height: 1.85;
+}
+
+.rate-page > .hint strong {
+    color: #a65e47;
+}
+
+.rate-page #rateCards {
+    max-width: 1150px;
+    margin: 0 auto 40px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 25px;
+    align-items: stretch;
+}
+
+.rate-page .card.wide-card {
+    width: 100%;
+    max-width: 1150px;
+    box-sizing: border-box;
+    margin: 0 auto 28px;
+    padding: 38px 42px;
+    background: #fffdf9;
+    border: 2px solid #eadbcf;
+    border-radius: 23px;
+    box-shadow: 0 8px 25px rgba(121, 82, 63, 0.07);
+    overflow: hidden;
+}
+
+.rate-page #rateCards .rate-card {
+    max-width: none;
+    min-width: 0;
+    height: 100%;
+    margin: 0;
+    padding: 35px 30px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    border-top: 6px solid #c98672;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.rate-page #rateCards .rate-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 32px rgba(121, 82, 63, 0.12);
+}
+
+.rate-page .card h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(25px, 3vw, 34px);
+    font-weight: 600;
+    color: #79523f;
+    line-height: 1.3;
+    margin: 0 0 22px;
+}
+
+.rate-page #rateCards .rate-card h2 {
+    margin-bottom: 15px;
+}
+
+.rate-page #rateCards .rate-card > p {
+    color: #76594b;
+    font-size: 15px;
+    line-height: 1.8;
+    margin: 0 0 20px;
+}
+
+.rate-page #rateCards .rate-card > p.hint {
+    margin-top: auto;
+    padding: 16px 18px;
+    background: #f7ece3;
+    border-radius: 12px;
+    color: #895b48;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.rate-page .card table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 15px 0 25px;
+    background: #fffdf9;
+    border: 1px solid #e5d6c8;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.rate-page .card table th {
+    padding: 15px 14px;
+    background: #e5d6c8;
+    color: #79523f;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: left;
+    line-height: 1.5;
+}
+
+.rate-page .card table td {
+    padding: 15px 14px;
+    border-bottom: 1px solid #efe4da;
+    color: #76594b;
+    font-size: 14px;
+    line-height: 1.6;
+    vertical-align: middle;
+}
+
+.rate-page .card table tr:last-child td {
+    border-bottom: none;
+}
+
+.rate-page .card table tr:nth-child(even) td {
+    background: #faf3ec;
+}
+
+.rate-page .rate-card table td:last-child {
+    color: #a65e47;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.rate-page .card:not(.rate-card) {
+    background: #fffdf9;
+}
+
+.rate-page .card:not(.rate-card) h2::before {
+    content: "✦";
+    color: #c98672;
+    font-size: 21px;
+    margin-right: 12px;
+}
+
+.rate-page .card:not(.rate-card) p {
+    color: #76594b;
+    font-size: 15px;
+    line-height: 1.85;
+}
+
+.rate-page #hoursText {
+    padding: 18px 22px;
+    background: #f7eee6;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.rate-page #lunchNote {
+    padding: 17px 20px;
+    margin: 20px 0;
+    background: #fff0dc;
+    border-left: 4px solid #d7a06a;
+    border-radius: 10px;
+    color: #895b48;
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.rate-page #breakNote {
+    margin: 15px 0 20px;
+    color: #8c6b59;
+    font-size: 14px;
+}
+
+.rate-page #breakNote:empty {
+    display: none;
+}
+
+.rate-page .card a {
+    color: #a65e47;
+    font-weight: 600;
+    text-underline-offset: 3px;
+}
+
+.rate-page .card a:hover {
+    color: #79523f;
+}
+
+.rate-page #refundTable th:last-child,
+.rate-page #refundTable td:last-child {
+    text-align: center;
+    font-weight: 700;
+}
+
+.rate-page #refundTable td:last-child {
+    color: #a65e47;
+}
+
+.rate-page #payList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 25px;
+}
+
+.rate-page #payList li {
+    padding: 13px 20px;
+    background: #f5e9df;
+    border: 1px solid #e5d6c8;
+    border-radius: 30px;
+    color: #79523f;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.rate-page > .cta {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 35px auto 0;
+    padding: 16px 42px;
+    background: #c98672;
+    color: #ffffff;
+    border: 2px solid #c98672;
+    border-radius: 30px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    text-align: center;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.rate-page > .cta:hover {
+    background: #a96b57;
+    border-color: #a96b57;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+.rate-page > .cta:focus-visible {
+    outline: 3px solid #79523f;
+    outline-offset: 4px;
+}
+
+@media (max-width: 900px) {
+    .rate-page #rateCards {
+        grid-template-columns: 1fr;
+        max-width: 700px;
+    }
+
+    .rate-page {
+        padding: 40px 22px 65px;
+    }
+
+    .rate-page .card.wide-card {
+        padding: 30px 26px;
+    }
+}
+
+@media (max-width: 600px) {
+    .rate-page {
+        padding: 30px 15px 55px;
+    }
+
+    .rate-page > h1 {
+        font-size: 38px;
+    }
+
+    .rate-page > .hint {
+        font-size: 14px;
+        margin-bottom: 35px;
+    }
+
+    .rate-page .card.wide-card,
+    .rate-page #rateCards .rate-card {
+        padding: 25px 18px;
+        border-radius: 18px;
+    }
+
+    .rate-page .card h2 {
+        font-size: 26px;
+    }
+
+    .rate-page .card table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .rate-page .card table th,
+    .rate-page .card table td {
+        padding: 12px 10px;
+        font-size: 12px;
+    }
+
+    .rate-page #payList {
+        gap: 9px;
+    }
+
+    .rate-page #payList li {
+        padding: 11px 15px;
+        font-size: 13px;
+    }
+
+    .rate-page > .cta {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rate-page .rate-card,
+    .rate-page > .cta {
+        transition: none;
+    }
+}

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Admin - FAQ and feedback</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main>
+      <div class="card wide-card">
+        <h1>Admin: FAQ and feedback</h1>
+        <h2>Frequently asked questions</h2>
+        <table>
+          <thead><tr><th>Question</th><th>Answer</th><th>Action</th></tr></thead>
+          <tbody id="faqRows"></tbody>
+        </table>
+        <form id="faqForm">
+          <h3 id="faqTitle">Add a question</h3>
+          <label>Question <input type="text" id="faqQ" required></label>
+          <label>Answer <textarea id="faqA" rows="3" required></textarea></label>
+          <div class="form-buttons">
+            <button type="submit" id="faqSave">Add</button>
+            <button type="button" id="faqCancel" style="display:none">Cancel editing</button>
+          </div>
+          <div class="msg-error" id="faqError"></div>
+        </form>
+      </div>
+
+      <div class="card wide-card">
+        <h2>Feedback and questions from guests</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Sent</th><th>Type</th><th>From</th><th>Message</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="feedbackRows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card wide-card">
+        <h2>Supporters</h2>
+        <p class="summary" id="supportSummary"></p>
+        <table>
+          <thead><tr><th>Name</th><th>Email</th><th>Plan</th><th>Since</th><th>Status</th></tr></thead>
+          <tbody id="supportRows"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('admin-faq.html');
+    if (guardPage(['admin'], 'manage the FAQ and feedback')) initFaqAdmin();
+
+    function initFaqAdmin() {
+      const el = id => document.getElementById(id);
+      let editing = null;
+
+      function drawFaq() {
+        el('faqRows').innerHTML = '';
+        loadFaq().forEach(function (item) {
+          const row = el('faqRows').insertRow();
+          row.insertCell().textContent = item.q;
+          row.insertCell().textContent = item.a;
+          const action = row.insertCell();
+          action.className = 'nowrap';
+          const edit = document.createElement('button');
+          edit.textContent = 'Edit';
+          edit.addEventListener('click', function () {
+            editing = item.id;
+            el('faqQ').value = item.q; el('faqA').value = item.a;
+            el('faqTitle').textContent = 'Edit question';
+            el('faqSave').textContent = 'Save changes';
+            el('faqCancel').style.display = 'inline-block';
+          });
+          const del = document.createElement('button');
+          del.textContent = 'Delete';
+          del.style.marginLeft = '6px';
+          del.addEventListener('click', function () {
+            if (!confirm('Delete this question?')) return;
+            saveFaq(loadFaq().filter(f => f.id !== item.id));
+            drawFaq();
+          });
+          action.appendChild(edit);
+          action.appendChild(del);
+        });
+      }
+      function resetFaq() {
+        editing = null;
+        el('faqForm').reset();
+        el('faqTitle').textContent = 'Add a question';
+        el('faqSave').textContent = 'Add';
+        el('faqCancel').style.display = 'none';
+        el('faqError').textContent = '';
+      }
+      el('faqCancel').addEventListener('click', resetFaq);
+      el('faqForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const q = el('faqQ').value.trim(), a = el('faqA').value.trim();
+        if (!q || !a) { el('faqError').textContent = 'Please write both the question and the answer.'; return; }
+        const list = loadFaq();
+        if (editing) Object.assign(list.find(f => f.id === editing), { q: q, a: a });
+        else list.push({ id: 'f' + Date.now() + Math.floor(Math.random() * 1000), q: q, a: a });
+        saveFaq(list);
+        resetFaq();
+        drawFaq();
+      });
+
+      // ----- feedback and questions: mark done, answer and publish to the FAQ, or delete -----
+      function drawFeedback() {
+        const body = el('feedbackRows');
+        body.innerHTML = '';
+        const list = loadFeedback().slice().reverse();
+        if (list.length === 0) {
+          const td = body.insertRow().insertCell();
+          td.colSpan = 6;
+          td.textContent = 'No messages yet.';
+        }
+        list.forEach(function (m) {
+          const row = body.insertRow();
+          [new Date(m.sent).toLocaleDateString('en-SG') , m.type, m.name + ' (' + m.email + ')', m.message, m.status].forEach(v => { row.insertCell().textContent = v; });
+          const action = row.insertCell();
+          action.className = 'nowrap';
+          if (m.status === 'New') {
+            const done = document.createElement('button');
+            done.textContent = 'Mark done';
+            done.addEventListener('click', function () {
+              const all = loadFeedback();
+              all.find(x => x.id === m.id).status = 'Done';
+              saveFeedback(all);
+              drawFeedback();
+            });
+            action.appendChild(done);
+          }
+          if (m.type === 'Question' && m.status !== 'Published') {
+            const publish = document.createElement('button');
+            publish.textContent = 'Answer and publish to FAQ';
+            publish.style.marginLeft = '6px';
+            publish.addEventListener('click', function () {
+              const answer = prompt('Write the answer. It will be shown to everyone on the FAQ page.');
+              if (!answer || !answer.trim()) return;
+              const faq = loadFaq();
+              faq.push({ id: 'f' + Date.now() + Math.floor(Math.random() * 1000), q: m.message, a: answer.trim() });
+              saveFaq(faq);
+              const all = loadFeedback();
+              all.find(x => x.id === m.id).status = 'Published';
+              saveFeedback(all);
+              drawFaq();
+              drawFeedback();
+            });
+            action.appendChild(publish);
+          }
+          const del = document.createElement('button');
+          del.textContent = 'Delete';
+          del.style.marginLeft = '6px';
+          del.addEventListener('click', function () {
+            if (!confirm('Delete this message?')) return;
+            saveFeedback(loadFeedback().filter(x => x.id !== m.id));
+            drawFeedback();
+          });
+          action.appendChild(del);
+        });
+      }
+
+      // ----- supporters -----
+      function drawSupport() {
+        const subs = loadSubscriptions();
+        const active = subs.filter(s => s.status === 'active');
+        el('supportSummary').textContent = active.length + ' active supporter(s), ' + money(active.reduce((sum, s) => sum + s.price, 0)) + ' a month';
+        const body = el('supportRows');
+        body.innerHTML = '';
+        if (subs.length === 0) {
+          const td = body.insertRow().insertCell();
+          td.colSpan = 5;
+          td.textContent = 'No supporters yet.';
+        }
+        subs.forEach(function (s) {
+          const tier = SUPPORT_TIERS.find(t => t.id === s.tier);
+          const row = body.insertRow();
+          [s.name, s.email, (tier ? tier.name : s.tier) + ' (' + money(s.price) + ')', formatDate(s.startedAt.slice(0, 10)), s.status].forEach(v => { row.insertCell().textContent = v; });
+        });
+      }
+
+      drawFaq(); drawFeedback(); drawSupport();
+    }
+    });
+  </script>
+</body>
+</html>

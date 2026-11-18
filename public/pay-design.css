@@ -1,0 +1,302 @@
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+
+
+.payment-page {
+    min-height: 80vh;
+    padding: 55px 25px 85px;
+    background: #fff9f2;
+    color: #79523f;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.payment-container {
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+
+
+.payment-heading {
+    text-align: center;
+    margin-bottom: 38px;
+}
+
+.payment-eyebrow {
+    display: inline-block;
+    margin-bottom: 14px;
+    color: #c98672;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+}
+
+.payment-heading h1 {
+    margin: 0 0 20px;
+    color: #79523f;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(36px, 5vw, 54px);
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.payment-heading h1::after {
+    content: "";
+    display: block;
+    width: 75px;
+    height: 3px;
+    margin: 20px auto 0;
+    background: #c98672;
+    border-radius: 10px;
+}
+
+.payment-heading p {
+    margin: 0;
+    color: #8c6b59;
+    font-size: 16px;
+    line-height: 1.8;
+}
+
+
+
+.payment-card {
+    padding: 40px 45px;
+    background: #fffdf9;
+    border: 2px solid #eadbcf;
+    border-radius: 24px;
+    box-shadow: 0 10px 30px rgba(121, 82, 63, 0.08);
+}
+
+#payBox {
+    color: #76594b;
+}
+
+#payBox h1 {
+    margin: 0 0 28px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #eadbcf;
+    color: #79523f;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 32px;
+    font-weight: 600;
+}
+
+
+
+#payBox > p {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin: 0;
+    padding: 15px 0;
+    border-bottom: 1px solid #f0e5dc;
+    color: #76594b;
+    font-size: 15px;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+
+#payBox > p strong {
+    color: #79523f;
+    font-weight: 700;
+}
+
+
+
+#payBox .notice {
+    margin: 25px 0;
+    padding: 20px 22px;
+    border: 1px solid #e5d6c8;
+    border-radius: 14px;
+    background: #f7ece3;
+    color: #79523f;
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+#payBox .notice.warn {
+    border-color: #e8c89f;
+    background: #fff0dc;
+    color: #895b48;
+}
+
+#payBox .notice.good {
+    border-color: #c8dfc3;
+    background: #edf6ec;
+    color: #466b42;
+}
+
+
+
+#payBox .pay-methods {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+    margin: 28px 0;
+}
+
+#payBox .pay-methods label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 65px;
+    padding: 18px;
+    border: 2px solid #eadbcf;
+    border-radius: 14px;
+    background: #fff9f2;
+    color: #79523f;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.2s ease,
+                background 0.2s ease;
+}
+
+#payBox .pay-methods label:hover {
+    border-color: #c98672;
+    background: #fff3eb;
+}
+
+#payBox .pay-methods label:has(input:checked) {
+    border-color: #c98672;
+    background: #f7ece3;
+}
+
+#payBox .pay-methods input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: #c98672;
+    cursor: pointer;
+}
+
+
+
+#payBtn {
+    display: block;
+    width: 100%;
+    margin: 25px 0 18px;
+    padding: 17px 25px;
+    border: none;
+    border-radius: 30px;
+    background: #c98672;
+    color: #ffffff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease,
+                transform 0.2s ease;
+}
+
+#payBtn:hover {
+    background: #a96b57;
+    transform: translateY(-2px);
+}
+
+#payBtn:focus-visible {
+    outline: 3px solid #79523f;
+    outline-offset: 3px;
+}
+
+
+
+#payBox > .cta {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    margin: 20px auto 0;
+    padding: 12px 22px;
+    border: 1px solid #c98672;
+    border-radius: 25px;
+    background: transparent;
+    color: #a65e47;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.2s ease;
+}
+
+#payBox > .cta:hover {
+    background: #f7ece3;
+}
+
+
+
+#payBox .receipt {
+    margin: 28px 0;
+    padding: 28px;
+    border: 1px solid #c8dfc3;
+    border-radius: 16px;
+    background: #edf6ec;
+    color: #466b42;
+    text-align: center;
+}
+
+#payBox .receipt strong {
+    display: block;
+    margin-bottom: 12px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 26px;
+    color: #466b42;
+}
+
+#payBox .receipt p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+
+
+
+.payment-footer-note {
+    margin-top: 30px;
+    color: #8c6b59;
+    font-size: 14px;
+    line-height: 1.8;
+    text-align: center;
+}
+
+
+
+@media (max-width: 650px) {
+    .payment-page {
+        padding: 35px 15px 55px;
+    }
+
+    .payment-card {
+        padding: 28px 20px;
+        border-radius: 18px;
+    }
+
+    .payment-heading p {
+        font-size: 14px;
+    }
+
+    #payBox h1 {
+        font-size: 28px;
+    }
+
+    #payBox .pay-methods {
+        grid-template-columns: 1fr;
+    }
+
+    #payBox > p {
+        font-size: 14px;
+    }
+
+    #payBox .receipt {
+        padding: 22px 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #payBtn {
+        transition: none;
+    }
+}

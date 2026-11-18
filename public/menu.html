@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Menu</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="menu-design.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main class="menu-page">
+      <h1>Menu</h1>
+      <p class="hint">Sample items and prices for the practice project.</p>
+      <div id="banner"></div>
+
+      <div class="card" id="allergyBox">
+        <h2>Food allergies?</h2>
+        <p class="hint">Tick your allergies. Items that contain them are marked in red, and we ask you to confirm before ordering one. The list is for guidance only: please also tell our staff.</p>
+        <div class="checks" id="allergyChecks"></div>
+      </div>
+
+      <div class="menu-layout">
+        <div class="menu-list" id="menuList"></div>
+        <aside class="card cart" id="cartBox"></aside>
+      </div>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('menu.html');
+
+    const user = currentUser();
+    const isGuest = !!user && user.role === 'guest';
+    let cart = {};            // item id -> quantity
+
+    // the allergies this guest has ticked (kept in this browser)
+    let myAllergies = JSON.parse(localStorage.getItem('myAllergies') || '[]');
+    function allergyMatches(item) { return (item.allergens || []).filter(a => myAllergies.includes(a)); }
+    function renderAllergyBox() {
+      const box = document.getElementById('allergyChecks');
+      box.innerHTML = '';
+      ALLERGENS.forEach(function (a) {
+        const label = document.createElement('label');
+        const check = document.createElement('input');
+        check.type = 'checkbox'; check.value = a; check.checked = myAllergies.includes(a);
+        check.addEventListener('change', function () {
+          myAllergies = ALLERGENS.filter(x => [...box.querySelectorAll('input')].some(i => i.value === x && i.checked));
+          localStorage.setItem('myAllergies', JSON.stringify(myAllergies));
+          renderMenu();
+        });
+        label.appendChild(check);
+        label.appendChild(document.createTextNode(a));
+        box.appendChild(label);
+      });
+    }
+
+    // The guest's reservations that already have a room (zone) and are not finished
+    function orderableReservations() {
+      if (!isGuest) return [];
+      return loadReservations().filter(r => (r.email || '').toLowerCase() === user.email && r.status === 'Assigned');
+    }
+
+    function addLink(parent, label, href) {
+      const a = document.createElement('a');
+      a.className = 'cta';
+      a.textContent = label;
+      a.href = href;
+      parent.appendChild(a);
+    }
+
+    function renderBanner() {
+      const banner = document.getElementById('banner');
+      banner.innerHTML = '';
+      if (isGuest) {
+        if (orderableReservations().length === 0) {
+          banner.className = 'banner';
+          banner.textContent = 'You can order drinks and snacks for your room once your reservation has been assigned one.';
+        } else {
+          banner.className = '';
+        }
+      } else if (!user) {
+        banner.className = 'banner';
+        banner.appendChild(document.createTextNode('Log in or sign up to order drinks and snacks for your room.'));
+        addLink(banner, 'Log in', 'login.html');
+        addLink(banner, 'Sign up', 'signup.html');
+      } else {
+        banner.className = 'banner';
+        banner.textContent = 'Staff view. Guests order from their own account.';
+      }
+    }
+
+    function renderMenu() {
+      const list = document.getElementById('menuList');
+      list.innerHTML = '';
+      const menu = loadMenu();
+      ['Drinks', 'Snacks'].forEach(function (category) {
+        const heading = document.createElement('h2');
+        heading.textContent = category;
+        list.appendChild(heading);
+
+        menu.filter(i => i.category === category).forEach(function (item) {
+          const row = document.createElement('div');
+          row.className = 'menu-item' + (item.available ? '' : ' soldout');
+
+          const left = document.createElement('span');
+          left.className = 'left';
+          if (item.photo) {
+            const img = document.createElement('img');
+            img.className = 'menu-photo';
+            img.src = item.photo;
+            img.alt = item.name;
+            left.appendChild(img);
+          } else {
+            const none = document.createElement('span');
+            none.className = 'menu-photo empty';
+            none.textContent = 'No photo';
+            left.appendChild(none);
+          }
+          const info = document.createElement('span');
+          info.className = 'item-info';
+          const name = document.createElement('strong');
+          name.textContent = item.name;
+          info.appendChild(name);
+          if (item.description) {
+            const desc = document.createElement('small');
+            desc.textContent = item.description;
+            info.appendChild(desc);
+          }
+          // allergens: tags, with the guest's own allergies in red. An item nobody has filled in says so.
+          const allergenLine = document.createElement('small');
+          if (item.allergens === undefined) {
+            allergenLine.textContent = 'Allergen details not added yet. Please ask our staff.';
+          } else if (item.allergens.length === 0) {
+            allergenLine.textContent = 'No common allergens listed.';
+          } else {
+            allergenLine.appendChild(document.createTextNode('Contains: '));
+            item.allergens.forEach(function (a) {
+              const tag = document.createElement('span');
+              tag.className = 'allergen-tag' + (myAllergies.includes(a) ? ' mine' : '');
+              tag.textContent = a;
+              allergenLine.appendChild(tag);
+            });
+          }
+          info.appendChild(allergenLine);
+          const matches = allergyMatches(item);
+          if (matches.length) {
+            row.classList.add('allergy-warning');
+            const warn = document.createElement('small');
+            warn.className = 'flag';
+            warn.textContent = 'Contains ' + matches.join(', ') + ' (your allergy)';
+            info.appendChild(warn);
+          }
+          left.appendChild(info);
+          row.appendChild(left);
+
+          const right = document.createElement('span');
+          const price = document.createElement('span');
+          price.className = 'price';
+          price.textContent = money(item.price);
+          right.appendChild(price);
+
+          if (!item.available) {
+            right.appendChild(document.createTextNode('Sold out'));
+          } else if (isGuest) {
+            const add = document.createElement('button');
+            add.textContent = 'Add';
+            add.addEventListener('click', function () {
+              const matches = allergyMatches(item);
+              if (matches.length && !confirm(item.name + ' contains ' + matches.join(', ') + ', which you said you are allergic to. Add it anyway?')) return;
+              cart[item.id] = (cart[item.id] || 0) + 1;
+              renderCart();
+            });
+            right.appendChild(add);
+          }
+          row.appendChild(right);
+          list.appendChild(row);
+        });
+      });
+    }
+
+    function renderCart() {
+      const box = document.getElementById('cartBox');
+      if (!isGuest) { box.style.display = 'none'; return; }
+      box.innerHTML = '';
+
+      const title = document.createElement('h2');
+      title.textContent = 'Order for your room';
+      box.appendChild(title);
+
+      const menu = loadMenu();
+      let total = 0;
+      let lines = 0;
+      Object.keys(cart).forEach(function (id) {
+        const item = menu.find(i => i.id === id);
+        if (!item || cart[id] <= 0) return;
+        lines++;
+        total += item.price * cart[id];
+
+        const line = document.createElement('div');
+        line.className = 'cart-line';
+        const label = document.createElement('span');
+        label.textContent = item.name;
+        const controls = document.createElement('span');
+        const minus = document.createElement('button');
+        minus.className = 'qty-btn'; minus.textContent = '-';
+        minus.addEventListener('click', function () { cart[id]--; renderCart(); });
+        const qty = document.createElement('span');
+        qty.textContent = cart[id];
+        const plus = document.createElement('button');
+        plus.className = 'qty-btn'; plus.textContent = '+';
+        plus.addEventListener('click', function () { cart[id]++; renderCart(); });
+        controls.appendChild(minus); controls.appendChild(qty); controls.appendChild(plus);
+        const sum = document.createElement('span');
+        sum.textContent = money(item.price * cart[id]);
+        line.appendChild(label); line.appendChild(controls); line.appendChild(sum);
+        box.appendChild(line);
+      });
+
+      if (lines === 0) {
+        const empty = document.createElement('p');
+        empty.textContent = 'Your order is empty. Click Add on an item.';
+        box.appendChild(empty);
+      }
+
+      const totalEl = document.createElement('div');
+      totalEl.className = 'total';
+      totalEl.textContent = 'Total: ' + money(total);
+      box.appendChild(totalEl);
+
+      const mine = orderableReservations();
+      const label = document.createElement('label');
+      label.textContent = 'Deliver to the room for reservation';
+      const select = document.createElement('select');
+      select.id = 'orderReservation';
+      mine.forEach(function (r) {
+        const option = document.createElement('option');
+        option.value = r.code;
+        option.textContent = r.code + ': ' + r.session + ', ' + r.date + ' ' + r.time + ' (' + r.zone + ')';
+        select.appendChild(option);
+      });
+      label.appendChild(select);
+      box.appendChild(label);
+
+      const place = document.createElement('button');
+      place.textContent = 'Place order';
+      place.disabled = lines === 0 || mine.length === 0;
+      place.addEventListener('click', submitOrder);
+      box.appendChild(place);
+
+      if (mine.length === 0) {
+        const note = document.createElement('p');
+        note.className = 'hint';
+        note.textContent = 'No room assigned yet. Check the Sessions page.';
+        box.appendChild(note);
+      }
+    }
+
+    // The server works out the prices from the menu, so the page only says which items and how many.
+    async function submitOrder() {
+      const code = document.getElementById('orderReservation').value;
+      const lines = Object.keys(cart).filter(id => cart[id] > 0).map(id => ({ id: id, qty: cart[id] }));
+      if (lines.length === 0) { alert('Your order is empty.'); return; }
+      const done = await placeOrder(user, code, lines);
+      if (!done.ok) { alert(done.error); return; }
+      alert('Order placed! Your order code is ' + done.order.code + '. It will be brought to ' + done.order.zone + '.');
+      cart = {};
+      renderCart();
+    }
+
+    renderBanner();
+    renderAllergyBox();
+    renderMenu();
+    renderCart();
+    });
+  </script>
+</body>
+</html>

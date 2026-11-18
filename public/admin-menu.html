@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Menu items</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main>
+      <div class="card wide-card">
+        <h1>Admin: Menu items</h1>
+        <p class="hint">Add, edit or delete items and their photos. Turn items off when they sell out. <a href="menu.html">View the public Menu</a></p>
+        <table>
+          <thead><tr><th>Photo</th><th>Item</th><th>Category</th><th>Price</th><th>Allergens</th><th>Available</th><th>Action</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <form class="card" id="itemForm">
+        <h2 id="formTitle">Add an item</h2>
+        <label>Name <input type="text" id="itemName" required></label>
+        <label>Category
+          <select id="itemCategory"><option>Drinks</option><option>Snacks</option></select>
+        </label>
+        <label>Price (S$) <input type="number" id="itemPrice" min="0.5" step="0.1" required></label>
+        <label>Description (shown to guests) <input type="text" id="itemDescription" maxlength="120" placeholder="e.g. Espresso with steamed milk."></label>
+        <div class="checks">
+          <label>Contains these allergens (tick all that apply):</label>
+          <span id="allergenChecks"></span>
+        </div>
+        <label class="inline-check"><input type="checkbox" id="itemAvailable" checked> Available to order</label>
+        <label>Photo <input type="file" id="itemPhoto" accept="image/*"></label>
+        <img class="preview" id="preview" alt="" style="display:none">
+        <button type="button" id="removePhoto" style="display:none">Remove photo</button>
+        <p class="note">Photos are shrunk and kept in this browser for the practice project. In the real project they are uploaded to the server.</p>
+        <div class="form-buttons">
+          <button type="submit" id="saveBtn">Add item</button>
+          <button type="button" id="cancelBtn" style="display:none">Cancel editing</button>
+        </div>
+        <div class="msg-error" id="error"></div>
+      </form>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('admin-menu.html');
+    if (guardPage(['admin'], 'manage the menu')) initMenuAdmin();
+
+    function initMenuAdmin() {
+      let editingId = null;
+      let photoData = '';              // the photo for the item being added or edited
+      const el = id => document.getElementById(id);
+      const form = el('itemForm');
+      const error = el('error');
+
+      function showPreview() {
+        el('preview').style.display = photoData ? 'block' : 'none';
+        if (photoData) el('preview').src = photoData;
+        el('removePhoto').style.display = photoData ? 'inline-block' : 'none';
+      }
+
+      // one tick box per allergen
+      ALLERGENS.forEach(function (name) {
+        const label = document.createElement('label');
+        const box = document.createElement('input');
+        box.type = 'checkbox'; box.value = name;
+        label.appendChild(box);
+        label.appendChild(document.createTextNode(name));
+        el('allergenChecks').appendChild(label);
+      });
+      const allergenBoxes = () => [...el('allergenChecks').querySelectorAll('input')];
+
+      function resetForm() {
+        editingId = null;
+        photoData = '';
+        form.reset();
+        allergenBoxes().forEach(b => { b.checked = false; });
+        el('itemAvailable').checked = true;
+        el('formTitle').textContent = 'Add an item';
+        el('saveBtn').textContent = 'Add item';
+        el('cancelBtn').style.display = 'none';
+        error.textContent = '';
+        showPreview();
+      }
+
+      function startEdit(item) {
+        editingId = item.id;
+        photoData = item.photo || '';
+        el('itemName').value = item.name;
+        el('itemCategory').value = item.category;
+        el('itemPrice').value = item.price;
+        el('itemAvailable').checked = item.available;
+        el('itemDescription').value = item.description || '';
+        allergenBoxes().forEach(b => { b.checked = (item.allergens || []).includes(b.value); });
+        el('itemPhoto').value = '';
+        el('formTitle').textContent = 'Edit ' + item.name;
+        el('saveBtn').textContent = 'Save changes';
+        el('cancelBtn').style.display = 'inline-block';
+        error.textContent = '';
+        showPreview();
+        form.scrollIntoView();
+      }
+
+      function render() {
+        const body = el('rows');
+        body.innerHTML = '';
+        loadMenu().forEach(function (item) {
+          const tr = body.insertRow();
+          const photoCell = tr.insertCell();
+          if (item.photo) {
+            const img = document.createElement('img');
+            img.className = 'thumb'; img.src = item.photo; img.alt = item.name;
+            photoCell.appendChild(img);
+          } else {
+            const none = document.createElement('span');
+            none.className = 'thumb empty'; none.textContent = 'No photo';
+            photoCell.appendChild(none);
+          }
+          [item.name, item.category, money(item.price),
+           item.allergens === undefined ? 'Not added yet' : (item.allergens.length ? item.allergens.join(', ') : 'None listed'),
+           item.available ? 'Yes' : 'No (sold out)']
+            .forEach(v => { tr.insertCell().textContent = v; });
+          const action = tr.insertCell();
+
+          const edit = document.createElement('button');
+          edit.textContent = 'Edit';
+          edit.addEventListener('click', () => startEdit(item));
+          const toggle = document.createElement('button');
+          toggle.textContent = item.available ? 'Mark sold out' : 'Make available';
+          toggle.style.marginLeft = '6px';
+          toggle.addEventListener('click', function () {
+            const list = loadMenu();
+            const found = list.find(i => i.id === item.id);
+            found.available = !found.available;
+            saveMenu(list);
+            render();
+          });
+          const del = document.createElement('button');
+          del.textContent = 'Delete';
+          del.style.marginLeft = '6px';
+          del.addEventListener('click', function () {
+            if (!confirm('Delete ' + item.name + ' from the menu?')) return;
+            saveMenu(loadMenu().filter(i => i.id !== item.id));
+            if (editingId === item.id) resetForm();
+            render();
+          });
+          action.appendChild(edit); action.appendChild(toggle); action.appendChild(del);
+        });
+      }
+
+      // choosing a photo
+      el('itemPhoto').addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+        resizeImage(file, 300,
+          function (dataUrl) { photoData = dataUrl; error.textContent = ''; showPreview(); },
+          function (message) { error.textContent = message; });
+      });
+      el('removePhoto').addEventListener('click', function () {
+        photoData = '';
+        el('itemPhoto').value = '';
+        showPreview();
+      });
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        const name = el('itemName').value.trim();
+        const price = Number(el('itemPrice').value);
+        if (!name) { error.textContent = 'Please enter a name.'; return; }
+        if (!(price > 0)) { error.textContent = 'Please enter a price above 0.'; return; }
+
+        const allergens = allergenBoxes().filter(b => b.checked).map(b => b.value);
+        if (allergens.length === 0 && !confirm('No allergens are ticked. Guests will see "No common allergens listed" for this item. Is that right?')) return;
+        const data = { name: name, category: el('itemCategory').value, price: price, description: el('itemDescription').value.trim(),
+                       allergens: allergens, available: el('itemAvailable').checked, photo: photoData };
+        const list = loadMenu();
+        if (editingId) {
+          Object.assign(list.find(i => i.id === editingId), data);
+        } else {
+          list.push(Object.assign({ id: 'm' + Date.now() }, data));
+        }
+        try {
+          saveMenu(list);
+        } catch (e) {
+          error.textContent = 'The browser is full. Try a smaller photo or remove some photos.';
+          return;
+        }
+        resetForm();
+        render();
+      });
+      el('cancelBtn').addEventListener('click', resetForm);
+
+      resetForm();
+      render();
+    }
+    });
+  </script>
+</body>
+</html>
