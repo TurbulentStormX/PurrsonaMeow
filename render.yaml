@@ -24,7 +24,14 @@ services:
         sync: false
       - key: BEN_PASSWORD
         sync: false
-      - key: EMAIL_USER        # optional: sends booking emails
+      # Optional booking emails through EmailJS (see docs/EMAIL.md). Leave them out and no emails are sent.
+      - key: EMAILJS_SERVICE_ID
         sync: false
-      - key: EMAIL_PASS        # optional: Gmail app password
+      - key: EMAILJS_BOOKING_TEMPLATE_ID
+        sync: false
+      - key: EMAILJS_PAYMENT_TEMPLATE_ID
+        sync: false
+      - key: EMAILJS_PUBLIC_KEY
+        sync: false
+      - key: EMAILJS_PRIVATE_KEY
         sync: false

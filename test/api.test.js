@@ -486,3 +486,36 @@ test('emails: a booking and a payment each ask the mailer once, and a mailer tha
   const quiet = await world();                                    // no mailer set: booking still works
   assert.equal((await quiet.book(quiet.tokens.cat, { cats: ['c1'] })).data.ok, true);
 });
+
+test('emails (EmailJS): off without keys; with keys it sends the booking and the receipt (food orders included); a refusal is only logged', async () => {
+  const { createMailer } = await import('../lib/mailer.js');
+  assert.equal(createMailer({}, () => {}).enabled, false, 'no keys: off, and nothing breaks');
+  assert.equal(await createMailer({}, () => {}).bookingConfirmed({ email: 'a@b.c' }), false);
+
+  const sent = [], logs = [];
+  let refuse = false;
+  const client = { send: async (service, template, params, keys) => { sent.push({ service, template, params, keys }); if (refuse) throw { text: 'The Public Key is invalid' }; return { text: 'OK' }; } };
+  const env = { EMAILJS_SERVICE_ID: 'svc', EMAILJS_BOOKING_TEMPLATE_ID: 'tpl_book', EMAILJS_PAYMENT_TEMPLATE_ID: 'tpl_pay', EMAILJS_PUBLIC_KEY: 'pub', EMAILJS_PRIVATE_KEY: 'priv' };
+  const m = createMailer(env, l => logs.push(l), client);
+  assert.equal(m.enabled, true);
+  const r = { name: 'Tom & Jerry', email: 'cat@gmail.com', code: 'CC-1', session: 'Nap', date: '2030-03-05', time: '14:00', guests: 2, roomName: 'Zone A', handler: 'Aisha', amount: 20, payment: { method: 'Card', ref: 'PAY-9' } };
+
+  assert.equal(await m.bookingConfirmed(r), true);
+  assert.deepEqual([sent[0].service, sent[0].template, sent[0].keys], ['svc', 'tpl_book', { publicKey: 'pub', privateKey: 'priv' }]);
+  assert.equal(sent[0].params.email, 'cat@gmail.com');
+  assert.equal(sent[0].params.amount, 'S$20.00');
+  assert.equal(sent[0].params.name, 'Tom &amp; Jerry', 'values are escaped before they go into the email');
+
+  const orders = [{ code: 'OR-1001', total: 9, items: [{ name: 'Latte', qty: 2, price: 4.5 }] }];
+  assert.equal(await m.paymentReceived(r, orders), true);
+  const pay = sent[1].params;
+  assert.equal(sent[1].template, 'tpl_pay');
+  assert.deepEqual([pay.food_items, pay.food_total, pay.food_order_codes, pay.grand_total], ['Latte x 2 - S$9.00', 'S$9.00', 'OR-1001', 'S$29.00']);
+  assert.equal((await m.paymentReceived(r)).valueOf(), true);
+  assert.equal(sent[2].params.food_items, 'No food orders');
+
+  refuse = true;
+  assert.equal(await m.bookingConfirmed(r), false, 'a refusal never throws');
+  assert.ok(logs.some(l => /\[email error\] The Public Key is invalid/.test(l)));
+  assert.equal(await m.bookingConfirmed({ ...r, email: '' }), false, 'no address: nothing sent');
+});
