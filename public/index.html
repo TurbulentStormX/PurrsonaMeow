@@ -18,15 +18,17 @@
     <main class="home-page">
       <section class="home-hero" aria-label="Welcome to Purrsona Meow">
         <div class="hero-copy">
-          <span class="hero-kicker">A cozy place for paws & people</span>
           <h1>PURRSONA MEOW</h1>
-          <p>Sipping Happiness, Purrfectly Brewed</p>
-          <a class="hero-book" href="booking.html">
-            Book your purrfect visit
-            <span aria-hidden="true">↗</span>
-          </a>
+          <p>Sipping Happiness, Purrfectly Brewed.</p>
         </div>
-        
+        <div class="hero-stage">
+          <img class="hero-cat" src="images/hero-cat.png" alt="A tabby cat peeking up over the search bar">
+          <form class="hero-search" id="heroSearchForm" role="search" autocomplete="off">
+            <input type="search" id="heroSearch" placeholder="Search screens..." aria-label="Search screens">
+            <button type="submit">Search</button>
+          </form>
+          <div class="hero-results" id="heroResults"></div>
+        </div>
       </section>
 
       <div class="home-paper">
@@ -41,6 +43,7 @@
             Reserve a private cat-interaction room or join a special
             cat session. Choose your own start time and hours.
           </p>
+          <p><a class="hero-book" href="booking.html">Book your purrfect visit <span aria-hidden="true">↗</span></a></p>
           <div class="home-status">
             <div class="status-banner" id="cafeStatus"></div>
             <p class="hint-line" id="holidayNote"></p>

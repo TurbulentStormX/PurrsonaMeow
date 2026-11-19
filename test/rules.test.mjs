@@ -422,13 +422,13 @@ test('status now: cats and handlers (in a session, on a break, free, on leave, r
   const st = (kind, id) => s.call('personStatusNow', kind, id);
   assert.deepEqual(st('cat', 'c1'), { state: 'session', text: 'In a session until 4:00 PM' });
   assert.deepEqual(st('handler', 'aisha'), { state: 'session', text: 'In a session until 4:00 PM' });
-  assert.deepEqual(st('cat', 'c4'), { state: 'free', text: 'Free' });
+  assert.deepEqual(st('cat', 'c4'), { state: 'free', text: 'Available' });
   s.setNow(TOMORROW + 'T16:20:00');
   assert.deepEqual(st('cat', 'c1'), { state: 'break', text: 'On a break until 5:00 PM' });
   s.setNow(TOMORROW + 'T17:00:00');
   assert.equal(st('cat', 'c1').state, 'free');
   s.setNow(TOMORROW + 'T13:30:00');
-  assert.deepEqual(st('handler', 'aisha'), { state: 'free', text: 'Free until 2:00 PM' });
+  assert.deepEqual(st('handler', 'aisha'), { state: 'free', text: 'Available until 2:00 PM' });
   s.run(`const cs = loadCats(); cs[1].active = false; cs[1].note = 'Vet visit'; saveCats(cs);`);
   assert.deepEqual(st('cat', 'c2'), { state: 'resting', text: 'Resting: Vet visit' });
   leave(s, 'ben');

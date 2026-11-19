@@ -549,7 +549,7 @@ function personStatusNow(kind, id, now) {
   const resting = mine.find(b => bookingEndMin(b) <= nowMin && nowMin < bookingEndMin(b) + brk);
   if (resting) return { state: 'break', text: 'On a break until ' + timeLabel(fromMin(bookingEndMin(resting) + brk)) };
   const next = mine.filter(b => toMin(b.time) > nowMin).sort((a, b) => toMin(a.time) - toMin(b.time))[0];
-  return { state: 'free', text: next ? 'Free until ' + timeLabel(next.time) : 'Free' };
+  return { state: 'free', text: next ? 'Available until ' + timeLabel(next.time) : 'Available' };
 }
 // What is this person doing during one hour of a day? (used by the cat schedule)
 // kind = 'cat' or 'handler', hourMin = the hour in minutes (14:00 = 840). Returns { state: 'booked' | 'break' | 'free', booking }.

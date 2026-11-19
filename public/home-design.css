@@ -41,74 +41,142 @@ body:has(.home-page) .site-footer a {
 }
 
 .home-hero {
-    min-height: 400px;
     position: relative;
     overflow: hidden;
-    background: #c98672;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
+    background: #c8826d;                       /* same terracotta as the design */
     text-align: center;
-    padding: 56px 20px 0;
-}
-
-.home-hero::before,
-.home-hero::after {
-    content: '✧';
-    position: absolute;
-    color: #f4d9c7;
-    font-size: 36px;
-    opacity: .75;
-}
-
-.home-hero::before {
-    left: 9%;
-    top: 27%;
-}
-
-.home-hero::after {
-    right: 11%;
-    top: 18%;
+    padding: 34px 16px 0;
 }
 
 .hero-copy {
     position: relative;
-    z-index: 2;
-    color: #fff8f0;
-    text-shadow: 0 2px 9px #6d473c45;
-}
-
-.hero-kicker {
-    font-size: 12px;
-    letter-spacing: .26em;
-    text-transform: uppercase;
+    z-index: 3;
 }
 
 .hero-copy h1 {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: clamp(40px, 7vw, 90px);
-    font-weight: 600;
-    font-style: italic;
-    letter-spacing: .015em;
-    line-height: 1.08;
-    margin: 14px 0 2px;
+    font-family: 'Great Vibes', cursive;
+    font-size: clamp(46px, 9vw, 112px);
+    font-weight: 400;
+    line-height: 1.05;
+    margin: 0;
+    color: #ffffff;
+    -webkit-text-stroke: 5px #151515;          /* the dark outline round the white letters */
+    paint-order: stroke fill;
+    letter-spacing: .02em;
 }
 
 .hero-copy p {
     font-family: 'Great Vibes', cursive;
-    font-size: clamp(25px, 3.4vw, 42px);
-    margin: 0 0 18px;
+    font-size: clamp(24px, 4vw, 46px);
+    color: #151515;
+    margin: 4px 0 0;
+}
+
+/* The cat and the search bar share one box, so the bar always sits across the cat's forehead */
+.hero-stage {
+    position: relative;
+    width: min(820px, 94vw);
+    margin: 10px auto 0;
+    aspect-ratio: 731 / 440;
+}
+
+.hero-cat {
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    user-select: none;
+}
+
+.hero-search {
+    position: absolute;
+    left: 3.2%;
+    right: 0.3%;
+    top: 29.6%;
+    height: 18.6%;
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 999px;
+    box-shadow: 0 6px 18px #5a362c33;
+    padding: 0 2.6% 0 3.2%;
+    z-index: 4;
+}
+
+.hero-search input {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    margin: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: 500 clamp(14px, 2.2vw, 20px) 'DM Sans', Arial, sans-serif;
+    color: #3f302b;
+}
+
+.hero-search button {
+    margin: 0;
+    padding: 6px 4px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font: 700 clamp(13px, 2vw, 18px) 'DM Sans', Arial, sans-serif;
+    color: #9c9390;
+}
+
+.hero-search:focus-within {
+    box-shadow: 0 0 0 3px #f4d9c7, 0 6px 18px #5a362c33;
+}
+
+.hero-search:focus-within button {
+    color: #a96f5f;
+}
+
+.hero-results {
+    position: absolute;
+    left: 3.2%;
+    right: 0.3%;
+    top: 49.5%;
+    z-index: 5;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 28px #3f302b40;
+    text-align: left;
+    overflow: hidden;
+}
+
+.hero-results:empty {
+    display: none;
+}
+
+.hero-results a,
+.hero-results .none {
+    display: block;
+    padding: 11px 20px;
+    color: #3f302b;
+    text-decoration: none;
+    font-family: 'DM Sans', Arial, sans-serif;
+}
+
+.hero-results a:hover,
+.hero-results a:focus {
+    background: #f6eae0;
+    outline: 0;
+}
+
+.hero-results .none {
+    color: #8c7a6f;
 }
 
 .hero-book {
     display: inline-block;
-    background: #fff8f1;
-    color: #724e41;
-    text-shadow: none;
+    background: #c98672;
+    color: #fff;
     padding: 11px 22px;
     border-radius: 999px;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 14px;
     text-decoration: none;
     box-shadow: 0 4px 15px #73453640;
 }
@@ -117,19 +185,6 @@ body:has(.home-page) .site-footer a {
 .home-page .cta:hover {
     transform: translateY(-2px);
     filter: brightness(1.05);
-}
-
-.hero-cat {
-    position: absolute;
-    width: min(430px, 56vw);
-    height: 250px;
-    object-fit: contain;
-    object-position: center bottom;
-    bottom: -72px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1;
-    pointer-events: none;
 }
 
 .home-paper {
@@ -341,14 +396,11 @@ body:has(.home-page) .site-footer a {
 
 @media (max-width: 700px) {
     .home-hero {
-        min-height: 340px;
-        padding-top: 46px;
+        padding-top: 22px;
     }
 
-    .hero-cat {
-        width: 70vw;
-        height: 210px;
-        bottom: -62px;
+    .hero-copy h1 {
+        -webkit-text-stroke: 3px #151515;
     }
 
     .home-paper {

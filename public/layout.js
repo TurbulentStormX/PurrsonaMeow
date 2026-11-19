@@ -78,34 +78,48 @@ function isDesktop() {
   return window.innerWidth >= 1024;
 }
 
-// The three-line button: click to show the menu, click again to hide it.
-//  - computer: a fixed sidebar on the left (shown when the page loads)
-//  - tablet and phone: the menu slides in from the left (hidden when the page loads)
-function setupMenuToggle() {
+// Two kinds of menu, chosen by who is looking:
+//  - 'top'  (visitors and guests): hidden when the page loads. The three-line button drops a panel down
+//           from under the top bar, OVER the page (the page never moves). Click the button, click outside,
+//           pick a page or press Esc to close it.
+//  - 'side' (staff and admin): a fixed sidebar on the left that is always there on a computer, because they
+//           keep jumping between editing screens. On a tablet or phone it is a slide-in drawer instead.
+function menuMode(user) {
+  const role = roleOf(user);
+  return role === 'handler' || role === 'admin' ? 'side' : 'top';
+}
+
+function setupMenuToggle(mode) {
   const nav = document.getElementById('side-nav');
   const button = document.getElementById('menuToggle');
   const overlay = document.getElementById('navOverlay');
+  document.body.classList.toggle('nav-top', mode === 'top');
+  document.body.classList.toggle('nav-side', mode === 'side');
+
+  function permanent() { return mode === 'side' && isDesktop(); }      // the staff sidebar on a computer never hides
 
   function setOpen(open) {
+    if (permanent()) open = true;
     nav.classList.toggle('open', open);
     button.classList.toggle('active', open);
     button.setAttribute('aria-expanded', open ? 'true' : 'false');
-    overlay.classList.toggle('show', open && !isDesktop());   // dark backdrop only on tablet and phone
+    overlay.classList.toggle('show', open && !permanent());           // a see-through click-away layer (dark on a phone drawer)
+    overlay.classList.toggle('dim', open && mode === 'side' && !permanent());
   }
 
-  button.addEventListener('click', function () { setOpen(!nav.classList.contains('open')); });
+  button.addEventListener('click', function () { if (!permanent()) setOpen(!nav.classList.contains('open')); });
   overlay.addEventListener('click', function () { setOpen(false); });
   nav.addEventListener('click', function (e) {
-    if (e.target.tagName === 'A' && !isDesktop()) setOpen(false);   // close the drawer after choosing a page
+    if (e.target.tagName === 'A' && !permanent()) setOpen(false);     // close after choosing a page
   });
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !isDesktop()) setOpen(false);
+    if (e.key === 'Escape' && !permanent()) setOpen(false);
   });
 
-  setOpen(isDesktop());
+  setOpen(permanent());                                               // staff on a computer: open. Everyone else: closed.
   if (window.matchMedia) {
     const query = window.matchMedia(DESKTOP_QUERY);
-    const onChange = function () { setOpen(isDesktop()); };      // reset when the window is resized
+    const onChange = function () { setOpen(permanent()); };           // reset when the window is resized
     if (query.addEventListener) query.addEventListener('change', onChange);
     else if (query.addListener) query.addListener(onChange);
   }
@@ -116,6 +130,7 @@ function setupSearch(user) {
   const input = document.getElementById('navSearch');
   const results = document.getElementById('navResults');
   const links = document.getElementById('navLinks');
+  if (!input) return;                                            // visitors and guests search from the home page instead
 
   function update() {
     const query = input.value.trim();
@@ -150,6 +165,44 @@ function setupSearch(user) {
   });
 }
 
+// The big search bar on the home page (over the cat): type a word, pick a screen. Enter opens the first match.
+function setupHeroSearch(user) {
+  const form = document.getElementById('heroSearchForm');
+  if (!form) return;
+  const input = document.getElementById('heroSearch');
+  const results = document.getElementById('heroResults');
+
+  function update() {
+    const query = input.value.trim();
+    results.innerHTML = '';
+    if (!query) return;
+    const found = searchPages(query, user);
+    if (found.length === 0) {
+      const none = document.createElement('div');
+      none.className = 'none';
+      none.textContent = 'No screen found for "' + query + '".';
+      results.appendChild(none);
+      return;
+    }
+    found.forEach(function (p) {
+      const a = document.createElement('a');
+      a.href = p[0];
+      a.textContent = p[1];
+      results.appendChild(a);
+    });
+  }
+  input.addEventListener('input', update);
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const first = results.querySelector('a');
+    if (first) window.location.href = first.getAttribute('href');
+    else update();
+  });
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { input.value = ''; update(); }
+  });
+}
+
 function renderLayout(activePage) {
   const user = currentUser();
 
@@ -180,9 +233,10 @@ function renderLayout(activePage) {
   // Menu: a search box, then the links
   const nav = document.getElementById('side-nav');
   nav.setAttribute('aria-label', 'Main menu');
+  const staffMenu = menuMode(user) === 'side';
   nav.innerHTML =
-    '<div class="nav-search"><input type="search" id="navSearch" placeholder="Search screens..." aria-label="Search screens" autocomplete="off"></div>' +
-    '<div class="nav-results" id="navResults"></div>' +
+    (staffMenu ? '<div class="nav-search"><input type="search" id="navSearch" placeholder="Search screens..." aria-label="Search screens" autocomplete="off"></div>' +
+                 '<div class="nav-results" id="navResults"></div>' : '') +
     '<div class="nav-links" id="navLinks">' +
     menuFor(user).map(p => '<a href="' + p[0] + '"' + (p[0] === activePage ? ' class="active"' : '') + '>' + p[1] + '</a>').join('') +
     '</div>';
@@ -201,7 +255,8 @@ function renderLayout(activePage) {
     '<a href="hours.html">Opening hours</a><a href="support.html">Support us</a></p>' +
     '<p>\u00a9 ' + new Date().getFullYear() + ' Cat Caf\u00e9 Reservations. All rights reserved. &nbsp;|&nbsp; Practice project &nbsp;|&nbsp; Contact: hello@example.com</p>';
 
-  setupMenuToggle();
+  setupMenuToggle(menuMode(user));
   setupSearch(user);
+  setupHeroSearch(user);
 
 }

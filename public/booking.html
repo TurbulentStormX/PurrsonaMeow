@@ -227,7 +227,7 @@
           name.textContent = cat.name;
           box.appendChild(name);
           const note = document.createElement('small');
-          note.textContent = chosen ? 'Chosen' : state === 'free' ? 'Free' : state === 'booked' ? 'Booked then' : state === 'break' ? 'On a break then' : state === 'resting' ? 'Resting' : 'Pick a date first';
+          note.textContent = chosen ? 'Chosen' : state === 'free' ? 'Available' : state === 'booked' ? 'Booked then' : state === 'break' ? 'On a break then' : state === 'resting' ? 'Resting' : 'Pick a date first';
           box.appendChild(note);
           box.addEventListener('click', function () {
             if (!free) return;
@@ -254,7 +254,7 @@
         const check = roomCheck(roomEl.value, s.id, dateEl.value, timeEl.value, chosenHours(), '');
         if (check.state === 'closed') { box.textContent = check.reason; box.className = 'full'; }
         else if (check.left <= 0) { box.textContent = 'This room is already booked then. Please choose another room or time.'; box.className = 'full'; }
-        else if (currentRoom().type === 'Private') { box.textContent = 'Free: this private room is yours from ' + timeLabel(timeEl.value) + ' to ' + timeLabel(fromMin(toMin(timeEl.value) + chosenHours() * 60)) + ' (up to ' + check.max + ' guests).'; box.className = 'ok'; }
+        else if (currentRoom().type === 'Private') { box.textContent = 'Available: this private room is yours from ' + timeLabel(timeEl.value) + ' to ' + timeLabel(fromMin(toMin(timeEl.value) + chosenHours() * 60)) + ' (up to ' + check.max + ' guests).'; box.className = 'ok'; }
         else { box.textContent = check.left + ' spot(s) left from ' + timeLabel(timeEl.value) + ' to ' + timeLabel(fromMin(toMin(timeEl.value) + chosenHours() * 60)); box.className = 'ok'; }
       }
 
@@ -290,7 +290,7 @@
               box.className = 'slot full'; box.textContent = 'Booked';
             } else {
               box.className = 'slot ' + check.state;
-              box.textContent = room.type === 'Private' ? 'Free' : check.left + ' left';
+              box.textContent = room.type === 'Private' ? 'Available' : check.left + ' left';
               box.addEventListener('click', function () {      // clicking a free hour fills in the form
                 roomEl.value = room.id;
                 dateEl.value = date;

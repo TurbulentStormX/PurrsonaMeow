@@ -35,13 +35,16 @@ test('menus, About us, search and the dashboard link (which tells the dashboard 
   let w = await device(e).open('index.html');
   assert.deepEqual(navLabels(w), ['Home', 'Menu', 'Meet our cats', 'Rates', 'Opening hours', 'Sessions', 'Events', 'About Us', 'FAQ', 'Support us']);
   assert.ok(text(w, '#site-footer').includes('About Us') && text(w, '#site-footer').includes('\u00a9 2030'));
-  set(w, 'navSearch', 'about');
-  assert.deepEqual($$(w, '#navResults a').map(a => a.textContent), ['About Us']);
+  set(w, 'heroSearch', 'about');                                  // visitors search from the big bar on the home page
+  assert.deepEqual($$(w, '#heroResults a').map(a => a.textContent), ['About Us']);
+  assert.equal($(w, '#navSearch'), null, 'no search box inside the visitor menu');
   const admin = await as(e, 'admin');
   w = await admin.open('admin.html');
   assert.deepEqual(navLabels(w).slice(0, 4), ['Home', 'Dashboard', 'Reservations', 'Orders']);
   const url = new URL($$(w, '#side-nav a').find(a => a.textContent === 'Dashboard').getAttribute('href'), e.base);
   assert.deepEqual([url.origin, url.pathname, url.searchParams.get('back')], [e.base, '/dashboard/', e.base + '/index.html']);
+  set(w, 'navSearch', 'orders');                                  // staff keep the search box in their sidebar
+  assert.deepEqual($$(w, '#navResults a').map(a => a.textContent), ['Orders']);
   const h = await as(e, 'aisha');
   assert.deepEqual(navLabels(await h.open('handler.html')).slice(0, 3), ['Home', 'Dashboard', 'My Sessions']);
   noErrors(admin, h);
@@ -180,7 +183,7 @@ test('booking page: flexible hours, per-hour price, cats, handler preview, terms
   assert.deepEqual([r.status, r.time, r.endTime, r.amount, r.handlerUsername, r.zone, r.email, r.requests, r.guests], ['Assigned', '14:00', '16:00', 60, 'aisha', 'P1 - Private Room 1', 'cat@gmail.com', 'birthday', 4]);
   assert.ok(w.__alerts.some(m => m.includes('Your booking is confirmed!') && m.includes('Your cat handler is Aisha') && m.includes(r.code)));
   const p1 = row(w, '#scheduleTable tr', 'Private Room 1');
-  assert.deepEqual([...p1.cells].slice(1).map(c => c.textContent), ['Free', 'Free', 'Lunch', 'Free', 'Booked', 'Booked', 'Free', 'Free', 'Free', 'Free'], 'the schedule already shows the new booking');
+  assert.deepEqual([...p1.cells].slice(1).map(c => c.textContent), ['Available', 'Available', 'Lunch', 'Available', 'Booked', 'Booked', 'Available', 'Available', 'Available', 'Available'], 'the schedule already shows the new booking');
   noErrors(g);
 });
 test('booking page: the guest\'s name, email and phone come from the login, not from the page', async () => {
@@ -202,7 +205,7 @@ test('booking page, live: another device books, and this page shows the slot as 
   await until(() => $$(w, '#session option').length === 2, 'sessions');
   set(w, 'date', TOMORROW);
   const cell = () => row(w, '#scheduleTable tr', 'Private Room 1').cells[5].textContent;     // the 2 PM hour
-  assert.equal(cell(), 'Free');
+  assert.equal(cell(), 'Available');
   await e.book(e.tokens.dog, { cats: ['c4'], time: '14:00' });                               // someone else, on another device
   await until(() => cell() === 'Booked', 'the schedule to show the other booking');
   set(w, 'room', 'P1'); set(w, 'time', '14:00');
@@ -560,4 +563,38 @@ test('a role written into the browser\'s memory changes what the page shows, but
   assert.equal(w.eval('JSON.stringify(DATA.feedbackMessages)'), '[]', 'the server still treats this person as a guest');
   assert.equal((await e.act('clearPracticeData', {}, e.tokens.cat)).status, 403);
   assert.equal((await e.call('GET', '/api/admin/dashboard', undefined, e.tokens.cat)).status, 403);
+});
+
+test('menu: visitors and guests get a hidden drop-down panel over the page, staff and admin keep an always-open sidebar', async () => {
+  const e = await world();
+  for (const who of [null, 'cat']) {
+    const d = who ? await as(e, who) : device(e);
+    const w = await d.open('index.html');
+    assert.ok(w.document.body.classList.contains('nav-top'), 'top panel mode');
+    assert.equal($(w, '#side-nav').classList.contains('open'), false, 'hidden when the page opens');
+    await click($(w, '#menuToggle'));
+    assert.equal($(w, '#side-nav').classList.contains('open'), true, 'the three lines show it');
+    assert.equal($(w, '#navOverlay').classList.contains('show'), true, 'click-away layer is on');
+    await click($(w, '#navOverlay'));
+    assert.equal($(w, '#side-nav').classList.contains('open'), false, 'clicking outside hides it');
+    await click($(w, '#menuToggle'));
+    await click($(w, '#menuToggle'));
+    assert.equal($(w, '#side-nav').classList.contains('open'), false, 'the three lines hide it again');
+  }
+  for (const who of ['admin', 'aisha']) {
+    const w = await (await as(e, who)).open('index.html');
+    assert.ok(w.document.body.classList.contains('nav-side'), 'sidebar mode');
+    assert.equal($(w, '#side-nav').classList.contains('open'), true, 'always open on a computer');
+    await click($(w, '#menuToggle'));
+    assert.equal($(w, '#side-nav').classList.contains('open'), true, 'the button cannot hide it');
+  }
+});
+test('home page: the big search bar opens the first matching screen, and says so when nothing matches', async () => {
+  const e = await world();
+  const w = await device(e).open('index.html');
+  assert.ok($(w, '.hero-cat') && $(w, '#heroSearchForm'), 'cat picture and search bar are there');
+  set(w, 'heroSearch', 'zzzz');
+  assert.match(text(w, '#heroResults'), /No screen found/);
+  set(w, 'heroSearch', 'rates');
+  assert.deepEqual($$(w, '#heroResults a').map(a => a.getAttribute('href')), ['rate.html']);
 });

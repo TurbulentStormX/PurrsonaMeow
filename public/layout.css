@@ -448,3 +448,88 @@ td {
         min-width: 0;
     }
 }
+
+/* ================================
+   MENU FOR VISITORS AND GUESTS: a panel that drops down OVER the page
+   (the page never shifts). Staff keep the sidebar below.
+================================ */
+
+body.nav-top .side-nav {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    position: fixed;
+    top: var(--header-h);
+    left: 0;
+    right: 0;
+    bottom: auto;
+    flex: none;
+    width: auto;
+    max-width: none;
+    height: auto;
+    align-items: center;
+    align-content: flex-start;
+    max-height: calc(100vh - var(--header-h));
+    overflow-y: auto;
+    padding: 14px 18px 16px;
+    z-index: 55;
+    background: #f1dfc9;
+    border-bottom: 1px solid #dfc5b4;
+    box-shadow: 0 12px 24px rgba(60, 35, 20, 0.22);
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+}
+
+body.nav-top .side-nav.open {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+}
+
+body.nav-top .side-nav a {
+    padding: 10px 16px;
+    border-radius: 999px;
+}
+
+body.nav-top .layout {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* the see-through layer that closes the panel when you click anywhere else */
+.nav-overlay.show {
+    display: block;
+    position: fixed;
+    top: var(--header-h);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: transparent;
+    z-index: 54;
+}
+
+.nav-overlay.show.dim {
+    top: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 40;
+}
+
+/* ================================
+   MENU FOR STAFF AND ADMIN: always there on a computer
+================================ */
+
+@media (min-width: 1024px) {
+    body.nav-side .menu-toggle {
+        display: none;
+    }
+
+    body.nav-side .side-nav {
+        display: flex;
+    }
+}
