@@ -314,6 +314,35 @@
     font-family: 'DM Sans', sans-serif;
 }
 
+/* Sessions buttons: the same brown buttons as Manage Rates, Rooms, Menu and Cats */
+
+.admin-sessions-page button {
+    background: #79523f;
+    color: #ffffff;
+    border: 1px solid #79523f;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.admin-sessions-page button:hover {
+    background: #9b6b53;
+    border-color: #9b6b53;
+}
+
+.admin-sessions-page .form-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.admin-sessions-page .form-buttons button {
+    margin-right: 0;
+}
+
 
 /* ADMIN - MANAGE RATES */
 
