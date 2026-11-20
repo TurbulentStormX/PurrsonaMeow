@@ -74,16 +74,23 @@ function App() {
   useEffect(() => {
     async function fetchReservations() {
       try {
-        const response = await fetch(
-          "http://localhost:3000/reservations"
-        );
+        // The website saved the login in this browser. The dashboard is on the same address, so it can use it.
+        const auth = JSON.parse(localStorage.getItem("catcafe_auth") || "null");
+
+        if (!auth || !auth.token) {
+          throw new Error("Please log in as admin or handler on the website first.");
+        }
+
+        const response = await fetch("/api/data", {
+          headers: { Authorization: "Bearer " + auth.token }
+        });
 
         if (!response.ok) {
           throw new Error("Failed to retrieve reservations.");
         }
 
         const result = await response.json();
-        setReservations(result.reservations || []);
+        setReservations((result.data && result.data.reservations) || []);
       } catch (error) {
         console.error("Dashboard error:", error);
         setError(error.message);
@@ -399,8 +406,11 @@ function App() {
         <button
           className="back-button"
           onClick={() => {
-            window.location.href =
-              "http://127.0.0.1:5500/index.html";
+            // back to the page the staff member came from (the website menu adds ?back=...), else their own page
+            const back = new URLSearchParams(window.location.search).get("back");
+            const auth = JSON.parse(localStorage.getItem("catcafe_auth") || "null");
+            const own = auth && auth.user && auth.user.role === "handler" ? "/handler.html" : "/admin.html";
+            window.location.href = back && !/index\.html$/.test(back) ? back : own;
           }}
         >
           ← Back to Website
