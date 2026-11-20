@@ -3,7 +3,7 @@
 
 .booking-page {
     background: #fff9f2;
-    color: #79523f;
+    color: #ffffff;
     font-family: 'DM Sans', sans-serif;
     padding: 45px 25px 85px;
     min-height: 80vh;
@@ -38,7 +38,7 @@
     font-size: clamp(30px, 3.5vw, 44px);
     font-weight: 600;
     line-height: 1.25;
-    color: #ffffff;
+    color: #79523f;
     margin: 0 0 18px;
 }
 
