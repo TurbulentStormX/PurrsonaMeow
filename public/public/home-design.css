@@ -1,0 +1,433 @@
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Great+Vibes&family=Playfair+Display:wght@500;600;700&display=swap');
+
+body:has(.home-page) {
+    background: #e4d3c3;
+    color: #3f302b;
+}
+
+body:has(.home-page) .site-header {
+    background: #f6eae0;
+    color: #45332e;
+    border-bottom: 1px solid #dfc5b4;
+}
+
+body:has(.home-page) .brand a {
+    color: #45332e;
+}
+
+body:has(.home-page) .menu-toggle span {
+    background: #45332e;
+}
+
+body:has(.home-page) .header-right .btn {
+    background: #c98672;
+    color: #fff;
+}
+
+body:has(.home-page) .site-footer {
+    background: #c98672;
+    color: #fff9f4;
+}
+
+body:has(.home-page) .site-footer a {
+    color: #fff9f4;
+}
+
+.home-page {
+    padding: 0;
+    min-width: 0;
+    font-family: 'DM Sans', Arial, sans-serif;
+}
+
+.home-hero {
+    position: relative;
+    z-index: 20;                               /* the search results hang below the cat, so nothing may clip or cover them */
+    background: #c8826d;                       /* same terracotta as the design */
+    text-align: center;
+    padding: 34px 16px 0;
+}
+
+.hero-copy {
+    position: relative;
+    z-index: 3;
+}
+
+.hero-copy h1 {
+    font-family: 'Great Vibes', cursive;
+    font-size: clamp(46px, 9vw, 112px);
+    font-weight: 400;
+    line-height: 1.05;
+    margin: 0;
+    color: #ffffff;
+    -webkit-text-stroke: 5px #151515;          /* the dark outline round the white letters */
+    paint-order: stroke fill;
+    letter-spacing: .02em;
+}
+
+.hero-copy p {
+    font-family: 'Great Vibes', cursive;
+    font-size: clamp(24px, 4vw, 46px);
+    color: #151515;
+    margin: 4px 0 0;
+}
+
+/* The cat and the search bar share one box, so the bar always sits across the cat's forehead */
+.hero-stage {
+    position: relative;
+    width: min(820px, 94vw);
+    margin: 10px auto 0;
+    aspect-ratio: 731 / 440;
+}
+
+.hero-cat {
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    user-select: none;
+}
+
+.hero-search {
+    position: absolute;
+    left: 3.2%;
+    right: 0.3%;
+    top: 29.6%;
+    height: 18.6%;
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 999px;
+    box-shadow: 0 6px 18px #5a362c33;
+    padding: 0 2.6% 0 3.2%;
+    z-index: 4;
+}
+
+.hero-search input {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    margin: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: 500 clamp(14px, 2.2vw, 20px) 'DM Sans', Arial, sans-serif;
+    color: #3f302b;
+}
+
+.hero-search button {
+    margin: 0;
+    padding: 6px 4px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font: 700 clamp(13px, 2vw, 18px) 'DM Sans', Arial, sans-serif;
+    color: #9c9390;
+}
+
+.hero-search:focus-within {
+    box-shadow: 0 0 0 3px #f4d9c7, 0 6px 18px #5a362c33;
+}
+
+.hero-search:focus-within button {
+    color: #a96f5f;
+}
+
+.hero-results {
+    position: absolute;
+    left: 3.2%;
+    right: 0.3%;
+    top: 49.5%;
+    z-index: 5;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 28px #3f302b40;
+    text-align: left;
+    max-height: min(55vh, 380px);              /* a long list scrolls inside its own box instead of being cut off */
+    overflow-y: auto;
+}
+
+.hero-results:empty {
+    display: none;
+}
+
+.hero-results a,
+.hero-results .none {
+    display: block;
+    padding: 11px 20px;
+    color: #3f302b;
+    text-decoration: none;
+    font-family: 'DM Sans', Arial, sans-serif;
+}
+
+.hero-results a:hover,
+.hero-results a:focus {
+    background: #f6eae0;
+    outline: 0;
+}
+
+.hero-results .none {
+    color: #8c7a6f;
+}
+
+.hero-book {
+    display: inline-block;
+    background: #c98672;
+    color: #fff;
+    padding: 11px 22px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    box-shadow: 0 4px 15px #73453640;
+}
+
+.hero-book:hover,
+.home-page .cta:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+}
+
+.home-paper {
+    background-color: #e5d6c8;
+    background-image:
+        radial-gradient(#b18f7c32 .8px, transparent .8px);
+    background-size: 9px 9px;
+    padding: 64px clamp(18px, 5vw, 75px) 28px;
+}
+
+.home-intro {
+    text-align: center;
+    max-width: 780px;
+    margin: auto;
+}
+
+.section-eyebrow {
+    font-size: 11px;
+    letter-spacing: .22em;
+    color: #926b55;
+    font-weight: 700;
+}
+
+.home-intro h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(25px, 3.6vw, 43px);
+    margin: 12px 0;
+    color: #6f493b;
+}
+
+.home-intro > p {
+    max-width: 580px;
+    margin: 0 auto 16px;
+    line-height: 1.7;
+}
+
+.home-status {
+    margin: 20px auto 0;
+    max-width: 650px;
+}
+
+.home-page .status-banner {
+    background: #fff9f4;
+    color: #694b3c;
+    border: 1px solid #d7bba8;
+    border-radius: 100px;
+    padding: 11px 18px;
+    font-size: 13px;
+}
+
+.home-page .status-banner.closed {
+    background: #f9e5dc;
+}
+
+.home-page .hint-line {
+    font-size: 12px;
+}
+
+.home-page a {
+    transition: transform .2s ease, filter .2s ease;
+}
+
+.home-sessions {
+    max-width: 1000px;
+    margin: 48px auto 0;
+    text-align: center;
+}
+
+.handwritten-title {
+    font-family: 'Great Vibes', cursive;
+    font-weight: 400;
+    font-size: 48px;
+    margin: 0 0 16px;
+    color: #865d49;
+}
+
+.home-page .cards {
+    justify-content: center;
+}
+
+.home-page .cards .card {
+    background: #fff9f4;
+    border: 1px solid #d5bba9;
+    box-shadow: 0 5px 15px #77543a12;
+    border-radius: 24px;
+    text-align: left;
+    max-width: none;
+}
+
+.home-page .cards .card h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 20px;
+    margin: 0 0 8px;
+    color: #825847;
+}
+
+.home-page .cards .card p {
+    line-height: 1.6;
+    font-size: 13px;
+    margin: 0;
+}
+
+.home-page .cta {
+    background: #a48a5d;
+    color: white;
+    border-radius: 999px;
+    margin-top: 8px;
+    padding: 12px 24px;
+    font-weight: 700;
+}
+
+.home-today {
+    max-width: 1050px;
+    margin: 44px auto 0;
+}
+
+.today-heading {
+    background: #a48a5d;
+    color: #fff9f0;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 12px 12px 0 0;
+}
+
+.today-heading h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 22px;
+    margin: 0;
+}
+
+.today-heading span {
+    font-size: 24px;
+}
+
+.home-availability {
+    background: #f4e9dd;
+    padding: 20px;
+    border: 1px solid #d6bba7;
+    border-top: 0;
+    border-radius: 0 0 12px 12px;
+}
+
+.availability-group + .availability-group {
+    margin-top: 20px;
+}
+
+.availability-group h3 {
+    margin: 0 0 12px;
+    font-family: 'Playfair Display', Georgia, serif;
+    color: #785442;
+    font-size: 19px;
+}
+
+.home-page .who-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.home-page .who-card {
+    background: #fffdf8;
+    border: 1px solid #e3cdbd;
+    border-radius: 15px;
+    padding: 12px;
+    text-align: center;
+    min-width: 0;
+}
+
+.home-page .who-card img,
+.home-page .who-card .noimg {
+    display: block;
+    width: 74px;
+    height: 74px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin: 0 auto 8px;
+}
+
+.home-page .who-card .noimg {
+    background: #d9c2b0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.home-page .who-card strong {
+    display: block;
+    margin: 4px 0;
+}
+
+.home-page .who-card .chip {
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.home-page .hint {
+    text-align: center;
+    margin-top: 12px;
+}
+
+.home-flourish {
+    text-align: right;
+    color: #9b7862;
+    font-size: 25px;
+    margin-top: 15px;
+}
+
+@media (max-width: 700px) {
+    .home-hero {
+        padding-top: 22px;
+    }
+
+    .hero-copy h1 {
+        -webkit-text-stroke: 3px #151515;
+    }
+
+    .home-paper {
+        padding-top: 50px;
+    }
+
+    .handwritten-title {
+        font-size: 40px;
+    }
+
+    .home-page .cards {
+        flex-direction: column;
+    }
+
+    .home-page .cards .card {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .home-availability {
+        padding: 13px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .home-page a {
+        transition: none;
+    }
+}

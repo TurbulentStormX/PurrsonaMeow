@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Rates</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="rate-design.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main class="rate-page">
+      <h1>Rates</h1>
+      <p class="hint">We charge <strong>per hour</strong>, not per guest. The price is the same however many guests come (up to the session's limit). You pay after you book.</p>
+
+      <div id="rateCards"></div>
+
+      <div class="card wide-card">
+        <h2>When you can book</h2>
+        <p id="hoursText"></p>
+        <div class="notice warn" id="lunchNote"></div>
+        <p class="hint" id="breakNote"></p>
+        <p><a href="hours.html">See opening hours and public holidays</a></p>
+      </div>
+
+      <div class="card wide-card">
+        <h2>Cancelling and refunds</h2>
+        <p>You can cancel any time before the session starts. Your room, cats and handler are then free for other guests.</p>
+        <table id="refundTable"></table>
+        <p class="hint">If you cancel late without having paid, the fee is still due. You can pay it from Settings. A booking that is still unpaid 24 hours before it starts is cancelled automatically (no fee), so the room and cats can go to other guests.</p>
+        <p class="hint">If the café has to cancel (for example a cat is unwell or a room has a problem), you get a full refund.</p>
+      </div>
+
+      <div class="card wide-card">
+        <h2>How to pay</h2>
+        <ul id="payList"></ul>
+        <p class="hint">This is a practice project, so no real money is taken.</p>
+      </div>
+
+      <a class="cta" href="booking.html">Book a session</a>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('rate.html');
+
+    // one card per session: its rates per hour, the hours allowed and an example price
+    const wrap = document.getElementById('rateCards');
+    loadSessions().filter(s => s.active).forEach(function (s) {
+      const rates = loadRates().filter(r => r.active && r.sessionId === s.id);
+      const general = loadRates().filter(r => r.active && r.sessionId === '');
+      const card = document.createElement('div');
+      card.className = 'card wide-card rate-card';
+      const title = document.createElement('h2');
+      title.textContent = s.name;
+      card.appendChild(title);
+
+      const info = document.createElement('p');
+      info.textContent = 'Up to ' + s.max + ' guests. ' + hoursText(s.minHours) + (s.maxHours > s.minHours ? ' to ' + hoursText(s.maxHours) : '') + ' per booking. ' +
+        (s.catChoice ? 'You choose up to ' + s.maxCats + ' cat(s) to meet.' : 'Our cats join in (no need to choose).');
+      card.appendChild(info);
+
+      const table = document.createElement('table');
+      table.innerHTML = '<tr><th>Rate</th><th>Applies on</th><th>Price per hour</th></tr>';
+      rates.concat(general).forEach(function (r) {
+        const row = table.insertRow();
+        row.insertCell().textContent = r.name;
+        row.insertCell().textContent = DAY_TYPE_LABELS[r.dayType];
+        row.insertCell().textContent = money(r.pricePerHour);
+      });
+      if (rates.length + general.length === 0) {
+        const td = table.insertRow().insertCell();
+        td.colSpan = 3;
+        td.textContent = 'No rate is set yet, so this session cannot be booked.';
+      }
+      card.appendChild(table);
+
+      const standard = rateFor(s.id, daysFromToday(1));
+      if (standard) {
+        const example = document.createElement('p');
+        example.className = 'hint';
+        example.textContent = 'Example: 2 hours at ' + money(standard.pricePerHour) + ' per hour = ' + money(standard.pricePerHour * 2) + ' (for 1 guest or ' + s.max + ').';
+        card.appendChild(example);
+      }
+      wrap.appendChild(card);
+    });
+
+    const today = dayInfo(daysFromToday(1));
+    document.getElementById('hoursText').textContent = 'You choose your own start time and number of hours. ' + (today.open ? 'Tomorrow: ' + today.text.toLowerCase() + '.' : '');
+    const closedNames = loadHours().closedPeriods.map(p => p.name + ' ' + timeLabel(p.from) + ' to ' + timeLabel(p.to));
+    document.getElementById('lunchNote').textContent = closedNames.length ? 'Closed for sessions every day: ' + closedNames.join(', ') + '.' : 'No daily closed periods.';
+    const brk = loadSettings().breakMinutes;
+    document.getElementById('breakNote').textContent = brk > 0 ? 'Cats and handlers rest ' + brk + ' minutes after every session.' : '';
+
+    // the refund table is built from REFUND_RULES in bookings.js, so it always matches what really happens
+    const refundTable = document.getElementById('refundTable');
+    refundTable.innerHTML = '<tr><th>When you cancel</th><th>Cancellation fee</th><th>Refund if you had paid</th></tr>';
+    REFUND_RULES.forEach(function (rule) {
+      const row = refundTable.insertRow();
+      row.insertCell().textContent = rule.text;
+      row.insertCell().textContent = rule.percent === 100 ? 'Free' : (100 - rule.percent) + '% of the price';
+      row.insertCell().textContent = rule.percent === 0 ? 'No refund' : rule.percent + '%';
+    });
+    PAY_METHODS.forEach(function (m) {
+      const li = document.createElement('li');
+      li.textContent = m === 'Card' ? 'Card (practice)' : m;
+      document.getElementById('payList').appendChild(li);
+    });
+    });
+  </script>
+</body>
+</html>

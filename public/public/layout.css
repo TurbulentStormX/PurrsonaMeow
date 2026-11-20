@@ -1,0 +1,654 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,600&display=swap');
+
+/* ================================
+   PURRSONA MEOW - SHARED LAYOUT
+================================ */
+
+:root {
+    --header-h: 60px;
+    --header-bg: #79523f;
+    --header-text: #ffffff;
+    --button-hover: #fff0e5;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #fff7ee;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ================================
+   HEADER
+================================ */
+
+.site-header {
+    background: var(--header-bg) !important;
+    color: var(--header-text);
+    padding: 0 24px;
+    height: var(--header-h);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 60;
+}
+
+/* Website logo */
+
+.brand {
+    font-size: 20px;
+    font-weight: bold;
+    flex: 1;
+    color: var(--header-text);
+}
+
+.site-header .brand a,
+.site-header .brand a:visited,
+.site-header .brand a:hover,
+.site-header .brand a:active {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 28px;
+    font-weight: 600;
+    font-style: italic;
+    letter-spacing: 0;
+    color: var(--header-text) !important;
+    text-decoration: none;
+}
+
+/* Right side of header */
+
+.header-right {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+/* Logged-in username */
+
+.site-header .header-right .who {
+    color: var(--header-text) !important;
+    font-size: 14px;
+}
+
+/* Login, Sign Up and Log Out buttons */
+
+.btn {
+    background: #ffffff;
+    color: var(--header-bg);
+    padding: 8px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.site-header .header-right .btn,
+.site-header .header-right .btn:visited {
+    background: #ffffff !important;
+    color: var(--header-bg) !important;
+    text-decoration: none;
+}
+
+.site-header .header-right .btn:hover,
+.site-header .header-right .btn:active {
+    background: var(--button-hover) !important;
+    color: var(--header-bg) !important;
+}
+
+/* ================================
+   MENU TOGGLE / X BUTTON
+================================ */
+
+.site-header .menu-toggle {
+    background: transparent;
+    border: 0;
+    padding: 8px;
+    margin: 0 0 0 -8px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: var(--header-text) !important;
+}
+
+.site-header .menu-toggle span {
+    display: block;
+    width: 24px;
+    height: 3px;
+    background: var(--header-text) !important;
+    border-radius: 2px;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.site-header .menu-toggle.active span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+
+.site-header .menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.site-header .menu-toggle.active span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+}
+
+.site-header .menu-toggle:hover span,
+.site-header .menu-toggle.active span {
+    background: var(--header-text) !important;
+}
+
+/* ================================
+   MAIN LAYOUT
+================================ */
+
+.layout {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.side-nav {
+    display: none;
+    background: #f1dfc9;
+    padding: 10px 24px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.side-nav.open {
+    display: flex;
+}
+
+.side-nav a {
+    padding: 10px 14px;
+    border-radius: 6px;
+    color: #5b3920;
+    text-decoration: none;
+}
+
+.side-nav a:hover {
+    background: #e6cba9;
+}
+
+.side-nav a.active {
+    background: #7a4b2a;
+    color: #ffffff;
+}
+
+.nav-overlay {
+    display: none;
+}
+
+main {
+    flex: 1;
+    padding: 24px;
+}
+
+/* ================================
+   FOOTER
+================================ */
+
+.site-footer {
+    background: #5b3920;
+    color: #f1dfc9;
+    text-align: center;
+    padding: 14px;
+    font-size: 13px;
+}
+
+.site-footer p {
+    margin: 0;
+}
+
+.site-footer .footer-links {
+    margin-bottom: 8px;
+}
+
+.site-footer a {
+    color: #f1dfc9;
+    margin: 0 8px;
+}
+
+/* ================================
+   CONTENT BLOCKS
+================================ */
+
+.card {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    max-width: 420px;
+}
+
+.cards {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.cards .card {
+    flex: 1;
+    min-width: 220px;
+}
+
+.cta {
+    display: inline-block;
+    background: #7a4b2a;
+    color: #ffffff;
+    padding: 10px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+/* ================================
+   FORMS AND TABLES
+================================ */
+
+label {
+    display: block;
+    margin-top: 12px;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+}
+
+button {
+    margin-top: 12px;
+    padding: 10px 16px;
+    cursor: pointer;
+}
+
+.menu-toggle {
+    margin-top: 0;
+}
+
+#availability {
+    margin-top: 12px;
+    font-weight: bold;
+}
+
+.ok {
+    color: green;
+}
+
+.full {
+    color: crimson;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+th,
+td {
+    border-bottom: 1px solid #ddd;
+    padding: 4px;
+    text-align: left;
+}
+
+/* ================================
+   TABLET AND MOBILE
+================================ */
+
+@media (max-width: 1023px) {
+
+    :root {
+        --header-h: 56px;
+    }
+
+    .site-header {
+        padding: 0 16px;
+    }
+
+    .side-nav {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 260px;
+        max-width: 80vw;
+        padding: 76px 16px 16px;
+        z-index: 50;
+        overflow-y: auto;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.25);
+    }
+
+    .side-nav.open {
+        transform: translateX(0);
+    }
+
+    .nav-overlay.show {
+        display: block;
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 40;
+    }
+
+    main {
+        padding: 16px;
+    }
+
+    .brand {
+        font-size: 18px;
+    }
+
+    .header-right {
+        gap: 8px;
+    }
+
+    .btn {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .who {
+        display: none;
+    }
+
+    .brand {
+        font-size: 16px;
+    }
+
+    .site-header .brand a {
+        font-size: 22px;
+    }
+}
+
+/* ================================
+   NAVIGATION SEARCH
+================================ */
+
+.nav-search {
+    margin-bottom: 8px;
+}
+
+.nav-search input {
+    width: 100%;
+    margin: 0;
+    padding: 9px 10px;
+    border: 1px solid #c9a97f;
+    border-radius: 6px;
+    background: #ffffff;
+}
+
+.nav-results a {
+    display: block;
+}
+
+.nav-results .none {
+    padding: 10px 14px;
+    color: #7a5a3a;
+    font-size: 14px;
+}
+
+.nav-links {
+    display: contents;
+}
+
+/* ================================
+   DESKTOP SIDEBAR
+================================ */
+
+@media (min-width: 1024px) {
+
+    .layout {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .side-nav {
+        display: none;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        gap: 4px;
+        flex: 0 0 240px;
+        width: 240px;
+        position: sticky;
+        top: var(--header-h);
+        height: calc(100vh - var(--header-h));
+        overflow-y: auto;
+        padding: 16px 12px;
+    }
+
+    .side-nav.open {
+        display: flex;
+    }
+
+    main {
+        min-width: 0;
+    }
+}
+
+/* =========================   MENU FOR VISITORS AND GUESTS: a panel that drops down OVER the page
+   (the page never shifts). Staff keep the sidebar below.
+================================ */
+
+body.nav-top .side-nav {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    position: fixed;
+    top: var(--header-h);
+    left: 0;
+    right: 0;
+    bottom: auto;
+    flex: none;
+    width: auto;
+    max-width: none;
+    height: auto;
+    align-items: center;
+    align-content: flex-start;
+    max-height: calc(100vh - var(--header-h));
+    overflow-y: auto;
+    padding: 14px 18px 16px;
+    z-index: 55;
+    background: #f1dfc9;
+    border-bottom: 1px solid #dfc5b4;
+    box-shadow: 0 12px 24px rgba(60, 35, 20, 0.22);
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+}
+
+body.nav-top .side-nav.open {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+}
+
+body.nav-top .side-nav a {
+    padding: 10px 16px;
+    border-radius: 999px;
+}
+
+body.nav-top .layout {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* the see-through layer that closes the panel when you click anywhere else */
+.nav-overlay.show {
+    display: block;
+    position: fixed;
+    top: var(--header-h);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: transparent;
+    z-index: 54;
+}
+
+.nav-overlay.show.dim {
+    top: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 40;
+}
+
+/* ================================
+   MENU FOR STAFF AND ADMIN: always there on a computer
+================================ */
+
+@media (min-width: 1024px) {
+    body.nav-side .menu-toggle {
+        display: none;
+    }
+
+    body.nav-side .side-nav {
+        display: flex;
+    }
+}
+=======
+/* ========================================
+   PURRSONA MEOW - CONSISTENT FOOTER
+======================================== */
+
+#site-footer.site-footer {
+    background-color: #79523f;
+    color: #fff9f2;
+    border-top: 1px solid #eadbcf;
+}
+
+#site-footer.site-footer p,
+#site-footer.site-footer span,
+#site-footer.site-footer small {
+    color: #fff9f2;
+}
+
+#site-footer.site-footer a {
+    color: #fff9f2;
+    text-decoration: none;
+}
+
+#site-footer.site-footer a:hover {
+    color: #ffd6c6;
+    text-decoration: underline;
+}
+
+/* ========================================
+   LOGIN-REQUIRED BUTTON TEXT FIX
+======================================== */
+
+/* Only targets Log in / Sign up links
+   inside main content cards.
+   Header buttons remain unchanged. */
+
+/* only the buttons (class "cta"), so the plain text links such as "Create a guest account" keep their own colour */
+.layout main .card a.cta[href="login.html"],
+.layout main .card a.cta[href="signup.html"] {
+    color: #ffffff !important;
+}
+
+/* ================================
+   AVATAR (replaces "Logged in as ...")
+================================ */
+.avatar-wrap { position: relative; }
+.site-header .avatar-btn {
+    display: flex; align-items: center; justify-content: center;
+    padding: 0; margin: 0; width: 42px; height: 42px;
+    border: 2px solid #ffffff; border-radius: 50%;
+    background: transparent; cursor: pointer;
+}
+.site-header .avatar-btn:hover, .site-header .avatar-btn:focus-visible { box-shadow: 0 0 0 3px #ffffff66; }
+.avatar-circle {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 100%; height: 100%; border-radius: 50%;
+    color: #ffffff; font-weight: 700; font-size: 16px; line-height: 1;
+    font-family: Arial, sans-serif; user-select: none;
+}
+.avatar-circle.big { width: 84px; height: 84px; font-size: 38px; }
+.avatar-menu {
+    position: absolute; right: 0; top: calc(100% + 10px); z-index: 1200;
+    min-width: 190px; background: #ffffff; color: #3f302b;
+    border: 1px solid #e3cdb8; border-radius: 12px; box-shadow: 0 12px 28px #3f302b40;
+    padding: 6px; text-align: left;
+}
+.avatar-menu[hidden] { display: none; }
+.avatar-head { padding: 8px 12px 10px; border-bottom: 1px solid #f0e0d0; margin-bottom: 4px; }
+.avatar-head strong { display: block; font-size: 14px; word-break: break-word; }
+.avatar-head small { color: #8c7a6f; font-size: 12px; }
+.site-header .avatar-menu a {
+    display: block; padding: 9px 12px; border-radius: 8px;
+    color: #3f302b !important; text-decoration: none; font-size: 14px; background: transparent !important;
+}
+.site-header .avatar-menu a:hover { background: #f6eae0 !important; }
+
+/* ================================
+   SEARCH IN THE TOP BAR
+================================ */
+.header-search { position: relative; flex: 1 1 auto; max-width: 340px; margin: 0 14px 0 auto; }
+.header-search input {
+    width: 100%; margin: 0; padding: 8px 14px; border: 0; border-radius: 999px;
+    background: #ffffff; color: #3f302b; font-size: 14px; box-sizing: border-box;
+}
+.header-results {
+    position: absolute; left: 0; right: 0; top: calc(100% + 8px); z-index: 1200;
+    background: #ffffff; border: 1px solid #e3cdb8; border-radius: 12px; box-shadow: 0 12px 28px #3f302b40;
+    max-height: min(60vh, calc(100vh - var(--header-h, 70px) - 24px)); overflow-y: auto; text-align: left;
+}
+.header-results[hidden] { display: none; }
+.site-header .header-results a, .header-results .none {
+    display: block; padding: 10px 16px; color: #3f302b !important; text-decoration: none; font-size: 14px; background: transparent !important;
+}
+.site-header .header-results a:hover, .site-header .header-results a:focus { background: #f6eae0 !important; outline: 0; }
+.header-results .none { color: #8c7a6f !important; }
+.header-search-toggle { display: none; }
+
+@media (max-width: 760px) {
+    .header-search { display: none; }
+    .header-search.open {
+        display: block; position: fixed; left: 12px; right: 12px; top: calc(var(--header-h, 70px) + 6px);
+        max-width: none; margin: 0; z-index: 1150;
+    }
+    .header-search.open input { box-shadow: 0 6px 18px #3f302b40; padding: 11px 16px; font-size: 16px; }
+    .site-header .header-search-toggle {
+        display: inline-flex; align-items: center; justify-content: center;
+        margin: 0 4px 0 auto; padding: 6px 8px; border: 0; background: transparent; color: #fff; font-size: 18px; cursor: pointer; width: auto;
+    }
+}
+
+/* ================================
+   SHOW / HIDE PASSWORD
+================================ */
+.pw-wrap { position: relative; display: block; width: 100%; }
+.pw-wrap input { width: 100%; padding-right: 68px !important; box-sizing: border-box; }
+.pw-wrap .pw-toggle {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    width: auto; margin: 0; padding: 4px 8px; border: 0; border-radius: 6px;
+    background: transparent; color: #79523f; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: none;
+}
+.pw-wrap .pw-toggle:hover { background: #f1e2d3; }

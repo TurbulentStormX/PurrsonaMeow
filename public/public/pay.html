@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cat Café Reservations - Payment</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="pay-design.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main class="payment-page">
+  <div class="payment-container">
+
+    <div class="payment-heading">
+      <span class="payment-eyebrow">PURRSONA MEOW</span>
+      <h1>Complete Your Booking</h1>
+      <p>
+        You're one step closer to spending a lovely
+        day with our furry friends!
+      </p>
+    </div>
+
+    <div class="payment-card">
+      <div id="payBox"></div>
+    </div>
+
+    <p class="payment-footer-note">
+      Thank you for choosing Purrsona Meow.
+      We can't wait to welcome you!
+    </p>
+
+  </div>
+</main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+
+    onDataReady(async function () {
+    renderLayout('pay.html');
+    if (guardPage(['guest'], 'pay for a session')) initPay();
+
+    function initPay() {
+      const user = currentUser();
+      const code = (new URLSearchParams(window.location.search).get('code') || '').toUpperCase();
+      const box = document.getElementById('payBox');
+
+      function line(label, value) {
+        const p = document.createElement('p');
+        const strong = document.createElement('strong');
+        strong.textContent = label + ': ';
+        p.appendChild(strong);
+        p.appendChild(document.createTextNode(value));
+        box.appendChild(p);
+      }
+      function notice(text, kind) {
+        const div = document.createElement('div');
+        div.className = 'notice ' + (kind || '');
+        div.textContent = text;
+        box.appendChild(div);
+      }
+      function backLink() {
+        const a = document.createElement('a');
+        a.className = 'cta';
+        a.href = 'sessions.html';
+        a.textContent = 'Back to my sessions';
+        box.appendChild(a);
+      }
+
+      // PayNow or Card; the method saved in Settings is chosen first
+      function methodChoice() {
+        const saved = (user.savedPayment && user.savedPayment.method) || 'PayNow';
+        const methods = document.createElement('div');
+        methods.className = 'pay-methods';
+        [['PayNow', 'PayNow'], ['Card', 'Card (practice)' + (user.savedPayment && user.savedPayment.method === 'Card' ? ' ending ' + user.savedPayment.last4 : '')]].forEach(function (m) {
+          const label = document.createElement('label');
+          const radio = document.createElement('input');
+          radio.type = 'radio'; radio.name = 'method'; radio.value = m[0]; radio.checked = m[0] === saved;
+          label.appendChild(radio);
+          label.appendChild(document.createTextNode(m[1]));
+          methods.appendChild(label);
+        });
+        box.appendChild(methods);
+      }
+
+      function render() {
+        box.innerHTML = '';
+        const r = loadReservations().find(x => x.code === code && (x.email || '').toLowerCase() === user.email);
+        const title = document.createElement('h1');
+        title.textContent = 'Payment';
+        box.appendChild(title);
+
+        if (!r) { notice('We could not find that booking in your account.', 'warn'); backLink(); return; }
+
+        line('Booking', r.code);
+        line('Session', r.session);
+        line('Room', r.zone || r.roomName || '-');
+        line('Date and time', formatDate(r.date) + ', ' + timeRange(r) + ' (' + hoursText(bookingHours(r)) + ')');
+        line('Guests', r.guests);
+        if ((r.cats || []).length) line('Cats', catNamesOf(r).join(', '));
+        if (r.handler) line('Cat handler', r.handler);
+        const perHour = r.pricePerHour !== undefined ? r.pricePerHour : amountOf(r) / bookingHours(r);
+        line('Amount', money(amountOf(r)) + ' (' + money(perHour) + ' per hour x ' + hoursText(bookingHours(r)) + ', the same for any number of guests)');
+
+        if (r.status === 'Cancelled') {
+          const why = r.cancelledBy === 'system' ? 'This booking was cancelled because it was not paid in time. Nothing was charged.'
+                    : 'This booking was cancelled.' + (r.paid ? ' Refund: ' + money(r.refund) + ' (' + r.refundPercent + '%).' : '');
+          notice(why, 'warn');
+          if (r.cancelFee > 0) {
+            if (r.feePaid) {
+              line('Cancellation fee', money(r.cancelFee) + (r.paid ? ' (kept from your payment)' : ' (paid, ' + (r.feePayment ? r.feePayment.ref : '') + ')'));
+            } else {
+              line('Cancellation fee due', money(r.cancelFee));
+              methodChoice();
+              const payFee = document.createElement('button');
+              payFee.textContent = 'Pay fee ' + money(r.cancelFee);
+              payFee.addEventListener('click', async function () {
+                payFee.disabled = true; payFee.textContent = 'Processing...';
+                const done = await payCancellationFee(r.code, box.querySelector('input[name=method]:checked').value);
+                if (!done.ok) { alert(done.error); payFee.disabled = false; payFee.textContent = 'Pay fee ' + money(r.cancelFee); return; }
+                render();
+              });
+              box.appendChild(payFee);
+              box.appendChild(document.createTextNode(' '));
+            }
+          }
+          backLink();
+          return;
+        }
+        if (r.paid) {
+          const rec = document.createElement('div');
+          rec.className = 'receipt';
+          rec.innerHTML = '<strong>Paid. Thank you!</strong>';
+          const info = document.createElement('p');
+          info.textContent = 'Receipt ' + r.payment.ref + ' | ' + (r.payment.method === 'Card' ? 'Card (practice)' : r.payment.method) + ' | ' + money(r.payment.amount);
+          rec.appendChild(info);
+          box.appendChild(rec);
+          backLink();
+          return;
+        }
+        if (r.status === 'Concluded') { notice('This session has finished.'); backLink(); return; }
+        if (r.status !== 'Assigned') { notice('This booking cannot be paid yet.'); backLink(); return; }
+
+        notice('PRACTICE ONLY: no money is taken and no card details are asked for. The real site would send you to a secure payment provider.', 'warn');
+
+        if (r.payBy) notice('Please pay by ' + new Date(r.payBy).toLocaleString('en-SG', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) + '. An unpaid booking is cancelled automatically after that, and the room and cats are freed for other guests.', '');
+        methodChoice();
+
+        const pay = document.createElement('button');
+        pay.id = 'payBtn';
+        pay.textContent = 'Pay ' + money(amountOf(r)) + ' now';
+        pay.addEventListener('click', async function () {
+          const method = box.querySelector('input[name=method]:checked').value;
+          pay.disabled = true; pay.textContent = 'Processing...';      // stop double clicks
+          const done = await payReservation(r.code, method);
+          if (!done.ok) { alert(done.error); pay.disabled = false; pay.textContent = 'Pay ' + money(amountOf(r)) + ' now'; return; }
+          render();
+        });
+        box.appendChild(pay);
+        box.appendChild(document.createTextNode(' '));
+        backLink();
+      }
+      render();
+    }
+    });
+  </script>
+</body>
+</html>

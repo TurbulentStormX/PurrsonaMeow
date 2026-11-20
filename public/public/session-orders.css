@@ -1,0 +1,12 @@
+.so-page { padding-bottom: 60px; }
+.so-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+.so-tabs button { margin: 0; padding: 9px 18px; border: 1px solid #e3cdb8; border-radius: 999px; background: #fff; color: #79523f; font-weight: 600; cursor: pointer; }
+.so-tabs button.active { background: #79523f; border-color: #79523f; color: #fff; }
+.so-card { background: #fff; border: 1px solid #ecd9c6; border-radius: 14px; padding: 18px 20px; margin-bottom: 16px; box-shadow: 0 4px 14px #79523f12; }
+.so-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; justify-content: space-between; }
+.so-head h2 { margin: 0 0 4px; font-size: 20px; }
+.so-meta, .so-cats, .so-none { margin: 4px 0; color: #8c6a58; font-size: 14px; }
+.so-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.so-card table { width: 100%; margin-top: 10px; }
+.so-card td { vertical-align: middle; }
+.so-card td button { margin: 0; padding: 6px 12px; font-size: 13px; border-radius: 8px; }
