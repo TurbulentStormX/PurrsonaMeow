@@ -100,6 +100,8 @@
   <script>
 
     onDataReady(async function () {
+    const who = currentUser();
+    if (who && (who.role === 'handler' || who.role === 'admin')) { window.location.replace(homePageFor(who.role)); return; }     // staff start on their own page, not the public home page
     renderLayout('index.html');
 
     function chip(status) {

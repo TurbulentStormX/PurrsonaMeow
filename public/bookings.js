@@ -41,6 +41,17 @@ function refundPercentFor(date, time, now) {
   return REFUND_RULES.find(rule => hours >= rule.hours).percent;
 }
 function round2(n) { return Math.round(n * 100) / 100; }
+// An unpaid booking is cancelled by itself if it is still unpaid this many hours before it starts.
+const AUTO_CANCEL_HOURS = 24;
+// The last moment to pay: 24 hours before the start. A booking made less than a day ahead gets 1 hour to pay
+// (but never later than the start), otherwise it would be cancelled the second it was made.
+function payDeadline(date, time, now) {
+  const start = slotStartDate(date, time);
+  const dayBefore = new Date(start.getTime() - AUTO_CANCEL_HOURS * 3600000);
+  const hourAfterBooking = new Date((now || new Date()).getTime() + 3600000);
+  const later = dayBefore > hourAfterBooking ? dayBefore : hourAfterBooking;
+  return later < start ? later : start;
+}
 function overlaps(aStart, aEnd, bStart, bEnd) { return aStart < bEnd && bStart < aEnd; }
 
 // How long a booking lasts (older bookings were one fixed slot: count them as 1 hour)
@@ -303,6 +314,7 @@ function createReservation(user, f, now) {
     handler: handlerName(check.handler.username), handlerUsername: check.handler.username, handlerBy: check.handler.by,
     rateName: check.rate.name, pricePerHour: check.rate.pricePerHour, amount: round2(check.rate.pricePerHour * check.hours),
     paid: false, payment: null,
+    payBy: payDeadline(f.date, f.time, now).toISOString(),
     status: 'Assigned', createdAt: now.toISOString()
   };
   list.push(reservation);
@@ -371,13 +383,78 @@ function cancelReservation(code, by, userEmail, now) {
   if (by === 'guest' && hoursUntil(r.date, r.time, now) <= 0) return { ok: false, error: 'This session has already started, so it cannot be cancelled online.' };
 
   const percent = by === 'admin' ? 100 : refundPercentFor(r.date, r.time, now);    // the cafe cancelling = full refund
+  const price = amountOf(r);
+  const fee = round2(price * (100 - percent) / 100);                               // the cancellation fee: 0, 50% or 100% of the price
   r.refundPercent = r.paid ? percent : 0;
-  r.refund = r.paid ? round2(amountOf(r) * percent / 100) : 0;
+  r.cancelFee = fee;
+  if (r.paid) {
+    r.refund = round2(price - fee);                                                // the fee is kept from what was paid
+    r.feePaid = true;
+  } else {
+    r.refund = 0;
+    r.feePaid = fee === 0;                                                         // not paid yet: the guest owes the fee
+  }
   r.status = 'Cancelled';
   r.cancelledBy = by;
   r.cancelledAt = now.toISOString();
   saveReservations(list);
-  return { ok: true, reservation: r, refund: r.refund, percent: r.refundPercent };
+  return { ok: true, reservation: r, refund: r.refund, percent: r.refundPercent, fee: fee, feeDue: r.paid ? 0 : fee };
+}
+
+// A guest who cancelled late and had not paid owes the fee. They can pay it later (practice: no real money).
+function payCancellationFee(code, method, userEmail) {
+  const list = loadReservations();
+  const r = list.find(x => x.code === code);
+  if (!r) return { ok: false, error: 'Booking not found.' };
+  if ((r.email || '').toLowerCase() !== (userEmail || '').toLowerCase()) return { ok: false, error: 'That booking is not yours.' };
+  if (r.status !== 'Cancelled' || !(r.cancelFee > 0) || r.feePaid) return { ok: false, error: 'There is no cancellation fee to pay for this booking.' };
+  if (!PAY_METHODS.includes(method)) return { ok: false, error: 'Please choose a payment method.' };
+  r.feePaid = true;
+  r.feePayment = { method: method, ref: 'FEE-' + newReservationCode([]).slice(3), amount: r.cancelFee, paidAt: new Date().toISOString() };
+  saveReservations(list);
+  return { ok: true, reservation: r };
+}
+
+// ---------- things the cafe does by itself (the server runs this every minute) ----------
+//  1. An unpaid booking that is still unpaid 24 hours before it starts is cancelled (no fee: nothing was paid).
+//  2. A confirmed session whose time is over is concluded without the handler. Everyone booked counts as checked in
+//     unless the handler had already concluded it.
+function sweepBookings(now) {
+  now = now || new Date();
+  const list = loadReservations();
+  const cancelled = [], concluded = [];
+  list.forEach(function (r) {
+    if (r.status !== 'Assigned') return;
+    const start = slotStartDate(r.date, r.time);
+    const end = new Date(start.getTime() + bookingHours(r) * 3600000);
+    if (end <= now) {
+      r.status = 'Concluded';
+      r.checkedIn = r.checkedIn !== undefined ? r.checkedIn : r.guests;
+      r.autoConcluded = true;
+      concluded.push(r.code);
+    } else if (!r.paid && start > now && new Date(r.payBy || payDeadline(r.date, r.time, new Date(r.createdAt || now))) <= now) {
+      r.status = 'Cancelled';
+      r.cancelledBy = 'system';
+      r.cancelReason = 'Not paid in time';
+      r.cancelledAt = now.toISOString();
+      r.refund = 0; r.refundPercent = 0; r.cancelFee = 0; r.feePaid = true;
+      cancelled.push(r.code);
+    }
+  });
+  if (cancelled.length || concluded.length) saveReservations(list);
+  return { ok: true, cancelled: cancelled, concluded: concluded };
+}
+
+// ---------- a handler changes the status of one of their cats ----------
+function setCatStatus(catId, active, note, username) {
+  const cats = loadCats();
+  const cat = cats.find(c => c.id === catId);
+  if (!cat) return { ok: false, error: 'Cat not found.' };
+  if (cat.handler !== username) return { ok: false, error: 'That is not one of your cats.' };
+  cat.active = !!active;
+  cat.note = active ? '' : String(note || '').slice(0, 200);
+  saveCats(cats);
+  return { ok: true, cat: cat };
 }
 
 // ---------- payment (practice: no real money, no card details) ----------
@@ -398,7 +475,7 @@ function payReservation(code, method, userEmail) {
 // A short label for the payment column: kind is used for the colour
 function paymentLabel(r) {
   if (r.status === 'Cancelled') {
-    if (!r.paid) return { text: '-', kind: 'none' };
+    if (!r.paid) return r.cancelFee > 0 ? (r.feePaid ? { text: 'Fee paid', kind: 'Paid' } : { text: 'Fee due', kind: 'Unpaid' }) : { text: '-', kind: 'none' };
     if (r.refund >= amountOf(r)) return { text: 'Refunded', kind: 'Refunded' };
     return r.refund > 0 ? { text: 'Part refund', kind: 'Refunded' } : { text: 'Paid, no refund', kind: 'none' };
   }

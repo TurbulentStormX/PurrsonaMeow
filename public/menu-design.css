@@ -818,3 +818,16 @@ body:has(.menu-page) .site-footer a {
         transition: none;
     }
 }
+
+/* Note that the menu photos are only for illustration */
+.photo-disclaimer {
+  box-sizing: border-box;
+  margin: 0 0 14px;
+  padding: 8px 14px;
+  background: #fff6ec;
+  border: 1px solid #ecd2b8;
+  border-radius: 8px;
+  color: #7a5a3a;
+  font-size: 13px;
+}
+.menu-page .photo-disclaimer { max-width: 1120px; margin: 0 auto 16px; }

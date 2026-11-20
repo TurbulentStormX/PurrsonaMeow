@@ -151,7 +151,10 @@ export function buildModels(strict = true, instance = mongoose) {
       createdAt: str(40),
       checkedIn: Number,                                  // guests who arrived (set by the handler)
       needsHandler: Boolean, needsAttention: str(400), changeNote: str(300),   // flags for the admin / notes for the guest
-      refund: Number, refundPercent: Number, cancelledBy: { type: String, enum: ['guest', 'admin'] }, cancelledAt: str(40),
+      refund: Number, refundPercent: Number, cancelledBy: { type: String, enum: ['guest', 'admin', 'system'] }, cancelledAt: str(40),
+      cancelReason: str(120), cancelFee: Number, feePaid: Boolean,       // late-cancellation fee (and whether the guest has paid it)
+      feePayment: sub({ method: { type: String, enum: ['PayNow', 'Card'] }, ref: String, amount: Number, paidAt: String }),
+      payBy: str(40), autoConcluded: Boolean,                           // pay-before time, and set when the cafe concluded it by itself
       pricePerGuest: Number, assignedBy: str(20), reopenedReason: str(200)      // only on bookings made by older versions
     }, 'code'),
 
@@ -193,6 +196,8 @@ export function buildModels(strict = true, instance = mongoose) {
     contact: String,                                                                          // staff email shown to guests
     passwordHash: { type: String, required: true },                                           // NEVER the password itself
     role: { type: String, enum: ['guest', 'handler', 'admin'], default: 'guest' },
+    avatar: { icon: { type: String, default: '' }, color: { type: String, default: '' } },   // the round picture in the header
+    savedPayment: { method: { type: String, enum: ['PayNow', 'Card', ''], default: '' }, last4: { type: String, default: '' } },   // practice only: never a full card number
     resetCodeHash: { type: String, default: '' }, resetExpires: { type: Number, default: 0 }, resetTries: { type: Number, default: 0 }
   }, { versionKey: false, timestamps: true }));
 

@@ -227,7 +227,7 @@ function loadFaq() {
   return loadSeeded('faq', () => [
     { id: 'f1', q: 'How does booking work?', a: 'Choose a session, a room, a date, your start time and how many hours you want, then pick your cats. The first guest to book a time gets it, and your booking is confirmed straight away with a cat handler.' },
     { id: 'f2', q: 'How much does a session cost?', a: 'We charge per hour, not per guest. The price per hour depends on the session and on the day (weekday, weekend or public holiday). See the Rates page.' },
-    { id: 'f3', q: 'Can I cancel?', a: 'Yes, any time before your session starts. If you have paid, the refund depends on how early you cancel (see Rates). Your room and cats are then free for other guests.' },
+    { id: 'f3', q: 'Can I cancel?', a: 'Yes, any time before your session starts. Cancelling more than 24 hours ahead is free. After that a cancellation fee applies (see Rates), and a booking still unpaid 24 hours before it starts is cancelled automatically. Your room and cats are then free for other guests.' },
     { id: 'f4', q: 'Why is there no session at lunchtime?', a: 'Our cats and staff have a lunch break from 12:00 PM to 1:00 PM. They also get a one-hour break after every session.' },
     { id: 'f5', q: 'Can I choose which cats I meet?', a: 'Yes, for sessions where cat choice is on (for example the Private Cat Session). Cats that are booked or resting at your time cannot be chosen.' },
     { id: 'f6', q: 'I have a food allergy. What should I do?', a: 'Every menu item lists its allergens. Tick your allergy on the Menu page to see which items to avoid, and tell our staff when you arrive. Our kitchen handles common allergens, so we cannot promise any item is completely free of traces.' },

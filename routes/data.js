@@ -1,3 +1,4 @@
+import { publicUser } from './auth.js';
 import { buildView, lookupView } from '../lib/views.js';
 
 export default function dataRoutes(app, ctx) {
@@ -7,10 +8,11 @@ export default function dataRoutes(app, ctx) {
 
   // A copy of the data for the website, filtered for who is asking (see lib/views.js)
   app.get('/api/data', optionalAuth, async (req, res) => {
+    try { await ctx.sweep(); } catch (e) { ctx.log('[sweep] ' + e.message); }      // so nobody sees a session that should already be cancelled or finished
     const snapshot = await store.loadAll();
     res.set('Cache-Control', 'no-cache');
     res.set('Vary', 'Authorization');
-    const me = req.user ? { name: req.user.name, email: req.user.email, phone: req.user.phone, username: req.user.username, role: req.user.role } : null;
+    const me = req.user ? publicUser(req.user) : null;
     res.json({ me, ...buildView(snapshot, await staffList(), req.user, ctx.salt) });     // "me" lets the page notice a login that has expired
   });
 

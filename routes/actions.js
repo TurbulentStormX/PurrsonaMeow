@@ -9,6 +9,8 @@ const ACTIONS = {
   createReservation:            { roles: ['guest'],            args: (u, a) => [guestInfo(u), a.f] },
   cancelReservation:            { roles: ['guest', 'admin'],   args: (u, a) => u.role === 'admin' ? [a.code, 'admin'] : [a.code, 'guest', u.email] },
   payReservation:               { roles: ['guest'],            args: (u, a) => [a.code, a.method, u.email] },
+  payCancellationFee:           { roles: ['guest'],            args: (u, a) => [a.code, a.method, u.email] },
+  setCatStatus:                 { roles: ['handler'],          args: (u, a) => [a.catId, a.active, a.note, u.username] },
   editReservation:              { roles: ['admin'],            args: (u, a) => [a.code, a.changes] },
   addLeave:                     { roles: ['admin', 'handler'], args: (u, a) => [u.role === 'handler' ? u.username : a.username, a.start, a.end, a.reason, a.note] },
   removeLeave:                  { roles: ['admin'],            args: (u, a) => [a.id] },

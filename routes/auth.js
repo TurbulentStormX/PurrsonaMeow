@@ -4,10 +4,17 @@ import { passwordProblem } from '../lib/security.js';
 
 const sha = text => crypto.createHash('sha256').update(String(text)).digest('hex');
 const DUMMY_HASH = bcrypt.hashSync('not-a-real-password', 10);       // so a wrong username takes as long as a wrong password
-const publicUser = u => ({ name: u.name, email: u.email, phone: u.phone, username: u.username, role: u.role });
+export const publicUser = u => ({
+  name: u.name, email: u.email, phone: u.phone, username: u.username, role: u.role,
+  avatar: { icon: (u.avatar && u.avatar.icon) || '', color: (u.avatar && u.avatar.color) || '' },
+  savedPayment: { method: (u.savedPayment && u.savedPayment.method) || '', last4: (u.savedPayment && u.savedPayment.last4) || '' }
+});
+const AVATAR_ICONS = ['cat', 'paw', 'smile', 'heart-eyes', 'sleepy', 'lion', 'tiger', 'fish', 'coffee', 'yarn'];
+const AVATAR_COLORS = ['#c98672', '#79523f', '#d9a441', '#6b9080', '#5b7db1', '#8e6bb0', '#c0587a', '#4a4a4a'];
 
 export default function authRoutes(app, ctx) {
   const { User, sign, requireAuth, loginLimiter } = ctx;
+  const mine = req => User.findOne({ _id: req.user.id });
   const logIn = u => ({ token: sign(u), user: publicUser(u) });
 
   // ---- sign up (guests only) ----
@@ -41,6 +48,55 @@ export default function authRoutes(app, ctx) {
     if (!user || !ok) { loginLimiter.fail(key); return res.status(401).json({ error: 'Wrong email/username or password.' }); }
     loginLimiter.ok(key);
     res.json(logIn(user));
+  });
+
+  // ---- settings: every logged-in person can change their own details (the person comes from the login token) ----
+  app.put('/api/auth/profile', requireAuth(), async (req, res) => {
+    const b = req.body || {};
+    const u = await mine(req);
+    const errors = [];
+    const name = String(b.name === undefined ? u.name : b.name).trim();
+    if (!name) errors.push('Name is required.');
+    if (u.role === 'guest' && b.phone !== undefined && !/^[689]\d{7}$/.test(b.phone || '')) errors.push('Phone must be 8 digits starting with 6, 8 or 9.');
+    if (errors.length) return res.status(400).json({ errors });
+    u.name = name.slice(0, 80);
+    if (u.role === 'guest' && b.phone !== undefined) u.phone = b.phone;
+    await u.save();
+    res.json({ user: publicUser(u) });
+  });
+
+  app.put('/api/auth/avatar', requireAuth(), async (req, res) => {
+    const b = req.body || {};
+    if (!AVATAR_ICONS.includes(b.icon) && b.icon !== '') return res.status(400).json({ error: 'Please choose one of the icons.' });
+    if (!AVATAR_COLORS.includes(b.color)) return res.status(400).json({ error: 'Please choose one of the colours.' });
+    const u = await mine(req);
+    u.avatar = { icon: b.icon, color: b.color };
+    await u.save();
+    res.json({ user: publicUser(u) });
+  });
+
+  // the practice payment method that is chosen first when paying (guests only). Never a full card number.
+  app.put('/api/auth/payment-method', requireAuth('guest'), async (req, res) => {
+    const b = req.body || {};
+    const u = await mine(req);
+    if (b.method === '') { u.savedPayment = { method: '', last4: '' }; await u.save(); return res.json({ user: publicUser(u) }); }
+    if (!['PayNow', 'Card'].includes(b.method)) return res.status(400).json({ error: 'Please choose PayNow or Card.' });
+    const last4 = String(b.last4 || '');
+    if (b.method === 'Card' && !/^\d{4}$/.test(last4)) return res.status(400).json({ error: 'Enter the last 4 digits of the card (4 numbers).' });
+    u.savedPayment = { method: b.method, last4: b.method === 'Card' ? last4 : '' };
+    await u.save();
+    res.json({ user: publicUser(u) });
+  });
+
+  app.post('/api/auth/password', requireAuth(), async (req, res) => {
+    const b = req.body || {};
+    const u = await mine(req);
+    if (!(await bcrypt.compare(String(b.current || ''), u.passwordHash))) return res.status(400).json({ error: 'Your current password is not correct.' });
+    const weak = passwordProblem(String(b.password || ''));
+    if (weak) return res.status(400).json({ error: weak });
+    u.passwordHash = await bcrypt.hash(b.password, 10);
+    await u.save();
+    res.json({ ok: true });
   });
 
   app.get('/api/auth/me', requireAuth(), (req, res) => res.json({ user: publicUser(req.user) }));

@@ -132,18 +132,22 @@
       // ----- guests can cancel until the session starts. The room and cats are free for others straight away. -----
       async function cancelBooking(r) {
         const percent = refundPercentFor(r.date, r.time);
+        const price = amountOf(r);
+        const fee = Math.round(price * (100 - percent)) / 100;
         let message = 'Cancel booking ' + r.code + '?\n\n' + r.session + ', ' + formatDate(r.date) + ', ' + timeRange(r) + '.';
-        if (r.paid) {
-          message += '\n\nYou paid ' + money(amountOf(r)) + '. Cancelling now gives you back ' + percent + '% (' + money(amountOf(r) * percent / 100) + ').';
-        } else {
-          message += '\n\nYou have not paid, so there is nothing to refund.';
-        }
+        if (fee === 0) message += '\n\nThere is no cancellation fee. ' + (r.paid ? 'You get all ' + money(price) + ' back.' : 'You have not paid, so nothing is charged.');
+        else if (r.paid) message += '\n\nCancellation fee: ' + money(fee) + ' (' + (100 - percent) + '% of the price). You paid ' + money(price) + ', so you get ' + money(price - fee) + ' back.';
+        else message += '\n\nCancellation fee: ' + money(fee) + ' (' + (100 - percent) + '% of the price). You have not paid yet, so the fee will be due. You can pay it on the next screen or later in Settings.';
         message += '\n\nYour room and cat(s) become free for other guests.';
         if (!confirm(message)) return;
 
         const done = await cancelReservation(r.code);
         if (!done.ok) { alert(done.error); return; }
-        alert(r.paid ? 'Cancelled. Refund: ' + money(done.refund) + ' (' + done.percent + '%).' : 'Cancelled.');
+        if (done.feeDue > 0) {
+          if (confirm('Cancelled. You owe a cancellation fee of ' + money(done.feeDue) + '. Pay it now?')) { window.location.href = 'pay.html?code=' + encodeURIComponent(r.code); return; }
+        } else {
+          alert(r.paid ? 'Cancelled. Refund: ' + money(done.refund) + (done.fee ? ' (cancellation fee ' + money(done.fee) + ' kept).' : '.') : 'Cancelled.');
+        }
         render();
       }
 
@@ -195,6 +199,24 @@
             const payCell = row.insertCell();
             payCell.appendChild(paymentPill(r));
             if (r.status === 'Cancelled' && r.paid) payCell.appendChild(document.createTextNode(' ' + money(r.refund)));
+            if (r.status === 'Cancelled' && r.cancelledBy === 'system') {
+              const note = document.createElement('div');
+              note.className = 'flag';
+              note.textContent = 'Cancelled automatically: not paid in time.';
+              payCell.appendChild(note);
+            }
+            if (r.status === 'Cancelled' && r.cancelFee > 0) {
+              const note = document.createElement('div');
+              note.className = 'flag';
+              note.textContent = 'Cancellation fee ' + money(r.cancelFee) + (r.feePaid ? ' (paid)' : ' (due)');
+              payCell.appendChild(note);
+            }
+            if (r.status === 'Assigned' && !r.paid && r.payBy) {
+              const note = document.createElement('div');
+              note.className = 'flag';
+              note.textContent = 'Pay by ' + new Date(r.payBy).toLocaleString('en-SG', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) + ' or it is cancelled.';
+              payCell.appendChild(note);
+            }
             row.insertCell().textContent = r.zone || r.roomName || '-';
             row.insertCell().textContent = r.handler ? handlerContact(r.handler) : '-';
 
@@ -214,6 +236,13 @@
               food.textContent = 'Order food';
               food.style.marginRight = '6px';
               action.appendChild(food);
+            }
+            if (r.status === 'Cancelled' && r.cancelFee > 0 && !r.feePaid) {
+              const payFee = document.createElement('a');
+              payFee.className = 'cta';
+              payFee.href = 'pay.html?code=' + encodeURIComponent(r.code);
+              payFee.textContent = 'Pay fee';
+              action.appendChild(payFee);
             }
             if (r.status === 'Requested' || r.status === 'Assigned') {
               const btn = document.createElement('button');

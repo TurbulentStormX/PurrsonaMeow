@@ -25,10 +25,12 @@ const PAGES = [
   ['support.html', 'Support us', 'subscribe subscription donate membership supporter', 'all'],
   ['sessions.html', 'Sessions', 'booking code check my bookings cancel pay review', ['visitor', 'guest']],
   ['booking.html', 'Book a Session', 'book reserve reservation hours time cats room', ['visitor', 'guest']],
+  ['settings.html', 'Settings', 'settings account profile avatar icon password payment method history subscription fee', ['guest', 'handler', 'admin']],
+  ['session-orders.html', 'Session orders', 'orders sessions rooms food drinks serve customers', ['handler']],
   ['login.html', 'Login', 'log in sign in password', ['visitor']],
   ['signup.html', 'Sign up', 'register account create guest', ['visitor']],
   ['forgot.html', 'Forgot password', 'reset password code', ['visitor']],
-  ['handler.html', 'My Sessions', 'sessions check in conclude leave sick cats reviews', ['handler']],
+  ['handler.html', 'My Sessions', 'sessions check in conclude leave sick cats cat status reviews', ['handler']],
   ['cat-schedule.html', 'Cat schedule', 'cats booked break free resting timeline', ['handler', 'admin']],
   ['admin.html', 'Reservations', 'bookings reservations edit cancel handlers refund', ['admin']],
   ['admin-orders.html', 'Orders', 'food orders served drinks', ['admin']],
@@ -53,8 +55,8 @@ function menuFor(user) {
   const byFile = file => PAGES.find(p => p[0] === file);
   const pick = files => files.map(f => f === 'DASHBOARD' ? [dashboardUrl(), 'Dashboard'] : [f, byFile(f)[1]]);
   if (role === 'visitor') return pick(['index.html', 'menu.html', 'cats.html', 'rate.html', 'hours.html', 'sessions.html', 'events.html', 'aboutus.html', 'faq.html', 'support.html']);
-  if (role === 'guest') return pick(['index.html', 'booking.html', 'menu.html', 'cats.html', 'rate.html', 'hours.html', 'sessions.html', 'events.html', 'aboutus.html', 'faq.html', 'support.html']);
-  if (role === 'handler') return pick(['DASHBOARD', 'handler.html', 'cat-schedule.html', 'menu.html', 'faq.html']);
+  if (role === 'guest') return pick(['index.html', 'booking.html', 'menu.html', 'cats.html', 'rate.html', 'hours.html', 'sessions.html', 'events.html', 'aboutus.html', 'faq.html', 'support.html', 'settings.html']);
+  if (role === 'handler') return pick(['handler.html', 'session-orders.html', 'DASHBOARD', 'cat-schedule.html', 'menu.html', 'cats.html', 'rate.html', 'hours.html', 'events.html', 'aboutus.html', 'faq.html']);
   return pick(['DASHBOARD', 'admin.html', 'admin-orders.html', 'admin-menu.html', 'admin-rooms.html', 'admin-sessions.html', 'admin-rates.html',
                'admin-hours.html', 'admin-cats.html', 'admin-staff.html', 'cat-schedule.html', 'admin-reviews.html', 'admin-faq.html', 'admin-events.html']);
 }
@@ -64,7 +66,7 @@ function searchPages(query, user) {
   const words = query.toLowerCase().split(/\s+/).filter(Boolean);
   if (words.length === 0) return [];
   const role = roleOf(user);
-  const pool = PAGES.filter(p => canSee(p, role)).map(p => [p[0], p[1], (p[1] + ' ' + p[2]).toLowerCase()]);
+  const pool = PAGES.filter(p => canSee(p, role) && !((role === 'handler' || role === 'admin') && p[0] === 'index.html')).map(p => [p[0], p[1], (p[1] + ' ' + p[2]).toLowerCase()]);
   if (role === 'handler' || role === 'admin') pool.push([dashboardUrl(), 'Dashboard', 'dashboard charts reports overview']);
   return pool.filter(p => words.every(w => p[2].includes(w)))
              .sort((a, b) => (b[1].toLowerCase().startsWith(words[0]) ? 1 : 0) - (a[1].toLowerCase().startsWith(words[0]) ? 1 : 0))
@@ -203,29 +205,125 @@ function setupHeroSearch(user) {
   });
 }
 
+// ----- the round avatar that replaces "Logged in as <name>" -----
+function avatarElement(user, className) {
+  const el = document.createElement('span');
+  el.className = 'avatar-circle' + (className ? ' ' + className : '');
+  const a = user.avatar || {};
+  el.style.background = a.color || '#c98672';
+  const icon = AVATAR_ICONS[a.icon];
+  if (icon) el.textContent = icon;
+  else el.textContent = (String(user.name || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('') || '?').toUpperCase();   // initials until an icon is chosen
+  return el;
+}
+
+function setupAvatarMenu() {
+  const button = document.getElementById('avatarBtn');
+  const menu = document.getElementById('avatarMenu');
+  if (!button) return;
+  function setOpen(open) { menu.hidden = !open; button.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+  button.addEventListener('click', function (e) { e.stopPropagation(); setOpen(menu.hidden); });
+  document.addEventListener('click', function (e) { if (!menu.contains(e.target)) setOpen(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+  document.getElementById('logoutLink').addEventListener('click', function (e) { e.preventDefault(); logout(); });
+}
+
+// ----- the search box in the top bar (visitors and guests; the staff have theirs in the side menu) -----
+// The results list scrolls inside its own box, so a long list is never cut off by the bottom of the screen.
+function setupHeaderSearch(user) {
+  const wrap = document.getElementById('headerSearch');
+  if (!wrap) return;
+  const input = document.getElementById('headerSearchInput');
+  const results = document.getElementById('headerResults');
+  const toggle = document.getElementById('headerSearchToggle');
+
+  function update() {
+    const query = input.value.trim();
+    results.innerHTML = '';
+    results.hidden = !query;
+    if (!query) return;
+    const found = searchPages(query, user);
+    if (found.length === 0) {
+      const none = document.createElement('div');
+      none.className = 'none';
+      none.textContent = 'No screen found for "' + query + '".';
+      results.appendChild(none);
+      return;
+    }
+    found.forEach(function (p) {
+      const a = document.createElement('a');
+      a.href = p[0];
+      a.textContent = p[1];
+      results.appendChild(a);
+    });
+  }
+  input.addEventListener('input', update);
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const first = results.querySelector('a');
+      if (first) window.location.href = first.getAttribute('href');
+    } else if (e.key === 'Escape') {
+      input.value = '';
+      update();
+      wrap.classList.remove('open');
+    }
+  });
+  document.addEventListener('click', function (e) { if (!wrap.contains(e.target) && e.target !== toggle) { results.hidden = true; } });
+  input.addEventListener('focus', update);
+  toggle.addEventListener('click', function (e) {                       // on a phone the search opens under the top bar
+    e.stopPropagation();
+    wrap.classList.toggle('open');
+    if (wrap.classList.contains('open')) input.focus();
+  });
+}
+
 function renderLayout(activePage) {
   const user = currentUser();
+  const staffUser = !!user && (user.role === 'handler' || user.role === 'admin');
+  const searchBox = !staffUser
+    ? '<div class="header-search" id="headerSearch"><input type="search" id="headerSearchInput" placeholder="Search the website..." aria-label="Search the website" autocomplete="off">' +
+      '<div class="header-results" id="headerResults" hidden></div></div>' +
+      '<button type="button" class="header-search-toggle" id="headerSearchToggle" aria-label="Search">\u{1F50D}</button>'
+    : '';
 
-  // Header: menu button and title on the left, login / sign up (or log out) on the right
+  // Header: menu button and title on the left, search in the middle, login / sign up (or the avatar) on the right
   const header = document.getElementById('site-header');
   header.innerHTML =
     '<button type="button" class="menu-toggle" id="menuToggle" aria-label="Open or close the menu" aria-controls="side-nav" aria-expanded="false">' +
     '<span></span><span></span><span></span></button>' +
-    '<div class="brand"><a href="index.html">PURRSONA MEOW</a></div>' +
+    '<div class="brand"><a href="' + (staffUser ? homePageFor(user.role) : 'index.html') + '">PURRSONA MEOW</a></div>' +
+    searchBox +
     '<div class="header-right" id="headerRight"></div>';
   const right = document.getElementById('headerRight');
 
   if (user) {
-    const who = document.createElement('span');
-    who.className = 'who';
-    who.textContent = 'Logged in as ' + user.name;
-    const out = document.createElement('a');
-    out.className = 'btn';
-    out.textContent = 'Log out';
-    out.href = '#';
-    out.addEventListener('click', function (e) { e.preventDefault(); logout(); });
-    right.appendChild(who);
-    right.appendChild(out);
+    const wrap = document.createElement('div');
+    wrap.className = 'avatar-wrap';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.id = 'avatarBtn';
+    button.className = 'avatar-btn';
+    button.setAttribute('aria-haspopup', 'true');
+    button.setAttribute('aria-expanded', 'false');
+    button.setAttribute('aria-label', 'Account menu for ' + user.name);
+    button.title = user.name;
+    button.appendChild(avatarElement(user));
+    const menu = document.createElement('div');
+    menu.id = 'avatarMenu';
+    menu.className = 'avatar-menu';
+    menu.hidden = true;
+    const head = document.createElement('div');
+    head.className = 'avatar-head';
+    const strong = document.createElement('strong');
+    strong.textContent = user.name;
+    const small = document.createElement('small');
+    small.textContent = user.role === 'handler' ? 'Cat handler' : user.role === 'admin' ? 'Admin' : 'Guest';
+    head.append(strong, small);
+    menu.appendChild(head);
+    menu.insertAdjacentHTML('beforeend', '<a href="settings.html">Settings</a><a href="#" id="logoutLink">Log out</a>');
+    wrap.append(button, menu);
+    right.appendChild(wrap);
   } else {
     right.innerHTML = '<a class="btn" href="login.html">Login</a><a class="btn" href="signup.html">Sign up</a>';
   }
@@ -253,10 +351,12 @@ function renderLayout(activePage) {
   document.getElementById('site-footer').innerHTML =
     '<p class="footer-links"><a href="terms.html">Terms and conditions</a><a href="rules.html">Cafe rules</a><a href="aboutus.html">About Us</a><a href="faq.html">FAQ</a>' +
     '<a href="hours.html">Opening hours</a><a href="support.html">Support us</a></p>' +
-    '<p>\u00a9 ' + new Date().getFullYear() + ' Cat Caf\u00e9 Reservations. All rights reserved. &nbsp;|&nbsp; Major Project &nbsp;|&nbsp; Contact: PurrsonaMeow@gmail.com</p>';
+    '<p>\u00a9 ' + new Date().getFullYear() + ' Cat Caf\u00e9 Reservations. All rights reserved. &nbsp;|&nbsp; Practice project &nbsp;|&nbsp; Contact: hello@example.com</p>';
 
   setupMenuToggle(menuMode(user));
   setupSearch(user);
   setupHeroSearch(user);
-
+  setupHeaderSearch(user);
+  setupAvatarMenu();
+  if (typeof addPasswordToggles === 'function') addPasswordToggles();
 }

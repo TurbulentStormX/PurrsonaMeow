@@ -351,3 +351,8 @@
     max-width: 100%;
   }
 }
+
+/* Cat status controls on the handler page */
+.cat-status-edit { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.cat-status-edit input { margin: 0; padding: 6px 8px; font-size: 13px; width: 100%; box-sizing: border-box; }
+.cat-status-edit button { margin: 0; }

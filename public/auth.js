@@ -19,6 +19,43 @@ function homePageFor(role) {
   return 'booking.html';
 }
 
+// The round avatar's icons (the server accepts only these names) and colours
+const AVATAR_ICONS = { cat: '\u{1F431}', paw: '\u{1F43E}', smile: '\u{1F63A}', 'heart-eyes': '\u{1F63B}', sleepy: '\u{1F63D}', lion: '\u{1F981}', tiger: '\u{1F42F}', fish: '\u{1F41F}', coffee: '\u2615', yarn: '\u{1F9F6}' };
+const AVATAR_COLORS = ['#c98672', '#79523f', '#d9a441', '#6b9080', '#5b7db1', '#8e6bb0', '#c0587a', '#4a4a4a'];
+// After Settings changes the user, keep the new details in this browser too
+function updateStoredUser(user) {
+  const auth = getAuth();
+  if (auth) saveAuth({ token: auth.token, user: user });
+}
+
+// A "Show / Hide" button on every password box (login, sign up, forgot, reset, settings)
+function addPasswordToggles() {
+  document.querySelectorAll('input[type=password]').forEach(function (input) {
+    if (input.dataset.hasToggle) return;
+    input.dataset.hasToggle = '1';
+    const wrap = document.createElement('span');
+    wrap.className = 'pw-wrap';
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(input);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'pw-toggle';
+    button.textContent = 'Show';
+    button.setAttribute('aria-label', 'Show password');
+    button.setAttribute('aria-pressed', 'false');
+    button.addEventListener('click', function () {
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      button.textContent = show ? 'Hide' : 'Show';
+      button.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      button.setAttribute('aria-pressed', show ? 'true' : 'false');
+    });
+    wrap.appendChild(button);
+  });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addPasswordToggles);
+else addPasswordToggles();
+
 // ----- Password rules (the server checks them too) -----
 const PASSWORD_RULES = [
   { text: '8 to 12 characters',                         test: p => p.length >= 8 && p.length <= 12 },

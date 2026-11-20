@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Purrsona Meow - Session orders</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="handler-design.css">
+  <link rel="stylesheet" href="session-orders.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main class="handler-page so-page">
+      <section class="handler-hero">
+        <p class="handler-eyebrow">PURRSONA MEOW · CAT CARE TEAM</p>
+        <h1>Session orders</h1>
+        <p>Each session you look after, its room and what the guests ordered.</p>
+      </section>
+
+      <div class="so-tabs" id="soTabs"></div>
+      <div id="soList"></div>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+    onDataReady(async function () {
+      renderLayout('session-orders.html');
+      if (guardPage(['handler'], 'see the orders for your sessions')) initPage();
+
+      function initPage() {
+        const user = currentUser();
+        const POLL_MS = window.CATCAFE_POLL_MS || 5000;
+        const list = document.getElementById('soList');
+        const tabsBox = document.getElementById('soTabs');
+        let tab = 'now';
+        let lastSignature = '';
+        const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+
+        function mySessions() {
+          const today = todayString();
+          const mine = loadReservations().filter(r => handlerUsernameOf(r) === user.username && (r.status === 'Assigned' || r.status === 'Concluded'));
+          const byTime = (a, b) => (a.date + a.time).localeCompare(b.date + b.time);
+          if (tab === 'done') return mine.filter(r => r.status === 'Concluded').sort((a, b) => byTime(b, a));
+          return mine.filter(r => r.status === 'Assigned' && r.date >= today).sort(byTime);
+        }
+
+        function sessionCard(r) {
+          const orders = loadOrders().filter(o => o.reservation === r.code);
+          const card = el('section', 'so-card');
+          const head = el('div', 'so-head');
+          const title = el('div');
+          title.appendChild(el('h2', '', r.session + ' - ' + (r.zone || r.roomName || 'Room')));
+          title.appendChild(el('p', 'so-meta', formatDate(r.date) + ', ' + timeRange(r) + ' | ' + r.name + ' | ' + r.guests + ' guest(s) | ' + r.code));
+          head.appendChild(title);
+          const pills = el('div', 'so-pills');
+          pills.appendChild(statusPill(r.status));
+          pills.appendChild(paymentPill(r));
+          head.appendChild(pills);
+          card.appendChild(head);
+          if ((r.cats || []).length) card.appendChild(el('p', 'so-cats', 'Cats: ' + catNamesOf(r).join(', ')));
+          if (r.requests) card.appendChild(el('p', 'so-cats', 'Guest note: ' + r.requests));
+
+          if (orders.length === 0) {
+            card.appendChild(el('p', 'so-none', 'No food or drink ordered for this session yet.'));
+            return card;
+          }
+          const table = document.createElement('table');
+          table.innerHTML = '<thead><tr><th>Order</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr></thead>';
+          const tb = document.createElement('tbody');
+          orders.forEach(function (o) {
+            const tr = tb.insertRow();
+            tr.insertCell().textContent = o.code;
+            tr.insertCell().textContent = orderItemsText(o);
+            tr.insertCell().textContent = money(o.total);
+            tr.insertCell().appendChild(statusPill(o.status));
+            const action = tr.insertCell();
+            if (o.status === 'Ordered') {
+              const b = el('button', '', 'Mark served');
+              b.addEventListener('click', async function () {
+                const done = await markOrderServed(o.code);
+                if (!done.ok) alert(done.error);
+                render();
+              });
+              action.appendChild(b);
+            } else action.textContent = '-';
+          });
+          table.appendChild(tb);
+          const wrap = el('div', 'table-scroll');
+          wrap.appendChild(table);
+          card.appendChild(wrap);
+          return card;
+        }
+
+        function signature() { return JSON.stringify([loadReservations(), loadOrders(), tab]); }
+        function render() {
+          tabsBox.innerHTML = '';
+          [['now', 'Today and upcoming'], ['done', 'Finished sessions']].forEach(function (t) {
+            const b = el('button', t[0] === tab ? 'active' : '', t[1]);
+            b.type = 'button';
+            b.addEventListener('click', function () { tab = t[0]; render(); });
+            tabsBox.appendChild(b);
+          });
+          list.innerHTML = '';
+          const sessions = mySessions();
+          if (sessions.length === 0) list.appendChild(el('div', 'so-card', tab === 'done' ? 'No finished sessions yet.' : 'No sessions coming up. Bookings appear here by themselves.'));
+          sessions.forEach(r => list.appendChild(sessionCard(r)));
+          lastSignature = signature();
+        }
+        async function tick() {
+          try { await refreshData(); } catch (e) { /* keep what we have */ }
+          if (signature() !== lastSignature) render();
+        }
+        render();
+        setInterval(tick, POLL_MS);
+      }
+    });
+  </script>
+</body>
+</html>

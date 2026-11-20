@@ -16,17 +16,17 @@ const star = (w, key, n) => $(w, '.stars-input[data-key="' + key + '"]').querySe
 test('every page loads without a script error for the right kind of user (including About us)', async () => {
   const e = await world();
   const visitor = device(e);
-  for (const p of ['index.html', 'menu.html', 'cats.html', 'rate.html', 'hours.html', 'sessions.html', 'events.html', 'aboutus.html', 'faq.html', 'rules.html', 'terms.html', 'support.html',
+  for (const p of ['index.html', 'menu.html', 'cats.html', 'rate.html', 'hours.html', 'sessions.html', 'events.html', 'aboutus.html', 'faq.html', 'rules.html', 'terms.html', 'support.html', 'settings.html',
                    'login.html', 'signup.html', 'forgot.html', 'reset.html', 'booking.html', 'admin.html', 'handler.html', 'cat-schedule.html', 'pay.html', 'review.html']) {
     const w = await visitor.open(p);
     assert.ok(text(w, 'main').trim().length > 0, p);
   }
   const guest = await as(e, 'cat');
-  for (const p of ['index.html', 'booking.html', 'menu.html', 'cats.html', 'rate.html', 'sessions.html', 'aboutus.html', 'faq.html', 'support.html', 'pay.html?code=CC-NONE1', 'review.html?code=CC-NONE1']) assert.ok(text(await guest.open(p), 'main').trim().length > 0, p);
+  for (const p of ['index.html', 'booking.html', 'menu.html', 'cats.html', 'rate.html', 'sessions.html', 'aboutus.html', 'faq.html', 'support.html', 'settings.html', 'pay.html?code=CC-NONE1', 'review.html?code=CC-NONE1']) assert.ok(text(await guest.open(p), 'main').trim().length > 0, p);
   const handler = await as(e, 'ben');
-  for (const p of ['index.html', 'handler.html', 'cat-schedule.html', 'menu.html', 'cats.html', 'aboutus.html']) assert.ok(text(await handler.open(p), 'main').trim().length > 0, p);
+  for (const p of ['index.html', 'handler.html', 'session-orders.html', 'settings.html', 'cat-schedule.html', 'menu.html', 'cats.html', 'aboutus.html']) assert.ok(text(await handler.open(p), 'main').trim().length > 0, p);
   const admin = await as(e, 'admin');
-  for (const p of ['index.html', 'admin.html', 'admin-orders.html', 'admin-menu.html', 'admin-rooms.html', 'admin-sessions.html', 'admin-rates.html', 'admin-hours.html', 'admin-cats.html',
+  for (const p of ['index.html', 'settings.html', 'admin.html', 'admin-orders.html', 'admin-menu.html', 'admin-rooms.html', 'admin-sessions.html', 'admin-rates.html', 'admin-hours.html', 'admin-cats.html',
                    'admin-staff.html', 'cat-schedule.html', 'admin-reviews.html', 'admin-faq.html', 'admin-events.html']) assert.ok(text(await admin.open(p), 'main').trim().length > 0, p);
   noErrors(visitor, guest, handler, admin);
 });
@@ -40,13 +40,13 @@ test('menus, About us, search and the dashboard link (which tells the dashboard 
   assert.equal($(w, '#navSearch'), null, 'no search box inside the visitor menu');
   const admin = await as(e, 'admin');
   w = await admin.open('admin.html');
-  assert.deepEqual(navLabels(w).slice(0, 4), ['Home', 'Dashboard', 'Reservations', 'Orders']);
+  assert.deepEqual(navLabels(w).slice(0, 3), ['Dashboard', 'Reservations', 'Orders'], 'staff and admin do not get the public Home page in their menu');
   const url = new URL($$(w, '#side-nav a').find(a => a.textContent === 'Dashboard').getAttribute('href'), e.base);
   assert.deepEqual([url.origin, url.pathname, url.searchParams.get('back')], [e.base, '/dashboard/', e.base + '/index.html']);
   set(w, 'navSearch', 'orders');                                  // staff keep the search box in their sidebar
   assert.deepEqual($$(w, '#navResults a').map(a => a.textContent), ['Orders']);
   const h = await as(e, 'aisha');
-  assert.deepEqual(navLabels(await h.open('handler.html')).slice(0, 3), ['Home', 'Dashboard', 'My Sessions']);
+  assert.deepEqual(navLabels(await h.open('handler.html')).slice(0, 3), ['My Sessions', 'Session orders', 'Dashboard']);
   noErrors(admin, h);
 });
 test('About us page (yours) is shown with the same menu and footer as every page', async () => {
@@ -70,8 +70,11 @@ test('login page: wrong details give a message; guests and staff log in; log out
   const a = device(e);
   assert.equal((await a.loginAs('admin', 'admin123')).role, 'admin');
   w = await d.open('index.html');
-  assert.ok(text(w, '.header-right').includes('Logged in as Cat'));
-  $$(w, '.header-right a').find(x => x.textContent === 'Log out').click();
+  assert.ok(!text(w, '.header-right').includes('Logged in as'), 'the name is now a round avatar');
+  assert.equal(text(w, '#avatarBtn'), 'C', 'initials until an icon is chosen');
+  await click($(w, '#avatarBtn'));
+  assert.equal($(w, '#avatarMenu').hidden, false);
+  $(w, '#logoutLink').click();
   assert.equal(d.local.catcafe_auth, undefined);
 });
 test('login page: five wrong passwords lock it for a minute, and the right one works again afterwards', async () => {
@@ -260,8 +263,8 @@ test('sessions, pay and cancel: the guest pays on the server and cancels with a 
   assert.equal((await store(e)).reservations[0].paid, true);
   w = await g.open('sessions.html');
   await click(buttonByText(row(w, '#myReservations tr', booked.code), 'Cancel'));
-  assert.ok(w.__confirms[0].includes('You paid S$60.00') && w.__confirms[0].includes('gives you back 100% (S$60.00)'));
-  assert.ok(w.__alerts.some(m => m.includes('Refund: S$60.00 (100%)')));
+  assert.ok(w.__confirms[0].includes('no cancellation fee') && w.__confirms[0].includes('all S$60.00 back'));
+  assert.ok(w.__alerts.some(m => m.includes('Refund: S$60.00')));
   assert.ok(row(w, '#myReservations tr', booked.code).textContent.includes('Refunded'));
   assert.equal((await e.book(e.tokens.dog, { cats: ['c1'], time: '14:00' })).data.ok, true, 'the room and cat are free for someone else');
   noErrors(g);
@@ -582,7 +585,7 @@ test('menu: visitors and guests get a hidden drop-down panel over the page, staf
     assert.equal($(w, '#side-nav').classList.contains('open'), false, 'the three lines hide it again');
   }
   for (const who of ['admin', 'aisha']) {
-    const w = await (await as(e, who)).open('index.html');
+    const w = await (await as(e, who)).open(who === 'admin' ? 'admin.html' : 'handler.html');
     assert.ok(w.document.body.classList.contains('nav-side'), 'sidebar mode');
     assert.equal($(w, '#side-nav').classList.contains('open'), true, 'always open on a computer');
     await click($(w, '#menuToggle'));
@@ -597,4 +600,150 @@ test('home page: the big search bar opens the first matching screen, and says so
   assert.match(text(w, '#heroResults'), /No screen found/);
   set(w, 'heroSearch', 'rates');
   assert.deepEqual($$(w, '#heroResults a').map(a => a.getAttribute('href')), ['rate.html']);
+});
+
+
+// ======================================================= header search, avatar, passwords, settings, staff pages
+test('header search: visitors and guests can search from the top bar on any screen; staff use their sidebar; long result lists scroll', async () => {
+  const e = await world();
+  for (const who of [null, 'cat']) {
+    const d = who ? await as(e, who) : device(e);
+    const w = await d.open('rate.html');
+    assert.ok($(w, '#headerSearchInput'), 'the top bar has a search box');
+    set(w, 'headerSearchInput', 'about');
+    assert.deepEqual($$(w, '#headerResults a').map(a => a.textContent), ['About Us']);
+    assert.equal($(w, '#headerResults').hidden, false);
+    set(w, 'headerSearchInput', 'zzzz');
+    assert.match(text(w, '#headerResults'), /No screen found/);
+    set(w, 'headerSearchInput', 'e');                             // many matches at once
+    assert.ok($$(w, '#headerResults a').length >= 5 && $$(w, '#headerResults a').length <= 8);
+  }
+  const w = await (await as(e, 'admin')).open('admin.html');
+  assert.equal($(w, '#headerSearchInput'), null, 'staff have the sidebar search instead');
+  const css = (await (await fetch(e.base + '/layout.css')).text()) + (await (await fetch(e.base + '/home-design.css')).text());
+  assert.match(css, /\.header-results\s*\{[^}]*overflow-y:\s*auto/, 'the top bar list scrolls inside itself');
+  assert.match(css, /\.hero-results\s*\{[^}]*max-height[^}]*overflow-y:\s*auto/, 'the home page list scrolls inside itself');
+  assert.doesNotMatch(css, /\.home-hero\s*\{[^}]*overflow:\s*hidden/, 'the hero must not clip the results');
+});
+
+test('avatar: a round picture replaces "Logged in as"; staff and admin land on their own page, not the public Home', async () => {
+  const e = await world();
+  const admin = await as(e, 'admin');
+  let w = await admin.open('admin.html');
+  assert.ok(!text(w, '#site-header').includes('Logged in as'));
+  assert.equal(text(w, '#avatarBtn'), 'A');
+  assert.equal($(w, '.brand a').getAttribute('href'), 'admin.html', 'the logo takes staff to their own page');
+  assert.ok(!navLabels(w).includes('Home'));
+  assert.deepEqual($$(w, '#avatarMenu a').map(a => a.textContent), ['Settings', 'Log out']);
+  const h = await as(e, 'aisha');
+  w = await h.open('handler.html');
+  assert.equal($(w, '.brand a').getAttribute('href'), 'handler.html');
+  assert.deepEqual(navLabels(w).slice(0, 3), ['My Sessions', 'Session orders', 'Dashboard']);
+  // a staff member who opens the public Home page is sent to their own page
+  const home = await admin.open('index.html');
+  assert.equal($(home, '#avatarBtn'), null, 'the public page stops and sends them away instead of drawing');
+});
+
+test('passwords: every password box on login, sign up, forgot, reset and settings has Show / Hide', async () => {
+  const e = await world();
+  const d = device(e);
+  for (const p of ['login.html', 'signup.html', 'reset.html']) {
+    const w = await d.open(p);
+    const boxes = $$(w, 'input[type=password]');
+    assert.ok(boxes.length >= 1, p);
+    assert.equal($$(w, '.pw-toggle').length, boxes.length, p + ': one toggle per password box');
+    const t = $(w, '.pw-toggle');
+    const input = t.parentNode.querySelector('input');
+    assert.equal(input.type, 'password');
+    t.click();
+    assert.deepEqual([input.type, t.textContent], ['text', 'Hide']);
+    t.click();
+    assert.deepEqual([input.type, t.textContent], ['password', 'Show']);
+  }
+});
+
+test('menu: pictures may differ from what is served (disclaimer)', async () => {
+  const e = await world();
+  const w = await device(e).open('menu.html');
+  assert.match(text(w, '#photoDisclaimer'), /Pictures are for illustration only/);
+});
+
+test('settings: a visitor must log in; guests get account, payment and subscription; staff and admin only account and picture', async () => {
+  const e = await world();
+  let w = await device(e).open('settings.html');
+  assert.match(text(w, 'main'), /Please log in/);
+  const g = await as(e, 'cat');
+  w = await g.open('settings.html');
+  assert.deepEqual($$(w, '#settingsTabs button').map(b => b.textContent), ['Account', 'Payment', 'Subscription']);
+  // avatar: choose the paw and a colour
+  await click($$(w, '.icon-grid button').find(b => b.title === 'paw'));
+  await click($$(w, '.color-grid button')[1]);
+  await click(buttonByText(w.document, 'Save picture'));
+  await until(() => /Picture saved/.test(text(w, '.settings-msg')), 'avatar saved');
+  assert.equal(text(w, '#avatarBtn'), '\u{1F43E}', 'the top bar shows the paw straight away');
+  assert.deepEqual(JSON.parse(g.local.catcafe_auth).user.avatar, { icon: 'paw', color: '#79523f' });
+  // profile
+  set(w, 'setName', 'Cat Tan'); set(w, 'setPhone', '81234567');
+  await click(buttonByText(w.document, 'Save details'));
+  await until(() => $$(w, '.settings-msg').some(m => /Details saved/.test(m.textContent)), 'details saved');
+  assert.equal((await e.call('GET', '/api/auth/me', undefined, e.tokens.cat)).data.user.name, 'Cat Tan');
+  // saved payment method
+  w = await g.open('settings.html#payment');
+  $$(w, 'input[name=savedMethod]')[1].click();
+  set(w, 'setLast4', '4242');
+  await click(buttonByText(w.document, 'Save method'));
+  await until(() => /Saved\./.test(text(w, '.settings-msg')), 'method saved');
+  // a late cancel without paying leaves a fee that shows under "To pay" and can be paid from there
+  const b = (await e.book(e.tokens.cat, { time: '10:00', date: TOMORROW })).data.reservation;
+  e.clock.now = new Date(TOMORROW + 'T09:00:00').getTime();
+  assert.equal((await e.act('cancelReservation', { code: b.code }, e.tokens.cat)).data.feeDue, 30);
+  w = await g.open('settings.html#payment');
+  assert.match(text(w, '#settingsBody'), /Cancellation fee S\$30\.00 for booking/);
+  const payPage = await g.open('pay.html?code=' + b.code);
+  assert.match(text(payPage, '#payBox'), /Cancellation fee due: S\$30\.00/);
+  assert.equal($(payPage, 'input[name=method]:checked').value, 'Card', 'the saved method is chosen first');
+  await click(buttonByText(payPage.document, 'Pay fee S$30.00'));
+  await until(() => /Cancellation fee: S\$30\.00/.test(text(payPage, '#payBox')), 'fee paid');
+  w = await g.open('settings.html#payment');
+  assert.match(text(w, '#settingsBody'), /Cancellation fee paid/);
+  // subscription
+  await e.act('subscribe', { tierId: 'guardian' }, e.tokens.cat);
+  w = await g.open('settings.html#subscription');
+  assert.match(text(w, '#settingsBody'), /Cat Guardian - S\$30\.00 per month/);
+  w.confirm = () => true;
+  await click(buttonByText(w.document, 'Cancel my plan'));
+  assert.match(text(w, '#settingsBody'), /do not have a plan/);
+  const a = await as(e, 'admin');
+  w = await a.open('settings.html');
+  assert.equal($$(w, '#settingsTabs button').length, 0, 'staff have just the account page');
+  assert.match(text(w, 'main'), /Profile picture/);
+  assert.doesNotMatch(text(w, 'main'), /Saved payment method/);
+  noErrors(g, a);
+});
+
+test('staff: session orders page groups orders under each session and room; cat status is edited from the handler page', async () => {
+  const e = await world();
+  const a = (await e.book(e.tokens.cat, { cats: ['c1'], time: '14:00' })).data.reservation;
+  const o = (await e.act('placeOrder', { reservationCode: a.code, lines: [{ id: 'd1', qty: 2 }] }, e.tokens.cat)).data.order;
+  const b = (await e.book(e.tokens.dog, { roomId: 'P2', cats: ['c4'], time: '10:00' })).data.reservation;
+  const h = await as(e, 'aisha');
+  let w = await h.open('session-orders.html');
+  const cards = $$(w, '.so-card');
+  assert.equal(cards.length, 1, 'only my own sessions (Ben has the other one)');
+  assert.ok(cards[0].textContent.includes(a.code) && cards[0].textContent.includes('P1 - Private Room 1') && cards[0].textContent.includes(o.code));
+  await click(buttonByText(cards[0], 'Mark served'));
+  assert.equal((await store(e)).orders[0].status, 'Served');
+  const ben = await as(e, 'ben');
+  w = await ben.open('session-orders.html');
+  assert.ok(text(w, '#soList').includes(b.code) && !text(w, '#soList').includes(a.code));
+  assert.match(text(w, '#soList'), /No food or drink ordered/);
+  // cat status
+  w = await h.open('handler.html');
+  const fluffy = $$(w, '#myCats .who-card').find(c => c.textContent.includes('Fluffy'));
+  fluffy.querySelector('input').value = 'Vet visit';
+  await click(buttonByText(fluffy, 'Mark unavailable'));
+  const cat = (await store(e)).cats.find(c => c.id === 'c1');
+  assert.deepEqual([cat.active, cat.note], [false, 'Vet visit']);
+  assert.match(text(w, '#myCats'), /Not bookable: Vet visit/);
+  noErrors(h, ben);
 });

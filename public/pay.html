@@ -81,6 +81,22 @@
         box.appendChild(a);
       }
 
+      // PayNow or Card; the method saved in Settings is chosen first
+      function methodChoice() {
+        const saved = (user.savedPayment && user.savedPayment.method) || 'PayNow';
+        const methods = document.createElement('div');
+        methods.className = 'pay-methods';
+        [['PayNow', 'PayNow'], ['Card', 'Card (practice)' + (user.savedPayment && user.savedPayment.method === 'Card' ? ' ending ' + user.savedPayment.last4 : '')]].forEach(function (m) {
+          const label = document.createElement('label');
+          const radio = document.createElement('input');
+          radio.type = 'radio'; radio.name = 'method'; radio.value = m[0]; radio.checked = m[0] === saved;
+          label.appendChild(radio);
+          label.appendChild(document.createTextNode(m[1]));
+          methods.appendChild(label);
+        });
+        box.appendChild(methods);
+      }
+
       function render() {
         box.innerHTML = '';
         const r = loadReservations().find(x => x.code === code && (x.email || '').toLowerCase() === user.email);
@@ -100,7 +116,31 @@
         const perHour = r.pricePerHour !== undefined ? r.pricePerHour : amountOf(r) / bookingHours(r);
         line('Amount', money(amountOf(r)) + ' (' + money(perHour) + ' per hour x ' + hoursText(bookingHours(r)) + ', the same for any number of guests)');
 
-        if (r.status === 'Cancelled') { notice('This booking was cancelled.' + (r.paid ? ' Refund: ' + money(r.refund) + ' (' + r.refundPercent + '%).' : ' Nothing was charged.'), 'warn'); backLink(); return; }
+        if (r.status === 'Cancelled') {
+          const why = r.cancelledBy === 'system' ? 'This booking was cancelled because it was not paid in time. Nothing was charged.'
+                    : 'This booking was cancelled.' + (r.paid ? ' Refund: ' + money(r.refund) + ' (' + r.refundPercent + '%).' : '');
+          notice(why, 'warn');
+          if (r.cancelFee > 0) {
+            if (r.feePaid) {
+              line('Cancellation fee', money(r.cancelFee) + (r.paid ? ' (kept from your payment)' : ' (paid, ' + (r.feePayment ? r.feePayment.ref : '') + ')'));
+            } else {
+              line('Cancellation fee due', money(r.cancelFee));
+              methodChoice();
+              const payFee = document.createElement('button');
+              payFee.textContent = 'Pay fee ' + money(r.cancelFee);
+              payFee.addEventListener('click', async function () {
+                payFee.disabled = true; payFee.textContent = 'Processing...';
+                const done = await payCancellationFee(r.code, box.querySelector('input[name=method]:checked').value);
+                if (!done.ok) { alert(done.error); payFee.disabled = false; payFee.textContent = 'Pay fee ' + money(r.cancelFee); return; }
+                render();
+              });
+              box.appendChild(payFee);
+              box.appendChild(document.createTextNode(' '));
+            }
+          }
+          backLink();
+          return;
+        }
         if (r.paid) {
           const rec = document.createElement('div');
           rec.className = 'receipt';
@@ -117,17 +157,8 @@
 
         notice('PRACTICE ONLY: no money is taken and no card details are asked for. The real site would send you to a secure payment provider.', 'warn');
 
-        const methods = document.createElement('div');
-        methods.className = 'pay-methods';
-        [['PayNow', 'PayNow'], ['Card', 'Card (practice)']].forEach(function (m, i) {
-          const label = document.createElement('label');
-          const radio = document.createElement('input');
-          radio.type = 'radio'; radio.name = 'method'; radio.value = m[0]; radio.checked = i === 0;
-          label.appendChild(radio);
-          label.appendChild(document.createTextNode(m[1]));
-          methods.appendChild(label);
-        });
-        box.appendChild(methods);
+        if (r.payBy) notice('Please pay by ' + new Date(r.payBy).toLocaleString('en-SG', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) + '. An unpaid booking is cancelled automatically after that, and the room and cats are freed for other guests.', '');
+        methodChoice();
 
         const pay = document.createElement('button');
         pay.id = 'payBtn';

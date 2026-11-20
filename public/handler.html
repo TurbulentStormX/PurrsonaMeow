@@ -32,6 +32,7 @@
 
       <div class="card wide-card">
         <h1>Cat Handler: My sessions</h1>
+        <p class="hint">Sessions finish by themselves when their time is over (everyone booked counts as checked in), so you only need to check guests in if the number is different.</p>
         <p class="hint">Bookings come to you from the cats you look after. After each session you rest for a while (see the Opening hours page).</p>
         <div class="table-scroll">
           <table>
@@ -47,6 +48,7 @@
 
       <div class="card wide-card">
         <h2>The cats I look after</h2>
+        <p class="hint">Mark a cat unavailable if it is unwell or resting. Guests cannot pick it, and the cat comes back by itself when you mark it available.</p>
         <div class="who-grid" id="myCats"></div>
         <p class="hint">See which cats are booked, on a break or free on the <a href="cat-schedule.html">Cat schedule</a>.</p>
       </div>
@@ -184,6 +186,26 @@
           chip.className = 'chip ' + st.state;
           chip.textContent = st.text;
           card.appendChild(chip);
+
+          // The handler sets whether the cat can be booked (for example a vet visit or a day of rest)
+          const status = document.createElement('div');
+          status.className = 'cat-status-edit';
+          const note = document.createElement('input');
+          note.type = 'text'; note.maxLength = 200; note.placeholder = 'Why? (e.g. vet visit)'; note.value = cat.note || '';
+          note.setAttribute('aria-label', 'Reason for ' + cat.name);
+          status.appendChild(note);
+          status.appendChild(button(cat.active ? 'Mark unavailable' : 'Mark available', async function () {
+            const done = await setCatStatus(cat.id, !cat.active, note.value.trim());
+            if (!done.ok) { alert(done.error); return; }
+            render();
+          }));
+          if (!cat.active) {
+            const off = document.createElement('div');
+            off.className = 'flag';
+            off.textContent = 'Not bookable' + (cat.note ? ': ' + cat.note : '');
+            status.appendChild(off);
+          }
+          card.appendChild(status);
           box.appendChild(card);
         });
       }

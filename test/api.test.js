@@ -127,7 +127,7 @@ test('auth: sign up checks the password rules and fields; login works by email o
   assert.equal((await signup({ name: '', email: 'nope', phone: '1' })).data.errors.length, 3);
   const ok = await signup({});
   assert.equal(ok.status, 201);
-  assert.deepEqual(ok.data.user, { name: 'Amy Tan', email: 'amy@test.com', phone: '91234567', role: 'guest' });
+  assert.deepEqual(ok.data.user, { name: 'Amy Tan', email: 'amy@test.com', phone: '91234567', role: 'guest', avatar: { icon: '', color: '' }, savedPayment: { method: '', last4: '' } });
   const row = e.User.rows.find(u => u.email === 'amy@test.com');
   assert.ok(row.passwordHash.startsWith('$2') && !JSON.stringify(row).includes(STRONG), 'only a scrambled password is saved');
   assert.equal((await signup({})).status, 409);
@@ -468,7 +468,7 @@ test('data copy: the same address works with and without a login, and is never c
   assert.ok(data.data.rooms.length && data.data.openHours && data.data.settings);
   assert.equal((await e.call('GET', '/api/data', undefined, 'garbage.token.value')).status, 200, 'a bad token just means a visitor');
   assert.equal((await e.call('GET', '/api/data', undefined, 'garbage.token.value')).data.me, null);
-  assert.deepEqual((await e.call('GET', '/api/data', undefined, e.tokens.cat)).data.me, { name: 'Cat', email: 'cat@gmail.com', phone: '91234501', username: 'cat', role: 'guest' });
+  assert.deepEqual((await e.call('GET', '/api/data', undefined, e.tokens.cat)).data.me, { name: 'Cat', email: 'cat@gmail.com', phone: '91234501', username: 'cat', role: 'guest', avatar: { icon: '', color: '' }, savedPayment: { method: '', last4: '' } });
   assert.equal(data.me, null);
 });
 
@@ -518,4 +518,96 @@ test('emails (EmailJS): off without keys; with keys it sends the booking and the
   assert.equal(await m.bookingConfirmed(r), false, 'a refusal never throws');
   assert.ok(logs.some(l => /\[email error\] The Public Key is invalid/.test(l)));
   assert.equal(await m.bookingConfirmed({ ...r, email: '' }), false, 'no address: nothing sent');
+});
+
+// ======================================================= cancellation fee, automation, settings
+test('cancel fee: free a day ahead, half within a day, all of it within 2 hours; unpaid guests owe it and can pay it later', async () => {
+  const e = await world();
+  const { cat } = e.tokens;
+  // 1. cancelled more than 24 hours ahead: no fee
+  const a = (await e.book(cat, { time: '14:00', date: '2030-03-07' })).data.reservation;
+  const free = (await e.act('cancelReservation', { code: a.code }, cat)).data;
+  assert.deepEqual([free.fee, free.feeDue, free.reservation.feePaid], [0, 0, true]);
+  // 2. paid, cancelled 10 hours ahead: the fee (half) is kept from the payment
+  const b = (await e.book(cat, { time: '18:00', date: TOMORROW, roomId: 'P2', cats: ['c4'] })).data.reservation;     // 34 hours ahead of 08:00 Mon
+  await e.act('payReservation', { code: b.code, method: 'PayNow' }, cat);
+  e.clock.now = new Date('2030-03-05T08:00:00').getTime();                                        // 10 hours before 18:00
+  const half = (await e.act('cancelReservation', { code: b.code }, cat)).data;
+  assert.deepEqual([half.fee, half.refund, half.feeDue], [15, 15, 0]);
+  // 3. unpaid, cancelled with 1 hour left: the whole price is owed, and paying it later works once
+  const c = (await e.book(cat, { time: '10:00', date: TOMORROW, roomId: 'P3', cats: ['c5'] })).data;
+  assert.equal(c.ok, true);
+  e.clock.now = new Date('2030-03-05T09:00:00').getTime();
+  const full = (await e.act('cancelReservation', { code: c.reservation.code }, cat)).data;
+  assert.deepEqual([full.fee, full.feeDue, full.refund, full.reservation.feePaid], [30, 30, 0, false]);
+  assert.match((await e.act('payCancellationFee', { code: c.reservation.code, method: 'Card' }, e.tokens.dog)).data.error, /not yours/);
+  assert.equal((await e.act('payCancellationFee', { code: c.reservation.code, method: 'Bitcoin' }, cat)).data.ok, false);
+  const paid = (await e.act('payCancellationFee', { code: c.reservation.code, method: 'Card' }, cat)).data.reservation;
+  assert.deepEqual([paid.feePaid, paid.feePayment.amount], [true, 30]);
+  assert.match((await e.act('payCancellationFee', { code: c.reservation.code, method: 'Card' }, cat)).data.error, /no cancellation fee/);
+  // the cafe cancelling never charges a fee
+  const d = (await e.book(e.tokens.dog, { time: '15:00', date: '2030-03-06', roomId: 'P1', cats: ['c2'] })).data.reservation;
+  assert.equal((await e.act('cancelReservation', { code: d.code }, e.tokens.admin)).data.fee, 0);
+});
+
+test('automation: unpaid bookings cancel themselves; finished sessions conclude themselves; paid ones are left alone', async () => {
+  const e = await world();
+  const { cat, dog } = e.tokens;
+  const unpaid = (await e.book(cat, { time: '14:00', date: TOMORROW })).data.reservation;                    // pay by Mon 14:00
+  const paid = (await e.book(dog, { time: '10:00', date: TOMORROW, roomId: 'P2', cats: ['c4'] })).data.reservation;
+  await e.act('payReservation', { code: paid.code, method: 'PayNow' }, dog);
+  assert.equal(unpaid.payBy, new Date('2030-03-04T14:00:00').toISOString());
+  e.clock.now = new Date('2030-03-04T13:00:00').getTime();
+  await e.call('GET', '/api/data');                                                                           // looking at the data also runs the sweep
+  assert.equal((await e.store.loadAll()).reservations.find(r => r.code === unpaid.code).status, 'Assigned');
+  e.clock.now = new Date('2030-03-04T14:01:00').getTime();
+  await e.call('GET', '/api/data');
+  const after = (await e.store.loadAll()).reservations;
+  const u = after.find(r => r.code === unpaid.code);
+  assert.deepEqual([u.status, u.cancelledBy, u.cancelReason, u.cancelFee], ['Cancelled', 'system', 'Not paid in time', 0]);
+  assert.equal(after.find(r => r.code === paid.code).status, 'Assigned');
+  // the room is free again for someone else
+  assert.equal((await e.book(dog, { time: '14:00', date: TOMORROW })).data.ok, true);
+  // the paid session finishes: concluded by itself, everybody counted as checked in
+  e.clock.now = new Date('2030-03-05T11:01:00').getTime();
+  await e.call('GET', '/api/data');
+  const done = (await e.store.loadAll()).reservations.find(r => r.code === paid.code);
+  assert.deepEqual([done.status, done.checkedIn, done.autoConcluded], ['Concluded', done.guests, true]);
+  // a booking made with less than a day to go is not cancelled in the same second
+  const late = (await e.book(cat, { time: '15:00', date: '2030-03-05', roomId: 'P3', cats: ['c5'] })).data.reservation;
+  assert.ok(new Date(late.payBy) > new Date(e.clock.now) && new Date(late.payBy) <= new Date('2030-03-05T15:00:00'));
+});
+
+test('cats: a handler can mark their own cat unavailable or available, nobody else can', async () => {
+  const e = await world();
+  assert.equal((await e.act('setCatStatus', { catId: 'c1', active: false, note: 'Vet visit' }, e.tokens.aisha)).data.cat.note, 'Vet visit');
+  assert.equal((await e.store.loadAll()).cats.find(c => c.id === 'c1').active, false);
+  assert.match((await e.book(e.tokens.cat, { cats: ['c1'] })).data.error, /./);
+  assert.match((await e.act('setCatStatus', { catId: 'c1', active: true }, e.tokens.ben)).data.error, /not one of your cats/);
+  assert.equal((await e.act('setCatStatus', { catId: 'c1', active: true }, e.tokens.cat)).status, 403);
+  assert.equal((await e.act('setCatStatus', { catId: 'c1', active: true }, e.tokens.aisha)).data.cat.active, true);
+});
+
+test('settings: everyone edits their own profile and avatar, guests keep a saved payment method, the password changes', async () => {
+  const e = await world();
+  const { cat, admin, aisha } = e.tokens;
+  assert.equal((await e.call('PUT', '/api/auth/profile', { name: 'X' })).status, 401);
+  assert.deepEqual((await e.call('PUT', '/api/auth/profile', { name: ' Kitty Tan ', phone: '81234567' }, cat)).data.user.name, 'Kitty Tan');
+  assert.equal((await e.call('PUT', '/api/auth/profile', { name: 'Kitty', phone: '123' }, cat)).status, 400);
+  assert.equal((await e.call('PUT', '/api/auth/profile', { name: 'Chief Admin' }, admin)).data.user.name, 'Chief Admin');
+  assert.deepEqual((await e.call('PUT', '/api/auth/avatar', { icon: 'paw', color: '#79523f' }, admin)).data.user.avatar, { icon: 'paw', color: '#79523f' });
+  assert.equal((await e.call('PUT', '/api/auth/avatar', { icon: 'skull', color: '#79523f' }, aisha)).status, 400);
+  assert.equal((await e.call('PUT', '/api/auth/avatar', { icon: 'cat', color: 'red' }, aisha)).status, 400);
+  // it comes back in the login and in the data copy
+  assert.equal((await e.call('GET', '/api/data', undefined, admin)).data.me.avatar.icon, 'paw');
+  // saved payment: guests only, card needs 4 digits and nothing longer is ever kept
+  assert.equal((await e.call('PUT', '/api/auth/payment-method', { method: 'Card', last4: '4242' }, aisha)).status, 403);
+  assert.equal((await e.call('PUT', '/api/auth/payment-method', { method: 'Card', last4: '4242424242424242' }, cat)).status, 400);
+  assert.deepEqual((await e.call('PUT', '/api/auth/payment-method', { method: 'Card', last4: '4242' }, cat)).data.user.savedPayment, { method: 'Card', last4: '4242' });
+  assert.deepEqual((await e.call('PUT', '/api/auth/payment-method', { method: '' }, cat)).data.user.savedPayment, { method: '', last4: '' });
+  // password
+  assert.match((await e.call('POST', '/api/auth/password', { current: 'wrong', password: STRONG }, cat)).data.error, /current password/);
+  assert.equal((await e.call('POST', '/api/auth/password', { current: 'cat123', password: 'weak' }, cat)).status, 400);
+  assert.equal((await e.call('POST', '/api/auth/password', { current: 'cat123', password: STRONG }, cat)).data.ok, true);
+  assert.ok(await e.login('cat', STRONG));
 });

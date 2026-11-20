@@ -32,6 +32,7 @@
         <h2>Cancelling and refunds</h2>
         <p>You can cancel any time before the session starts. Your room, cats and handler are then free for other guests.</p>
         <table id="refundTable"></table>
+        <p class="hint">If you cancel late without having paid, the fee is still due. You can pay it from Settings. A booking that is still unpaid 24 hours before it starts is cancelled automatically (no fee), so the room and cats can go to other guests.</p>
         <p class="hint">If the café has to cancel (for example a cat is unwell or a room has a problem), you get a full refund.</p>
       </div>
 
@@ -109,10 +110,11 @@
 
     // the refund table is built from REFUND_RULES in bookings.js, so it always matches what really happens
     const refundTable = document.getElementById('refundTable');
-    refundTable.innerHTML = '<tr><th>When you cancel</th><th>Refund</th></tr>';
+    refundTable.innerHTML = '<tr><th>When you cancel</th><th>Cancellation fee</th><th>Refund if you had paid</th></tr>';
     REFUND_RULES.forEach(function (rule) {
       const row = refundTable.insertRow();
       row.insertCell().textContent = rule.text;
+      row.insertCell().textContent = rule.percent === 100 ? 'Free' : (100 - rule.percent) + '% of the price';
       row.insertCell().textContent = rule.percent === 0 ? 'No refund' : rule.percent + '%';
     });
     PAY_METHODS.forEach(function (m) {

@@ -32,7 +32,16 @@ export function createApp({ store, models, User, engine, secret, options = {} })
     feedbackLimiter: makeLimiter({ max: options.feedbackPerHour ?? 10, lockSeconds: 3600, now: options.clock })
   };
 
+  // The cafe's own housekeeping (auto-cancel unpaid bookings, auto-conclude finished sessions). One change at a time, like every action.
+  ctx.sweep = () => ctx.mutex.run(async () => {
+    const snapshot = await store.loadAll();
+    const out = engine.call(snapshot, [], 'sweepBookings', []);
+    await store.apply(out.changes);
+    return out.result;
+  });
+
   const app = express();
+  app.locals.sweep = ctx.sweep;
   if (options.trustProxy) app.set('trust proxy', 1);          // behind Render's proxy, so req.ip is the real visitor
   app.disable('x-powered-by');
   app.use((req, res, next) => {                                // a few safe browser settings

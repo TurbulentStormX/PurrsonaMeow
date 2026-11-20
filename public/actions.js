@@ -19,6 +19,8 @@ async function serverAction(name, args) {
 async function createReservation(user, f) { return serverAction('createReservation', { f }); }
 async function cancelReservation(code) { return serverAction('cancelReservation', { code }); }
 async function payReservation(code, method) { return serverAction('payReservation', { code, method }); }
+async function payCancellationFee(code, method) { return serverAction('payCancellationFee', { code, method }); }
+async function setCatStatus(catId, active, note) { return serverAction('setCatStatus', { catId, active, note }); }
 async function editReservation(code, changes) { return serverAction('editReservation', { code, changes }); }
 async function addLeave(username, start, end, reason, note) { return serverAction('addLeave', { username, start, end, reason, note }); }
 async function removeLeave(id) { return serverAction('removeLeave', { id }); }

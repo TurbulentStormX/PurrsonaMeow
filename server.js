@@ -48,6 +48,9 @@ const app = createApp({
   options: { resetCodeMode: process.env.RESET_CODE_MODE, trustProxy: !!process.env.RENDER || process.env.TRUST_PROXY === '1', corsOrigin: process.env.DASHBOARD_ORIGIN, mailer: createMailer(process.env) }
 });
 const port = process.env.PORT || 5000;
+// every minute: cancel bookings that were not paid in time, and conclude sessions whose time is over
+const sweepTimer = setInterval(() => app.locals.sweep().catch(err => console.error('[sweep]', err.message)), 60000);
+sweepTimer.unref();
 app.listen(port, () => {
   console.log('\nCat Cafe is running!');
   console.log('  On this computer:           http://localhost:' + port);
