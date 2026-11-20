@@ -49,12 +49,12 @@
     height: 3px;
     margin-top: 18px;
     border-radius: 10px;
-    background: #79523f;
+    background: #ffffff;
 }
 
 .booking-page .hint,
 .booking-page .hint-line {
-    color: #ffffff;
+    color: #8c6b59;
     font-size: 14px;
     line-height: 1.75;
 }
