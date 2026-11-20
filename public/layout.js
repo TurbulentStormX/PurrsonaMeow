@@ -54,8 +54,8 @@ function menuFor(user) {
   const pick = files => files.map(f => f === 'DASHBOARD' ? [dashboardUrl(), 'Dashboard'] : [f, byFile(f)[1]]);
   if (role === 'visitor') return pick(['index.html', 'menu.html', 'cats.html', 'rate.html', 'hours.html', 'sessions.html', 'events.html', 'aboutus.html', 'faq.html', 'support.html']);
   if (role === 'guest') return pick(['index.html', 'booking.html', 'menu.html', 'cats.html', 'rate.html', 'hours.html', 'sessions.html', 'events.html', 'aboutus.html', 'faq.html', 'support.html']);
-  if (role === 'handler') return pick(['index.html', 'DASHBOARD', 'handler.html', 'cat-schedule.html', 'menu.html', 'cats.html', 'rate.html', 'hours.html', 'events.html', 'aboutus.html', 'faq.html']);
-  return pick(['index.html', 'DASHBOARD', 'admin.html', 'admin-orders.html', 'admin-menu.html', 'admin-rooms.html', 'admin-sessions.html', 'admin-rates.html',
+  if (role === 'handler') return pick(['DASHBOARD', 'handler.html', 'cat-schedule.html', 'menu.html', 'faq.html']);
+  return pick(['DASHBOARD', 'admin.html', 'admin-orders.html', 'admin-menu.html', 'admin-rooms.html', 'admin-sessions.html', 'admin-rates.html',
                'admin-hours.html', 'admin-cats.html', 'admin-staff.html', 'cat-schedule.html', 'admin-reviews.html', 'admin-faq.html', 'admin-events.html']);
 }
 
