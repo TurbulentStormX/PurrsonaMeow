@@ -253,7 +253,7 @@ function renderLayout(activePage) {
   document.getElementById('site-footer').innerHTML =
     '<p class="footer-links"><a href="terms.html">Terms and conditions</a><a href="rules.html">Cafe rules</a><a href="aboutus.html">About Us</a><a href="faq.html">FAQ</a>' +
     '<a href="hours.html">Opening hours</a><a href="support.html">Support us</a></p>' +
-    '<p>\u00a9 ' + new Date().getFullYear() + ' Cat Caf\u00e9 Reservations. All rights reserved. &nbsp;|&nbsp; Practice project &nbsp;|&nbsp; Contact: hello@example.com</p>';
+    '<p>\u00a9 ' + new Date().getFullYear() + ' Cat Caf\u00e9 Reservations. All rights reserved. &nbsp;|&nbsp; Major Project &nbsp;|&nbsp; Contact: PurrsonaMeow@gmail.com</p>';
 
   setupMenuToggle(menuMode(user));
   setupSearch(user);
