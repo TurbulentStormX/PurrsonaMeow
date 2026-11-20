@@ -244,11 +244,10 @@ main {
 
 .cta {
     display: inline-block;
-
+    background: #7a4b2a;
     color: #ffffff;
     padding: 10px 16px;
     border-radius: 6px;
-    text-decoration: none;
 }
 
 /* ================================
