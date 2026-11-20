@@ -1,21 +1,32 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Cat Café Reservations - Terms and conditions</title>
+
   <link rel="stylesheet" href="layout.css">
   <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="info-design.css">
 </head>
+
 <body>
   <header id="site-header" class="site-header"></header>
 
   <div class="layout">
     <nav id="side-nav" class="side-nav"></nav>
 
-    <main>
+    <main class="info-page">
       <h1>Terms and conditions</h1>
-      <p class="hint">Sample wording for this practice project. Before a real café uses it, have it checked by someone qualified.</p>
+
+      <p class="hint">
+        Sample wording for this practice project.
+        Before a real café uses it, have it checked
+        by someone qualified.
+      </p>
+
       <div class="card wide-card" id="terms"></div>
     </main>
   </div>
@@ -29,31 +40,91 @@
   <script src="bookings.js"></script>
   <script src="actions.js"></script>
   <script src="layout.js"></script>
+
   <script>
 
     onDataReady(async function () {
     renderLayout('terms.html');
+
     const brk = loadSettings().breakMinutes;
+
     const sections = [
-      ['1. Bookings', ['Bookings are first come, first served. When you book, you choose the session, room, date, start time, number of hours and (where offered) your cats. If the time is free, your booking is confirmed straight away.',
-                       'You must be logged in to book. You are responsible for the details on your account.']],
-      ['2. Prices and payment', ['We charge per hour. The price depends on the session and on whether the day is a weekday, weekend or public holiday. The price is the same for any number of guests, up to the session limit.',
-                                 'You pay after your booking is confirmed. We may change our prices, but a confirmed booking keeps the price it was booked at.']],
-      ['3. Cancelling and refunds', ['You can cancel before your session starts. If you have paid, the refund depends on how early you cancel: ' + REFUND_RULES.map(r => r.text.toLowerCase() + ' = ' + (r.percent === 0 ? 'no refund' : r.percent + '%')).join('; ') + '.',
-                                     'If we cancel (for example a cat is unwell, a handler cannot come, or the café must close) you get a full refund. If a cat you chose is unwell we will give you another cat where we can.']],
-      ['4. Cat and staff welfare', ['Our cats and handlers rest' + (brk > 0 ? ' for ' + brk + ' minutes' : '') + ' after every session and have a lunch break, so some times cannot be booked.',
-                                    'Cats are never forced to take part. Please follow the Cafe rules and our handler\'s instructions. We may end a session if a cat or person is at risk.']],
-      ['5. Food and allergies', ['Menu items list their allergens for guidance. Our kitchen handles common allergens, so we cannot promise any item is free of traces. Please tell our staff about your allergies.']],
-      ['6. Your behaviour and safety', ['Children must be with an adult at all times. You are responsible for your own belongings. We are not responsible for injury caused by ignoring our rules or handler instructions.']],
-      ['7. Your information', ['We keep the details you give us (name, email, phone, bookings) only to run your booking and contact you. Your booking code only shows non-personal details to anyone who has it.']],
-      ['8. Copyright', ['\u00a9 ' + new Date().getFullYear() + ' Cat Cafe Reservations. All rights reserved. The text, design and photos on this website belong to us or are used with permission. Please do not copy them without asking.']],
-      ['9. Changes', ['We may update these terms. The version on this page is the one that applies.']]
+      [
+        '1. Bookings',
+        [
+          'Bookings are first come, first served. When you book, you choose the session, room, date, start time, number of hours and (where offered) your cats. If the time is free, your booking is confirmed straight away.',
+          'You must be logged in to book. You are responsible for the details on your account.'
+        ]
+      ],
+      [
+        '2. Prices and payment',
+        [
+          'We charge per hour. The price depends on the session and on whether the day is a weekday, weekend or public holiday. The price is the same for any number of guests, up to the session limit.',
+          'You pay after your booking is confirmed. We may change our prices, but a confirmed booking keeps the price it was booked at.'
+        ]
+      ],
+      [
+        '3. Cancelling and refunds',
+        [
+          'You can cancel before your session starts. If you have paid, the refund depends on how early you cancel: ' +
+          REFUND_RULES.map(r =>
+            r.text.toLowerCase() + ' = ' +
+            (r.percent === 0 ? 'no refund' : r.percent + '%')
+          ).join('; ') + '.',
+
+          'If we cancel (for example a cat is unwell, a handler cannot come, or the café must close) you get a full refund. If a cat you chose is unwell we will give you another cat where we can.'
+        ]
+      ],
+      [
+        '4. Cat and staff welfare',
+        [
+          'Our cats and handlers rest' +
+          (brk > 0 ? ' for ' + brk + ' minutes' : '') +
+          ' after every session and have a lunch break, so some times cannot be booked.',
+
+          'Cats are never forced to take part. Please follow the Cafe rules and our handler\'s instructions. We may end a session if a cat or person is at risk.'
+        ]
+      ],
+      [
+        '5. Food and allergies',
+        [
+          'Menu items list their allergens for guidance. Our kitchen handles common allergens, so we cannot promise any item is free of traces. Please tell our staff about your allergies.'
+        ]
+      ],
+      [
+        '6. Your behaviour and safety',
+        [
+          'Children must be with an adult at all times. You are responsible for your own belongings. We are not responsible for injury caused by ignoring our rules or handler instructions.'
+        ]
+      ],
+      [
+        '7. Your information',
+        [
+          'We keep the details you give us (name, email, phone, bookings) only to run your booking and contact you. Your booking code only shows non-personal details to anyone who has it.'
+        ]
+      ],
+      [
+        '8. Copyright',
+        [
+          '\u00a9 ' + new Date().getFullYear() +
+          ' Cat Cafe Reservations. All rights reserved. The text, design and photos on this website belong to us or are used with permission. Please do not copy them without asking.'
+        ]
+      ],
+      [
+        '9. Changes',
+        [
+          'We may update these terms. The version on this page is the one that applies.'
+        ]
+      ]
     ];
+
     const box = document.getElementById('terms');
+
     sections.forEach(function (s) {
       const h = document.createElement('h2');
       h.textContent = s[0];
       box.appendChild(h);
+
       s[1].forEach(function (text) {
         const p = document.createElement('p');
         p.textContent = text;

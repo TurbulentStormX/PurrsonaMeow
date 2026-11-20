@@ -6,6 +6,7 @@
   <title>Cat Café Reservations - Cat Handler</title>
   <link rel="stylesheet" href="layout.css">
   <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="handler-design.css">
 </head>
 <body>
   <header id="site-header" class="site-header"></header>
@@ -13,7 +14,20 @@
   <div class="layout">
     <nav id="side-nav" class="side-nav"></nav>
 
-    <main>
+    <main class="handler-page">
+
+      <section class="handler-hero">
+    <p class="handler-eyebrow">
+      PURRSONA MEOW · CAT CARE TEAM
+    </p>
+    <h1>My Handler Dashboard</h1>
+    <p>
+      Manage your sessions, care for your cats,
+      and stay updated on daily tasks.
+    </p>
+  </section>
+
+  <div id="leaveNotice"></div>
       <div id="leaveNotice"></div>
 
       <div class="card wide-card">
@@ -42,7 +56,7 @@
         <div id="myRating"></div>
       </div>
 
-      <form class="card" id="leaveForm">
+      <form class="card handler-leave" id="leaveForm">
         <h2>Cannot work? Report sick or urgent leave</h2>
         <p class="hint">Your upcoming sessions on those days move to another free handler automatically.</p>
         <label>From <input type="date" id="leaveStart" required></label>

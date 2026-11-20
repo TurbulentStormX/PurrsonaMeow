@@ -1,0 +1,353 @@
+
+/* ==========================================
+   PURRSONA MEOW - CAT HANDLER DASHBOARD
+   File: handler-design.css
+   ========================================== */
+
+.handler-page {
+  --pm-brown: #79523f;
+  --pm-peach: #c98672;
+  --pm-cream: #fff9f2;
+  --pm-border: #eadbcf;
+
+  color: var(--pm-brown);
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.handler-page * {
+  box-sizing: border-box;
+}
+
+/* ==========================================
+   1. DASHBOARD HEADER
+   ========================================== */
+
+.handler-page .handler-hero {
+  background: linear-gradient(
+    120deg,
+    #fff0e5,
+    var(--pm-cream)
+  );
+
+  border: 1px solid var(--pm-border);
+  border-radius: 22px;
+  padding: 28px 30px;
+  margin-bottom: 22px;
+}
+
+.handler-page .handler-eyebrow {
+  margin: 0 0 7px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: #ae6f58;
+  text-transform: uppercase;
+}
+
+.handler-page .handler-hero h1 {
+  font-family: "Playfair Display", Georgia, serif;
+  color: var(--pm-brown);
+  font-size: clamp(28px, 3vw, 39px);
+  margin: 0 0 8px;
+  line-height: 1.2;
+}
+
+.handler-page .handler-hero p:last-child {
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ==========================================
+   2. MAIN DASHBOARD PANELS
+   ========================================== */
+
+.handler-page .handler-panel {
+  max-width: none;
+  min-width: 0;
+  width: 100%;
+  padding: 24px;
+  margin: 0 0 22px;
+
+  border: 1px solid var(--pm-border);
+  border-radius: 20px;
+  background: white;
+
+  box-shadow: 0 8px 25px
+    rgba(85, 54, 37, 0.055);
+}
+
+.handler-page .handler-panel h2 {
+  margin: 0 0 12px;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 25px;
+  color: var(--pm-brown);
+}
+
+.handler-page .handler-panel .hint {
+  line-height: 1.65;
+  color: #947765;
+  font-size: 13px;
+}
+
+/* ==========================================
+   3. SESSION AND ORDER TABLES
+   ========================================== */
+
+.handler-page .table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--pm-border);
+  border-radius: 14px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.handler-page table {
+  border-collapse: separate;
+  border-spacing: 0;
+  background: white;
+  width: 100%;
+}
+
+.handler-page .table-scroll table {
+  min-width: 1120px;
+}
+
+.handler-page .orders-scroll table {
+  min-width: 650px;
+}
+
+.handler-page th {
+  background: #f8ece2;
+  color: var(--pm-brown);
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 14px 12px;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--pm-border);
+}
+
+.handler-page td {
+  padding: 13px 12px;
+  vertical-align: top;
+  font-size: 13px;
+  line-height: 1.5;
+  border-bottom: 1px solid #f1e8e0;
+}
+
+.handler-page tbody tr:hover {
+  background: #fffaf5;
+}
+
+.handler-page .nowrap {
+  white-space: nowrap;
+}
+
+/* ==========================================
+   4. BUTTONS
+   ========================================== */
+
+.handler-page button {
+  background: var(--pm-peach);
+  border: 1px solid var(--pm-peach);
+  border-radius: 10px;
+  padding: 10px 15px;
+
+  color: white;
+  font: inherit;
+  font-weight: 700;
+  font-size: 13px;
+
+  cursor: pointer;
+  width: auto;
+
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.handler-page button:hover {
+  background: #ad705c;
+  border-color: #ad705c;
+  box-shadow: 0 4px 12px
+    rgba(121, 82, 63, 0.12);
+}
+
+.handler-page button:focus-visible {
+  outline: 3px solid var(--pm-brown);
+  outline-offset: 3px;
+}
+
+/* ==========================================
+   5. INPUTS AND FORMS
+   ========================================== */
+
+.handler-page input,
+.handler-page select {
+  border: 1px solid var(--pm-border);
+  border-radius: 9px;
+  padding: 10px 12px;
+  background: #fffdfa;
+  color: var(--pm-brown);
+  font: inherit;
+}
+
+.handler-page input:focus,
+.handler-page select:focus {
+  outline: 2px solid var(--pm-peach);
+  outline-offset: 2px;
+}
+
+.handler-page input[type="number"] {
+  min-width: 60px;
+  margin-right: 8px;
+}
+
+/* ==========================================
+   6. ASSIGNED CAT CARDS
+   ========================================== */
+
+.handler-page #myCats {
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(165px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.handler-page #myCats .who-card {
+  background: #fffaf6;
+  border: 1px solid var(--pm-border);
+  border-radius: 15px;
+  padding: 15px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.handler-page #myCats .who-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px
+    rgba(121, 82, 63, 0.10);
+}
+
+.handler-page #myCats .who-card img {
+  width: 100%;
+  max-width: 170px;
+  height: 145px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.handler-page #myCats .who-card strong {
+  font-size: 16px;
+  color: var(--pm-brown);
+}
+
+/* ==========================================
+   7. CUSTOMER REVIEWS
+   ========================================== */
+
+.handler-page #myRating .review-card {
+  background: #fff8f2;
+  border-left: 4px solid var(--pm-peach);
+  border-radius: 10px;
+  padding: 13px 16px;
+  margin: 10px 0;
+  line-height: 1.7;
+}
+
+/* ==========================================
+   8. LEAVE REPORTING
+   ========================================== */
+
+.handler-page #leaveForm label {
+  display: block;
+  margin: 12px 0;
+  font-weight: 600;
+  color: var(--pm-brown);
+}
+
+.handler-page #leaveForm label input,
+.handler-page #leaveForm label select {
+  display: block;
+  width: 100%;
+  max-width: 440px;
+  margin-top: 6px;
+}
+
+.handler-page #leaveForm button[type="submit"] {
+  margin-top: 12px;
+}
+
+.handler-page #leaveResult,
+.handler-page #leaveNotice,
+.handler-page #cancelledBox {
+  margin-bottom: 12px;
+}
+
+/* ==========================================
+   9. ALERTS AND NOTICES
+   ========================================== */
+
+.handler-page .notice {
+  border-radius: 12px;
+  padding: 14px 16px;
+  line-height: 1.6;
+}
+
+.handler-page .notice.warn {
+  background: #fff0ed;
+  color: #9b463e;
+  border: 1px solid #f0c6bd;
+}
+
+.handler-page .notice.good {
+  background: #edf7ed;
+  color: #426c47;
+  border: 1px solid #c9e4cd;
+}
+
+/* ==========================================
+   10. RESPONSIVE DESIGN
+   ========================================== */
+
+@media (max-width: 900px) {
+  .handler-page .handler-panel {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 700px) {
+  .handler-page .handler-hero {
+    padding: 22px 18px;
+  }
+
+  .handler-page .handler-panel {
+    padding: 16px;
+    border-radius: 15px;
+  }
+
+  .handler-page .handler-panel h2 {
+    font-size: 22px;
+  }
+
+  .handler-page #myCats {
+    grid-template-columns:
+      repeat(auto-fit, minmax(140px, 1fr));
+  }
+
+  .handler-page #leaveForm label input,
+  .handler-page #leaveForm label select {
+    max-width: 100%;
+  }
+}

@@ -1,40 +1,150 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cat Café Reservations - Reset password</title>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Purrsona Meow - Reset Password</title>
+
   <link rel="stylesheet" href="layout.css">
   <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="auth-design.css">
 </head>
+
 <body>
-  <header id="site-header" class="site-header"></header>
+
+  <header id="site-header"
+          class="site-header"></header>
 
   <div class="layout">
-    <nav id="side-nav" class="side-nav"></nav>
 
-    <main>
-      <form class="card" id="resetForm">
-        <h1>Reset your password</h1>
-        <label>Email <input type="email" id="email" required></label>
-        <label>6-digit reset code <input type="text" id="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required></label>
-        <label>New password <input type="password" id="password" maxlength="12" autocomplete="new-password" required></label>
-        <ul class="pw-rules" id="pwRules"></ul>
-        <label>Confirm new password <input type="password" id="confirm" maxlength="12" autocomplete="new-password" required></label>
-        <button type="submit">Change password</button>
-        <div class="msg-error" id="error"></div>
-        <p class="link-row">No code yet? <a href="forgot.html">Request one</a> &nbsp;|&nbsp; <a href="login.html">Back to login</a></p>
+    <nav id="side-nav"
+         class="side-nav"></nav>
+
+    <main class="auth-page auth-reset">
+
+      <section class="auth-intro">
+
+        <span class="auth-kicker">
+          PURRSONA MEOW · CAT CAFÉ
+        </span>
+
+        <h2>Almost There!</h2>
+
+        <p>
+          Create a new password to
+          get back to Purrsona Meow.
+        </p>
+
+      </section>
+
+      <form class="card auth-card"
+            id="resetForm">
+
+        <h1>Reset Your Password</h1>
+
+        <p class="auth-description">
+          Enter your reset code and choose
+          a new password for your account.
+        </p>
+
+        <label>
+          Email address
+
+          <input
+            type="email"
+            id="email"
+            autocomplete="email"
+            required>
+        </label>
+
+        <label>
+          6-digit reset code
+
+          <input
+            type="text"
+            id="code"
+            inputmode="numeric"
+            maxlength="6"
+            autocomplete="one-time-code"
+            placeholder="Enter your code"
+            required>
+        </label>
+
+        <label>
+          New password
+
+          <input
+            type="password"
+            id="password"
+            maxlength="12"
+            autocomplete="new-password"
+            required>
+        </label>
+
+        <ul class="pw-rules"
+            id="pwRules"></ul>
+
+        <label>
+          Confirm new password
+
+          <input
+            type="password"
+            id="confirm"
+            maxlength="12"
+            autocomplete="new-password"
+            required>
+        </label>
+
+        <button type="submit">
+          Change Password
+        </button>
+
+        <div class="msg-error"
+             id="error"></div>
+
+        <p class="link-row">
+          No code yet?
+          <a href="forgot.html">
+            Request one
+          </a>
+        </p>
+
+        <p class="link-row">
+          <a href="login.html">
+            Back to Login
+          </a>
+        </p>
+
       </form>
 
-      <div class="card" id="done" style="display:none">
-        <h1>Password changed</h1>
-        <p>You can now log in with your new password.</p>
-        <a class="cta" href="login.html">Log in</a>
+      <div
+        class="card auth-card auth-success"
+        id="done"
+        style="display:none">
+
+        <h1>Password Changed!</h1>
+
+        <p class="auth-description">
+          Your password has been updated.
+          You can now log in using your
+          new password.
+        </p>
+
+        <a class="cta"
+           href="login.html">
+          Log in
+        </a>
+
       </div>
+
     </main>
   </div>
 
-  <footer id="site-footer" class="site-footer"></footer>
+  <footer id="site-footer"
+          class="site-footer"></footer>
 
   <script src="api.js"></script>
   <script src="auth.js"></script>
@@ -43,6 +153,7 @@
   <script src="bookings.js"></script>
   <script src="actions.js"></script>
   <script src="layout.js"></script>
+
   <script>
 
     onDataReady(async function () {
@@ -77,5 +188,6 @@
     });
     });
   </script>
+
 </body>
 </html>

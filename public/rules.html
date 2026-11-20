@@ -1,23 +1,40 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Cat Café Reservations - Cafe rules</title>
+
   <link rel="stylesheet" href="layout.css">
   <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="info-design.css">
 </head>
+
 <body>
   <header id="site-header" class="site-header"></header>
 
   <div class="layout">
     <nav id="side-nav" class="side-nav"></nav>
 
-    <main>
+    <main class="info-page">
       <h1>Cafe rules</h1>
-      <p>Please help us keep our cats happy and everyone safe.</p>
-      <div class="card wide-card"><ol id="ruleList"></ol></div>
-      <p><a href="terms.html">Terms and conditions</a> &nbsp;|&nbsp; <a href="faq.html">FAQ</a></p>
+
+      <p>
+        Please help us keep our cats happy
+        and everyone safe.
+      </p>
+
+      <div class="card wide-card">
+        <ol id="ruleList"></ol>
+      </div>
+
+      <p>
+        <a href="terms.html">Terms and conditions</a>
+        &nbsp;|&nbsp;
+        <a href="faq.html">FAQ</a>
+      </p>
     </main>
   </div>
 
@@ -30,10 +47,12 @@
   <script src="bookings.js"></script>
   <script src="actions.js"></script>
   <script src="layout.js"></script>
+
   <script>
 
     onDataReady(async function () {
     renderLayout('rules.html');
+
     [
       'Wash or sanitise your hands before and after you touch the cats.',
       'Let the cats come to you. Never chase, grab, pick up or wake a cat.',

@@ -6,6 +6,7 @@
   <title>Admin - Menu items</title>
   <link rel="stylesheet" href="layout.css">
   <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="admin-design.css">
 </head>
 <body>
   <header id="site-header" class="site-header"></header>
@@ -13,14 +14,26 @@
   <div class="layout">
     <nav id="side-nav" class="side-nav"></nav>
 
-    <main>
+    <main class="admin-menu-page">
       <div class="card wide-card">
         <h1>Admin: Menu items</h1>
         <p class="hint">Add, edit or delete items and their photos. Turn items off when they sell out. <a href="menu.html">View the public Menu</a></p>
-        <table>
-          <thead><tr><th>Photo</th><th>Item</th><th>Category</th><th>Price</th><th>Allergens</th><th>Available</th><th>Action</th></tr></thead>
-          <tbody id="rows"></tbody>
-        </table>
+        <div class="table-scroll">
+  <table>
+    <thead>
+      <tr>
+        <th>Photo</th>
+        <th>Item</th>
+        <th>Category</th>
+        <th>Price</th>
+        <th>Allergens</th>
+        <th>Available</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+</div>
       </div>
 
       <form class="card" id="itemForm">

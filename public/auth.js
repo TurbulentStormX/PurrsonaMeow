@@ -48,40 +48,102 @@ function showPasswordChecklist(input, list) {
 
 // Page guard. If this visitor is allowed, it returns true.
 // If not, it replaces the page content with a friendly message and returns false.
+
 function guardPage(allowedRoles, wantsTo) {
   const user = currentUser();
-  if (user && allowedRoles.includes(user.role)) return true;
+
+  // Keep the existing access permission check
+  if (user && allowedRoles.includes(user.role)) {
+    return true;
+  }
 
   const main = document.querySelector('main');
-  main.innerHTML = '';
-  const box = document.createElement('div');
-  box.className = 'card';
-  const title = document.createElement('h1');
-  const text = document.createElement('p');
-  box.appendChild(title);
-  box.appendChild(text);
+  if (!main) return false;
 
-  function button(label, href) {
+  // Load the existing login design stylesheet
+  if (!document.querySelector('link[href="auth-design.css"]')) {
+    const stylesheet = document.createElement('link');
+    stylesheet.rel = 'stylesheet';
+    stylesheet.href = 'auth-design.css';
+    document.head.appendChild(stylesheet);
+  }
+
+  main.innerHTML = '';
+  main.classList.add('auth-page', 'auth-access');
+
+  // Welcome header
+  const intro = document.createElement('section');
+  intro.className = 'auth-intro';
+
+  const kicker = document.createElement('span');
+  kicker.className = 'auth-kicker';
+  kicker.textContent = 'PURRSONA MEOW · CAT CAFÉ';
+
+  const welcome = document.createElement('h2');
+  welcome.textContent = 'Welcome';
+
+  const subtitle = document.createElement('p');
+  subtitle.textContent =
+    'Please sign in to continue your purrfect café experience.';
+
+  intro.append(kicker, welcome, subtitle);
+
+  // Login prompt card
+  const box = document.createElement('div');
+  box.className = 'card auth-card';
+
+  const title = document.createElement('h1');
+  const description = document.createElement('p');
+  description.className = 'auth-description';
+
+  box.append(title, description);
+
+  const actions = document.createElement('div');
+  actions.className = 'auth-access-actions';
+
+  function button(label, href, secondary = false) {
     const a = document.createElement('a');
-    a.className = 'cta';
+    a.className = secondary
+      ? 'cta auth-access-secondary'
+      : 'cta';
+
     a.href = href;
     a.textContent = label;
-    a.style.marginRight = '8px';
-    box.appendChild(a);
+    actions.appendChild(a);
   }
 
   if (!user) {
     title.textContent = 'Please log in';
-    text.textContent = allowedRoles.includes('guest')
-      ? 'Log in or sign up to ' + wantsTo + '. Without an account you can still look at Events, the Menu and our cats.'
-      : 'This page is for staff. Please log in with a staff account.';
-    button('Log in', 'login.html');
-    if (allowedRoles.includes('guest')) button('Sign up', 'signup.html');
+
+    if (allowedRoles.includes('guest')) {
+      description.textContent =
+        'Log in or sign up to ' + wantsTo +
+        '. You can still explore our events, menu and cats without an account.';
+
+      button('Log in', 'login.html');
+      button('Create an account', 'signup.html', true);
+
+    } else {
+      description.textContent =
+        'This area is reserved for authorised staff. ' +
+        'Please log in with your staff account.';
+
+      button('Staff Login', 'login.html');
+    }
+
   } else {
-    title.textContent = 'This page is not for your account';
-    text.textContent = 'You are logged in as ' + user.name + '. This page is only for ' + allowedRoles.join(' / ') + ' accounts.';
+    title.textContent = 'Account access';
+
+    description.textContent =
+      'You are logged in as ' + user.name +
+      '. This page is only available to ' +
+      allowedRoles.join(' / ') + ' accounts.';
+
     button('Go to my page', homePageFor(user.role));
   }
-  main.appendChild(box);
+
+  box.appendChild(actions);
+  main.append(intro, box);
+
   return false;
 }

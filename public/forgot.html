@@ -1,31 +1,86 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cat Café Reservations - Forgot password</title>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Purrsona Meow - Forgot Password</title>
+
   <link rel="stylesheet" href="layout.css">
   <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="auth-design.css">
 </head>
+
 <body>
-  <header id="site-header" class="site-header"></header>
+
+  <header id="site-header"
+          class="site-header"></header>
 
   <div class="layout">
-    <nav id="side-nav" class="side-nav"></nav>
 
-    <main>
-      <form class="card" id="forgotForm">
-        <h1>Forgot your password?</h1>
-        <p>Enter the email you signed up with. We will send you a 6-digit reset code.</p>
-        <label>Email <input type="email" id="email" required></label>
-        <button type="submit">Send reset code</button>
+    <nav id="side-nav"
+         class="side-nav"></nav>
+
+    <main class="auth-page auth-forgot">
+
+      <section class="auth-intro">
+
+        <span class="auth-kicker">
+          PURRSONA MEOW · CAT CAFÉ
+        </span>
+
+        <h2>Forgot Your Password?</h2>
+
+        <p>
+          No worries! Let's help you
+          get back to your café experience.
+        </p>
+
+      </section>
+
+      <form class="card auth-card"
+            id="forgotForm">
+
+        <h1>Reset Your Password</h1>
+
+        <p class="auth-description">
+          Enter the email address you signed
+          up with. We'll provide a 6-digit
+          reset code.
+        </p>
+
+        <label>
+          Email address
+
+          <input
+            type="email"
+            id="email"
+            autocomplete="email"
+            placeholder="Enter your email"
+            required>
+        </label>
+
+        <button type="submit">
+          Send Reset Code
+        </button>
+
         <div id="result"></div>
-        <p class="link-row"><a href="login.html">Back to login</a></p>
+
+        <p class="link-row">
+          <a href="login.html">
+            Back to Login
+          </a>
+        </p>
+
       </form>
+
     </main>
   </div>
 
-  <footer id="site-footer" class="site-footer"></footer>
+  <footer id="site-footer"
+          class="site-footer"></footer>
 
   <script src="api.js"></script>
   <script src="auth.js"></script>
@@ -34,6 +89,7 @@
   <script src="bookings.js"></script>
   <script src="actions.js"></script>
   <script src="layout.js"></script>
+
   <script>
 
     onDataReady(async function () {
@@ -84,5 +140,6 @@
     });
     });
   </script>
+
 </body>
 </html>

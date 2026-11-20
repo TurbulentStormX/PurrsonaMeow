@@ -6,6 +6,7 @@
   <title>Cat Café Reservations - Admin - Rooms</title>
   <link rel="stylesheet" href="layout.css">
   <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="admin-design.css">
 </head>
 <body>
   <header id="site-header" class="site-header"></header>
@@ -13,14 +14,26 @@
   <div class="layout">
     <nav id="side-nav" class="side-nav"></nav>
 
-    <main>
+    <main class="admin-rooms-page">
       <div class="card wide-card">
         <h1>Admin: Rooms</h1>
         <p class="hint">Private rooms take one booking at a time. Open rooms are shared by many guests up to their limit. Guests choose their own start time, so rooms follow the cafe opening hours (set on <a href="admin-hours.html">Hours and holidays</a>). You can also give a room shorter hours of its own.</p>
-        <table>
-          <thead><tr><th>Code</th><th>Name</th><th>Type</th><th>Up to</th><th>Own hours</th><th>Active</th><th>Action</th></tr></thead>
-          <tbody id="rows"></tbody>
-        </table>
+        <div class="table-scroll">
+  <table>
+    <thead>
+      <tr>
+        <th>Code</th>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Up to</th>
+        <th>Own hours</th>
+        <th>Active</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+</div>
       </div>
 
       <form class="card" id="roomForm">

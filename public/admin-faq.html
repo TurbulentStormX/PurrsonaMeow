@@ -6,6 +6,7 @@
   <title>Cat Café Reservations - Admin - FAQ and feedback</title>
   <link rel="stylesheet" href="layout.css">
   <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="admin-design.css">
 </head>
 <body>
   <header id="site-header" class="site-header"></header>
@@ -13,16 +14,16 @@
   <div class="layout">
     <nav id="side-nav" class="side-nav"></nav>
 
-    <main>
+    <main class="admin-faq-page">
       <div class="card wide-card">
-        <h1>Admin: FAQ and feedback</h1>
-        <h2>Frequently asked questions</h2>
+        <h1>Admin: FAQ and Feedback</h1>
+        <h2>Frequently Asked Questions</h2>
         <table>
           <thead><tr><th>Question</th><th>Answer</th><th>Action</th></tr></thead>
           <tbody id="faqRows"></tbody>
         </table>
         <form id="faqForm">
-          <h3 id="faqTitle">Add a question</h3>
+          <h3 id="faqTitle">Add a Question</h3>
           <label>Question <input type="text" id="faqQ" required></label>
           <label>Answer <textarea id="faqA" rows="3" required></textarea></label>
           <div class="form-buttons">
@@ -34,7 +35,7 @@
       </div>
 
       <div class="card wide-card">
-        <h2>Feedback and questions from guests</h2>
+        <h2>Feedback and Questions from Guests</h2>
         <div class="table-scroll">
           <table>
             <thead><tr><th>Sent</th><th>Type</th><th>From</th><th>Message</th><th>Status</th><th>Action</th></tr></thead>

@@ -1,0 +1,341 @@
+
+/* ========================================
+   PURRSONA MEOW
+   ADMIN - FOOD & DRINK ORDERS
+   ======================================== */
+
+/* MAIN PAGE */
+
+.admin-orders-page {
+  --orders-brown: #79523f;
+  --orders-peach: #c98672;
+  --orders-border: #eadbcf;
+  --orders-cream: #fff9f2;
+
+  width: 100%;
+  min-width: 0;
+
+  color: var(--orders-brown);
+}
+
+/* MAIN CARD */
+
+.admin-orders-page .orders-card {
+  width: 100%;
+  max-width: 1250px;
+
+  background: #ffffff;
+  border: 1px solid var(--orders-border);
+  border-radius: 20px;
+
+  padding: 32px;
+
+  box-shadow:
+    0 10px 30px rgba(85, 54, 37, 0.06);
+}
+
+/* PAGE HEADING */
+
+.admin-orders-page .orders-heading {
+  margin-bottom: 30px;
+  padding-bottom: 22px;
+
+  border-bottom: 1px solid #f0e5dc;
+}
+
+.admin-orders-page .orders-eyebrow {
+  display: block;
+
+  color: #ad705c;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 1.6px;
+
+  margin-bottom: 12px;
+}
+
+.admin-orders-page .orders-heading h1 {
+  font-family: "Playfair Display", Georgia, serif;
+
+  font-size: clamp(28px, 3vw, 36px);
+  line-height: 1.25;
+
+  color: var(--orders-brown);
+
+  margin: 0 0 12px;
+}
+
+.admin-orders-page .orders-description {
+  color: #826b5d;
+
+  font-size: 14px;
+  line-height: 1.7;
+
+  margin: 0;
+}
+
+/* SECTION HEADINGS */
+
+.admin-orders-page h2 {
+  font-family: "Playfair Display", Georgia, serif;
+
+  font-size: 23px;
+  color: var(--orders-brown);
+
+  margin: 0 0 16px;
+}
+
+/* ORDER OVERVIEW */
+
+.admin-orders-page .orders-summary-section {
+  margin-bottom: 36px;
+}
+
+.admin-orders-page .orders-summary {
+  background: #fff3e9;
+
+  border: 1px solid var(--orders-border);
+  border-radius: 14px;
+
+  padding: 20px 24px;
+
+  color: var(--orders-brown);
+
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 2;
+
+  white-space: pre-wrap;
+}
+
+/* ALL ORDERS SECTION */
+
+.admin-orders-page .orders-table-section {
+  margin-top: 12px;
+}
+
+.admin-orders-page .orders-section-heading {
+  margin-bottom: 18px;
+}
+
+.admin-orders-page .orders-section-heading h2 {
+  margin-bottom: 7px;
+}
+
+.admin-orders-page .orders-section-heading p {
+  font-size: 13px;
+  color: #826b5d;
+
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* RESPONSIVE TABLE CONTAINER */
+
+.admin-orders-page .orders-table-scroll {
+  width: 100%;
+  max-width: 100%;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  border: 1px solid var(--orders-border);
+  border-radius: 14px;
+
+  background: #ffffff;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+/* TABLE */
+
+.admin-orders-page .orders-table {
+  width: 100%;
+  min-width: 1000px;
+
+  border-collapse: collapse;
+
+  font-size: 13px;
+  color: #624a3d;
+}
+
+/* TABLE HEADERS */
+
+.admin-orders-page .orders-table thead th {
+  background: #fff0e5;
+
+  color: var(--orders-brown);
+
+  font-size: 12px;
+  font-weight: 700;
+
+  padding: 16px 15px;
+
+  text-align: left;
+  white-space: nowrap;
+
+  border-bottom: 1px solid var(--orders-border);
+}
+
+/* TABLE CELLS */
+
+.admin-orders-page .orders-table tbody td {
+  padding: 16px 15px;
+
+  vertical-align: middle;
+
+  border-bottom: 1px solid #f0e6dd;
+
+  line-height: 1.6;
+}
+
+.admin-orders-page .orders-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* HOVER EFFECT */
+
+.admin-orders-page .orders-table tbody tr:hover {
+  background: #fffaf5;
+}
+
+/* ITEMS COLUMN */
+
+.admin-orders-page .orders-table td:nth-child(6) {
+  min-width: 170px;
+
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* TOTAL COLUMN */
+
+.admin-orders-page .orders-table td:nth-child(7) {
+  font-weight: 700;
+  color: var(--orders-brown);
+
+  white-space: nowrap;
+}
+
+/* STATUS BADGES */
+
+.admin-orders-page .status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 7px 13px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+/* ORDERED STATUS */
+
+.admin-orders-page .status-Ordered {
+  background: #fff0d5;
+  color: #956000;
+
+  border: 1px solid #f0d29a;
+}
+
+/* SERVED STATUS */
+
+.admin-orders-page .status-Served {
+  background: #e7f5e9;
+  color: #32734a;
+
+  border: 1px solid #c6e7cd;
+}
+
+/* ACTION BUTTON */
+
+.admin-orders-page .orders-table button {
+  background: var(--orders-peach);
+  color: #ffffff;
+
+  border: 1px solid var(--orders-peach);
+  border-radius: 9px;
+
+  padding: 10px 14px;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+  white-space: nowrap;
+
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.admin-orders-page .orders-table button:hover {
+  background: #ad705c;
+  border-color: #ad705c;
+
+  transform: translateY(-1px);
+}
+
+.admin-orders-page .orders-table button:focus-visible {
+  outline: 3px solid #e8b9a7;
+  outline-offset: 3px;
+}
+
+/* TABLET */
+
+@media (max-width: 900px) {
+  .admin-orders-page .orders-card {
+    padding: 24px 20px;
+  }
+
+  .admin-orders-page .orders-heading {
+    margin-bottom: 24px;
+  }
+
+  .admin-orders-page .orders-table {
+    min-width: 1000px;
+  }
+}
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+  .admin-orders-page .orders-card {
+    padding: 20px 14px;
+    border-radius: 14px;
+  }
+
+  .admin-orders-page .orders-heading h1 {
+    font-size: 27px;
+  }
+
+  .admin-orders-page h2 {
+    font-size: 21px;
+  }
+
+  .admin-orders-page .orders-description {
+    font-size: 13px;
+  }
+
+  .admin-orders-page .orders-summary {
+    padding: 15px;
+    font-size: 13px;
+  }
+
+  .admin-orders-page .orders-table-scroll {
+    border-radius: 10px;
+  }
+
+  .admin-orders-page .orders-table th,
+  .admin-orders-page .orders-table td {
+    padding: 12px 10px;
+  }
+}

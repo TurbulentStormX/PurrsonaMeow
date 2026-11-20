@@ -1,0 +1,1061 @@
+
+/* =====================================
+   ADMIN - MANAGE MENU & ROOMS
+===================================== */
+
+.admin-menu-page,
+.admin-rooms-page,
+.admin-sessions-page{
+    width: 100%;
+    min-width: 0;
+    font-family: 'DM Sans', sans-serif;
+    color: #79523f;
+}
+
+/* Table and form cards */
+
+.admin-menu-page > .card,
+.admin-rooms-page > .card {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto 24px;
+    padding: 30px;
+    border: 1px solid #eadbcf;
+    border-radius: 18px;
+    box-shadow: 0 6px 20px rgba(91, 57, 32, 0.10);
+}
+
+/* Headings */
+
+.admin-menu-page h1,
+.admin-rooms-page h1,
+.admin-menu-page h2,
+.admin-rooms-page h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 600;
+    color: #79523f;
+}
+
+.admin-menu-page h1,
+.admin-rooms-page h1 {
+    font-size: 32px;
+}
+
+.admin-menu-page h2,
+.admin-rooms-page h2 {
+    font-size: 25px;
+}
+
+/* Descriptions */
+
+.admin-menu-page .hint,
+.admin-rooms-page .hint,
+.admin-menu-page .note,
+.admin-rooms-page .note {
+    color: #806c60;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+/* Table */
+
+.admin-menu-page .table-scroll,
+.admin-rooms-page .table-scroll {
+    margin-top: 20px;
+    border: 1px solid #eadbcf;
+    border-radius: 12px;
+}
+
+.admin-menu-page table,
+.admin-rooms-page table {
+    min-width: 800px;
+    font-size: 13px;
+}
+
+.admin-menu-page th,
+.admin-rooms-page th,
+.admin-menu-page td,
+.admin-rooms-page td {
+    padding: 12px;
+}
+
+.admin-menu-page th,
+.admin-rooms-page th {
+    background: #f1dfc9;
+    color: #5b3920;
+}
+
+/* Form inputs */
+
+.admin-menu-page input:not([type="checkbox"]):not([type="file"]),
+.admin-rooms-page input:not([type="checkbox"]):not([type="file"]),
+.admin-menu-page select,
+.admin-rooms-page select {
+    border: 1px solid #d9c5b5;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: inherit;
+}
+
+.admin-menu-page input:focus,
+.admin-rooms-page input:focus,
+.admin-menu-page select:focus,
+.admin-rooms-page select:focus {
+    outline: 2px solid #c98672;
+    outline-offset: 1px;
+}
+
+/* Buttons */
+
+.admin-menu-page button,
+.admin-rooms-page button {
+    background: #79523f;
+    color: #ffffff;
+    border: 1px solid #79523f;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.admin-menu-page button:hover,
+.admin-rooms-page button:hover {
+    background: #9b6b53;
+}
+
+/* Mobile */
+
+@media (max-width: 700px) {
+    .admin-menu-page > .card,
+    .admin-rooms-page > .card {
+        padding: 20px 16px;
+    }
+}
+
+
+/* =====================================
+   ADMIN - MANAGE RESERVATIONS
+===================================== */
+
+.admin-page {
+    width: 100%;
+    min-width: 0;
+    font-family: 'DM Sans', sans-serif;
+    color: #79523f;
+}
+
+/* Page heading */
+
+.admin-page .admin-hero {
+    max-width: 1100px;
+    margin: 0 auto 28px;
+    padding: 20px 0;
+}
+
+.admin-page .admin-eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #a47b65;
+}
+
+.admin-page .admin-hero h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 34px;
+    color: #79523f;
+    margin: 10px 0;
+}
+
+.admin-page .admin-hero p {
+    color: #806c60;
+    line-height: 1.7;
+}
+
+/* Main reservations card */
+
+.admin-page .admin-panel {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto 24px;
+    padding: 30px;
+    border: 1px solid #eadbcf;
+    border-radius: 18px;
+    background: #fffdf9;
+    box-shadow: 0 6px 20px rgba(91, 57, 32, 0.10);
+}
+
+.admin-page .admin-panel h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 25px;
+    color: #79523f;
+}
+
+/* Description */
+
+.admin-page .hint {
+    color: #806c60;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+/* Reservation summary */
+
+.admin-page .summary {
+    padding: 18px 20px;
+    margin: 22px 0;
+    background: #f8eee3;
+    border: 1px solid #eadbcf;
+    border-radius: 12px;
+    color: #79523f;
+    line-height: 1.8;
+}
+
+/* Reservation table */
+
+.admin-page .table-scroll {
+    margin-top: 20px;
+    overflow-x: auto;
+    border: 1px solid #eadbcf;
+    border-radius: 12px;
+}
+
+.admin-page table {
+    width: 100%;
+    min-width: 1100px;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.admin-page th {
+    background: #f1dfc9;
+    color: #5b3920;
+    font-weight: 700;
+    text-align: left;
+}
+
+.admin-page th,
+.admin-page td {
+    padding: 13px 12px;
+    border-bottom: 1px solid #eee1d6;
+    vertical-align: middle;
+}
+
+.admin-page tbody tr:hover {
+    background: #fcf7f1;
+}
+
+/* Buttons */
+
+.admin-page button {
+    padding: 10px 14px;
+    background: #79523f;
+    color: white;
+    border: 1px solid #79523f;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.admin-page button:hover {
+    background: #9b6b53;
+}
+
+/* Booking edit area */
+
+.admin-page .edit-row td {
+    background: #f8eee3;
+    padding: 22px;
+    line-height: 2.2;
+}
+
+.admin-page .edit-row select {
+    padding: 9px 12px;
+    margin: 6px;
+    border: 1px solid #d9c5b5;
+    border-radius: 8px;
+    background: white;
+    color: #79523f;
+}
+
+/* Responsive */
+
+@media (max-width: 700px) {
+    .admin-page .admin-panel {
+        padding: 20px 16px;
+    }
+
+    .admin-page .admin-hero h1 {
+        font-size: 27px;
+    }
+
+    .admin-page .topbar-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+/* Sessions - Match Reservations Fonts */
+
+.admin-sessions-page {
+    font-family: 'DM Sans', sans-serif;
+}
+
+.admin-sessions-page h1,
+.admin-sessions-page h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+}
+
+.admin-sessions-page button,
+.admin-sessions-page input,
+.admin-sessions-page select,
+.admin-sessions-page textarea {
+    font-family: 'DM Sans', sans-serif;
+}
+
+
+/* ADMIN - MANAGE RATES */
+
+.admin-rates-page {
+    font-family: 'DM Sans', sans-serif;
+    color: #79523f;
+}
+
+.admin-rates-page h1,
+.admin-rates-page h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    color: #79523f;
+}
+
+.admin-rates-page .card {
+    background: #fffdf9;
+    border: 1px solid #eadbcf;
+    border-radius: 18px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 6px 20px rgba(91, 57, 32, 0.08);
+}
+
+.admin-rates-page table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-rates-page th,
+.admin-rates-page td {
+    padding: 13px;
+    border-bottom: 1px solid #eadbcf;
+    text-align: left;
+}
+
+.admin-rates-page th {
+    background: #f1dfc9;
+}
+
+.admin-rates-page input,
+.admin-rates-page select {
+    font-family: 'DM Sans', sans-serif;
+    border: 1px solid #d9c5b5;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.admin-rates-page button {
+    font-family: 'DM Sans', sans-serif;
+    background: #79523f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    cursor: pointer;
+}
+
+.admin-rates-page button:hover {
+    background: #9b6b53;
+}
+
+@media (max-width: 700px) {
+    .admin-rates-page .card {
+        padding: 16px;
+        overflow-x: auto;
+    }
+}
+
+
+/* ADMIN - HOURS & HOLIDAYS */
+
+.admin-hours-page {
+    font-family: 'DM Sans', sans-serif;
+    color: #79523f;
+}
+
+.admin-hours-page h1,
+.admin-hours-page h2,
+.admin-hours-page h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    color: #79523f;
+}
+
+.admin-hours-page .card {
+    background: #fffdf9;
+    border: 1px solid #eadbcf;
+    border-radius: 18px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 6px 20px rgba(91, 57, 32, 0.08);
+}
+
+.admin-hours-page table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-hours-page th,
+.admin-hours-page td {
+    padding: 12px;
+    border-bottom: 1px solid #eadbcf;
+    text-align: left;
+}
+
+.admin-hours-page th {
+    background: #f1dfc9;
+}
+
+.admin-hours-page input,
+.admin-hours-page select,
+.admin-hours-page button {
+    font-family: 'DM Sans', sans-serif;
+}
+
+.admin-hours-page input:not([type="checkbox"]),
+.admin-hours-page select {
+    padding: 9px;
+    border: 1px solid #d9c5b5;
+    border-radius: 8px;
+}
+
+.admin-hours-page button {
+    background: #79523f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    cursor: pointer;
+}
+
+.admin-hours-page button:hover {
+    background: #9b6b53;
+}
+
+@media (max-width: 700px) {
+    .admin-hours-page .card {
+        padding: 16px;
+        overflow-x: auto;
+    }
+}
+
+
+/* ADMIN - MANAGE CATS */
+
+.admin-cats-page {
+    font-family: 'DM Sans', sans-serif;
+    color: #79523f;
+}
+
+.admin-cats-page h1,
+.admin-cats-page h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    color: #79523f;
+}
+
+.admin-cats-page .card {
+    background: #fffdf9;
+    border: 1px solid #eadbcf;
+    border-radius: 18px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 6px 20px rgba(91, 57, 32, 0.08);
+}
+
+.admin-cats-page .table-scroll {
+    overflow-x: auto;
+    border-radius: 10px;
+}
+
+.admin-cats-page table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-cats-page th,
+.admin-cats-page td {
+    padding: 12px;
+    border-bottom: 1px solid #eadbcf;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.admin-cats-page th {
+    background: #f1dfc9;
+}
+
+.admin-cats-page input,
+.admin-cats-page select,
+.admin-cats-page textarea,
+.admin-cats-page button {
+    font-family: 'DM Sans', sans-serif;
+}
+
+.admin-cats-page input:not([type="checkbox"]):not([type="file"]),
+.admin-cats-page select,
+.admin-cats-page textarea {
+    padding: 10px;
+    border: 1px solid #d9c5b5;
+    border-radius: 8px;
+    max-width: 100%;
+}
+
+.admin-cats-page button {
+    background: #79523f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    cursor: pointer;
+}
+
+.admin-cats-page button:hover {
+    background: #9b6b53;
+}
+
+.admin-cats-page .thumb {
+    width: 65px;
+    height: 65px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.admin-cats-page .form-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+@media (max-width: 700px) {
+    .admin-cats-page .card {
+        padding: 16px;
+    }
+}
+
+
+/* ADMIN - STAFF & LEAVE */
+
+.admin-staff-page {
+    font-family: 'DM Sans', sans-serif;
+    color: #79523f;
+    min-width: 0;
+}
+
+.admin-staff-page h1,
+.admin-staff-page h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    color: #79523f;
+}
+
+.admin-staff-page .card {
+    background: #fffdf9;
+    border: 1px solid #eadbcf;
+    border-radius: 18px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 6px 20px rgba(91, 57, 32, 0.08);
+}
+
+.admin-staff-page table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+}
+
+.admin-staff-page th,
+.admin-staff-page td {
+    padding: 12px;
+    border-bottom: 1px solid #eadbcf;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.admin-staff-page th {
+    background: #f1dfc9;
+}
+
+.admin-staff-page input,
+.admin-staff-page select,
+.admin-staff-page button {
+    font-family: 'DM Sans', sans-serif;
+}
+
+.admin-staff-page input,
+.admin-staff-page select {
+    padding: 10px;
+    border: 1px solid #d9c5b5;
+    border-radius: 8px;
+    max-width: 100%;
+}
+
+.admin-staff-page button {
+    background: #79523f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    cursor: pointer;
+}
+
+.admin-staff-page button:hover {
+    background: #9b6b53;
+}
+
+.admin-staff-page .form-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+@media (max-width: 700px) {
+    .admin-staff-page .card {
+        padding: 16px;
+    }
+}
+
+
+/* ADMIN - CAT SCHEDULE */
+
+.admin-schedule-page {
+    min-width: 0;
+    font-family: 'DM Sans', sans-serif;
+    color: #79523f;
+}
+
+.admin-schedule-page h1,
+.admin-schedule-page h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    color: #79523f;
+}
+
+.admin-schedule-page .card {
+    background: #fffdf9;
+    border: 1px solid #eadbcf;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 6px 20px rgba(91, 57, 32, 0.08);
+}
+
+.admin-schedule-page input[type="date"] {
+    font-family: 'DM Sans', sans-serif;
+    padding: 10px;
+    border: 1px solid #d9c5b5;
+    border-radius: 8px;
+    color: #79523f;
+}
+
+.admin-schedule-page .summary {
+    background: #f8eee3;
+    border: 1px solid #eadbcf;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 20px 0;
+}
+
+.admin-schedule-page .table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    margin: 15px 0 28px;
+    border: 1px solid #eadbcf;
+    border-radius: 10px;
+}
+
+.admin-schedule-page .timeline {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-schedule-page .timeline th,
+.admin-schedule-page .timeline td {
+    padding: 10px;
+    border: 1px solid #eadbcf;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.admin-schedule-page .timeline th {
+    background: #f1dfc9;
+    color: #79523f;
+}
+
+.admin-schedule-page .slot {
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.admin-schedule-page .legend {
+    background: #f8eee3;
+    border-radius: 10px;
+    padding: 15px;
+    line-height: 2;
+    font-size: 13px;
+}
+
+@media (max-width: 700px) {
+    .admin-schedule-page .card {
+        padding: 16px;
+    }
+}
+
+
+
+/* ADMIN - REVIEWS */
+
+.admin-reviews-page {
+    min-width: 0;
+    font-family: 'DM Sans', sans-serif;
+    color: #79523f;
+}
+
+.admin-reviews-page h1,
+.admin-reviews-page h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    color: #79523f;
+}
+
+.admin-reviews-page .card {
+    background: #fffdf9;
+    border: 1px solid #eadbcf;
+    border-radius: 18px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 6px 20px rgba(91, 57, 32, 0.08);
+}
+
+
+/* Wider Reviews Tables */
+
+.admin-reviews-page table {
+    display: table;
+    width: 100%;
+    table-layout: auto;
+    border-collapse: collapse;
+    margin: 15px 0 28px;
+}
+
+.admin-reviews-page th,
+.admin-reviews-page td {
+    padding: 16px 20px;
+    border-bottom: 1px solid #eadbcf;
+    text-align: left;
+}
+
+
+.admin-reviews-page th,
+.admin-reviews-page td {
+    padding: 13px;
+    border-bottom: 1px solid #eadbcf;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.admin-reviews-page th {
+    background: #f1dfc9;
+}
+
+.admin-reviews-page tbody tr:hover {
+    background: #fcf7f1;
+}
+
+.admin-reviews-page .review-card {
+    max-width: none;
+    background: #f8eee3;
+    border: 1px solid #eadbcf;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 15px;
+    line-height: 1.7;
+}
+
+.admin-reviews-page .review-card strong {
+    color: #79523f;
+}
+
+.admin-reviews-page .hint {
+    color: #806c60;
+    line-height: 1.7;
+}
+
+@media (max-width: 700px) {
+    .admin-reviews-page .card {
+        padding: 16px;
+    }
+}
+
+
+/* ADMIN - FAQ & FEEDBACK */
+
+.admin-faq-page {
+    min-width: 0;
+    font-family: 'DM Sans', sans-serif;
+    color: #79523f;
+}
+
+.admin-faq-page h1,
+.admin-faq-page h2,
+.admin-faq-page h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    color: #79523f;
+}
+
+.admin-faq-page .card {
+    background: #fffdf9;
+    border: 1px solid #eadbcf;
+    border-radius: 18px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 6px 20px rgba(91, 57, 32, 0.08);
+}
+
+/* Wider tables */
+
+.admin-faq-page .table-scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.admin-faq-page table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0 28px;
+}
+
+.admin-faq-page th,
+.admin-faq-page td {
+    padding: 16px 20px;
+    border-bottom: 1px solid #eadbcf;
+    text-align: left;
+    vertical-align: top;
+}
+
+.admin-faq-page th {
+    background: #f1dfc9;
+}
+
+.admin-faq-page tbody tr:hover {
+    background: #fcf7f1;
+}
+
+/* FAQ form */
+
+.admin-faq-page label {
+    display: block;
+    margin: 14px 0;
+    font-weight: 500;
+}
+
+.admin-faq-page input,
+.admin-faq-page textarea {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    margin-top: 6px;
+    border: 1px solid #d9c5b5;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.admin-faq-page textarea {
+    resize: vertical;
+}
+
+/* Buttons */
+
+.admin-faq-page button {
+    background: #79523f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+}
+
+.admin-faq-page button:hover {
+    background: #9b6b53;
+}
+
+.admin-faq-page .form-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+/* Supporter summary */
+
+.admin-faq-page .summary {
+    background: #f8eee3;
+    border: 1px solid #eadbcf;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+/* Responsive */
+
+@media (max-width: 700px) {
+    .admin-faq-page .card {
+        padding: 16px;
+        overflow-x: auto;
+    }
+
+    .admin-faq-page table {
+        min-width: 650px;
+    }
+}
+
+
+/* ADMIN - MANAGE EVENTS */
+
+.admin-events-page {
+    min-width: 0;
+    font-family: 'DM Sans', sans-serif;
+    color: #79523f;
+}
+
+.admin-events-page h1,
+.admin-events-page h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    color: #79523f;
+}
+
+/* Cards */
+
+.admin-events-page .card {
+    background: #fffdf9;
+    border: 1px solid #eadbcf;
+    border-radius: 18px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 6px 20px rgba(91, 57, 32, 0.08);
+}
+
+/* Wide events table */
+
+.admin-events-page .wide-card {
+    overflow-x: auto;
+}
+
+.admin-events-page table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 18px;
+}
+
+.admin-events-page th,
+.admin-events-page td {
+    padding: 16px 20px;
+    border-bottom: 1px solid #eadbcf;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.admin-events-page th {
+    background: #f1dfc9;
+    white-space: nowrap;
+}
+
+.admin-events-page tbody tr:hover {
+    background: #fcf7f1;
+}
+
+/* Event form */
+
+.admin-events-page label {
+    display: block;
+    margin: 15px 0;
+    font-weight: 500;
+}
+
+.admin-events-page input,
+.admin-events-page textarea {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    margin-top: 6px;
+    border: 1px solid #d9c5b5;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    color: #79523f;
+}
+
+.admin-events-page textarea {
+    resize: vertical;
+}
+
+/* Buttons */
+
+.admin-events-page button {
+    background: #79523f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+}
+
+.admin-events-page button:hover {
+    background: #9b6b53;
+}
+
+.admin-events-page .form-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+/* Messages and links */
+
+.admin-events-page .hint {
+    color: #806c60;
+    line-height: 1.7;
+}
+
+.admin-events-page a {
+    color: #79523f;
+}
+
+.admin-events-page .msg-error {
+    color: #b33a3a;
+    margin-top: 12px;
+}
+
+/* Responsive */
+
+@media (max-width: 700px) {
+    .admin-events-page .card {
+        padding: 16px;
+    }
+
+    .admin-events-page table {
+        min-width: 850px;
+    }
+}
+
+    

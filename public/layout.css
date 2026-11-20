@@ -449,8 +449,7 @@ td {
     }
 }
 
-/* ================================
-   MENU FOR VISITORS AND GUESTS: a panel that drops down OVER the page
+/* =========================   MENU FOR VISITORS AND GUESTS: a panel that drops down OVER the page
    (the page never shifts). Staff keep the sidebar below.
 ================================ */
 
@@ -532,4 +531,44 @@ body.nav-top .layout {
     body.nav-side .side-nav {
         display: flex;
     }
+}
+=======
+/* ========================================
+   PURRSONA MEOW - CONSISTENT FOOTER
+======================================== */
+
+#site-footer.site-footer {
+    background-color: #79523f;
+    color: #fff9f2;
+    border-top: 1px solid #eadbcf;
+}
+
+#site-footer.site-footer p,
+#site-footer.site-footer span,
+#site-footer.site-footer small {
+    color: #fff9f2;
+}
+
+#site-footer.site-footer a {
+    color: #fff9f2;
+    text-decoration: none;
+}
+
+#site-footer.site-footer a:hover {
+    color: #ffd6c6;
+    text-decoration: underline;
+}
+
+/* ========================================
+   LOGIN-REQUIRED BUTTON TEXT FIX
+======================================== */
+
+/* Only targets Log in / Sign up links
+   inside main content cards.
+   Header buttons remain unchanged. */
+
+/* only the buttons (class "cta"), so the plain text links such as "Create a guest account" keep their own colour */
+.layout main .card a.cta[href="login.html"],
+.layout main .card a.cta[href="signup.html"] {
+    color: #ffffff !important;
 }

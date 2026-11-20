@@ -1,36 +1,123 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cat Café Reservations - Sign up</title>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Purrsona Meow - Sign Up</title>
+
   <link rel="stylesheet" href="layout.css">
   <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="auth-design.css">
 </head>
+
 <body>
   <header id="site-header" class="site-header"></header>
 
   <div class="layout">
     <nav id="side-nav" class="side-nav"></nav>
 
-    <main>
-      <form class="card" id="signupForm">
-        <h1>Create a guest account</h1>
-        <p>You need an account to book sessions. Without one you can still look at Events, the Menu and our cats.</p>
-        <label>Name <input type="text" id="name" required></label>
-        <label>Email <input type="email" id="email" required></label>
-        <label>Phone number
-          <input type="tel" id="phone" required pattern="[689][0-9]{7}"
-                 placeholder="8 digits, e.g. 91234567"
-                 title="Enter an 8-digit number starting with 6, 8 or 9">
+    <main class="auth-page auth-register">
+
+      <section class="auth-intro">
+        <span class="auth-kicker">
+          PURRSONA MEOW · CAT CAFÉ
+        </span>
+
+        <h2>Meowllow! Your first time?</h2>
+
+        <p>
+          Create your guest account and
+          make every visit a little easier.
+        </p>
+      </section>
+
+      <form class="card auth-card" id="signupForm">
+
+
+        <label>
+          Name
+          <input
+            type="text"
+            id="name"
+            autocomplete="name"
+            required>
         </label>
-        <label>Password <input type="password" id="password" maxlength="12" autocomplete="new-password" required></label>
+
+        <label>
+          Email
+          <input
+            type="email"
+            id="email"
+            autocomplete="email"
+            required>
+        </label>
+
+        <label>
+          Phone number
+          <input
+            type="tel"
+            id="phone"
+            autocomplete="tel"
+            pattern="[689][0-9]{7}"
+            placeholder="8 digits, e.g. 91234567"
+            title="Enter an 8-digit number starting with 6, 8 or 9"
+            required>
+        </label>
+
+        <label>
+          Password
+          <input
+            type="password"
+            id="password"
+            maxlength="12"
+            autocomplete="new-password"
+            required>
+        </label>
+
         <ul class="pw-rules" id="pwRules"></ul>
-        <label>Confirm password <input type="password" id="confirm" maxlength="12" autocomplete="new-password" required></label>
-        <label class="inline-check"><input type="checkbox" id="agree" required> I agree to the <a href="terms.html">Terms and conditions</a> and the <a href="rules.html">Cafe rules</a></label>
-        <button type="submit">Sign up</button>
+
+        <label>
+          Confirm password
+          <input
+            type="password"
+            id="confirm"
+            maxlength="12"
+            autocomplete="new-password"
+            required>
+        </label>
+
+        <label class="inline-check">
+          <input
+            type="checkbox"
+            id="agree"
+            required>
+
+          <span>
+            I agree to the
+            <a href="terms.html">
+              Terms and conditions
+            </a>
+            and the
+            <a href="rules.html">
+              Cafe rules
+            </a>.
+          </span>
+        </label>
+
+        <button type="submit">
+          Sign up
+        </button>
+
         <div id="errors"></div>
-        <p class="link-row">Already have an account? <a href="login.html">Log in</a></p>
+
+        <p class="link-row">
+          Already have an account?
+          <a href="login.html">Log in</a>
+        </p>
+
       </form>
     </main>
   </div>
@@ -44,6 +131,7 @@
   <script src="bookings.js"></script>
   <script src="actions.js"></script>
   <script src="layout.js"></script>
+
   <script>
 
     onDataReady(async function () {

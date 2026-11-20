@@ -6,6 +6,7 @@
   <title>Cat Café Reservations - Admin - Reservations</title>
   <link rel="stylesheet" href="layout.css">
   <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="admin-design.css">
 </head>
 <body>
   <header id="site-header" class="site-header"></header>
@@ -13,27 +14,72 @@
   <div class="layout">
     <nav id="side-nav" class="side-nav"></nav>
 
-    <main>
-      <div class="card wide-card">
-        <div class="topbar-row">
-          <h1>Admin: Reservations</h1>
-          <button type="button" id="resetBtn">Clear all practice data</button>
-        </div>
-        <p class="hint">Bookings are first come, first served and confirm themselves. The cat handler is chosen from the cats (change who looks after a cat on Manage Cats). Use Edit to change a handler, room or cats, for example if a handler or a cat is unwell.</p>
-        <div class="summary" id="summary"></div>
-        <div id="attention"></div>
-        <p class="hint" id="live"></p>
-        <div class="table-scroll">
-          <table>
-            <thead>
-              <tr><th>Code</th><th>Guest</th><th>Session</th><th>Date</th><th>Time</th><th>Guests</th><th>Cats</th>
-                  <th>Status</th><th>Payment</th><th>Room</th><th>Handler</th><th>Action</th></tr>
-            </thead>
-            <tbody id="rows"></tbody>
-          </table>
-        </div>
-      </div>
-    </main>
+    
+<main class="admin-page">
+
+  <section class="admin-hero">
+    <p class="admin-eyebrow">
+      PURRSONA MEOW · MANAGEMENT
+    </p>
+
+    <h1>Reservations Overview</h1>
+
+    <p>
+      Manage bookings, assignments and
+      customer requests in one place.
+    </p>
+  </section>
+
+  <section class="card wide-card admin-panel">
+
+    <div class="topbar-row">
+      <h2>Manage Reservations</h2>
+
+      <button type="button" id="resetBtn">
+        Clear all practice data
+      </button>
+    </div>
+
+    <p class="hint">
+      Bookings are first come, first served and
+      confirm themselves. The cat handler is
+      chosen from the cats. Use Edit to change
+      a handler, room or cats when necessary.
+    </p>
+
+    <div class="summary" id="summary"></div>
+
+    <div id="attention"></div>
+
+    <p class="hint" id="live"></p>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Guest</th>
+            <th>Session</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Guests</th>
+            <th>Cats</th>
+            <th>Status</th>
+            <th>Payment</th>
+            <th>Room</th>
+            <th>Handler</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
+  </section>
+
+</main>
+
   </div>
 
   <footer id="site-footer" class="site-footer"></footer>

@@ -1,0 +1,179 @@
+
+/* ========================================
+   PURRSONA MEOW
+   TERMS & CAFE RULES DESIGN
+   ======================================== */
+
+/* MAIN PAGE */
+
+.info-page {
+  --info-brown: #79523f;
+  --info-peach: #c98672;
+  --info-border: #eadbcf;
+  --info-cream: #fff9f2;
+
+  width: 100%;
+  min-width: 0;
+  max-width: 1050px;
+
+  margin: 0 auto;
+  padding: 34px 22px 64px;
+
+  box-sizing: border-box;
+  color: var(--info-brown);
+}
+
+.info-page *,
+.info-page *::before,
+.info-page *::after {
+  box-sizing: border-box;
+}
+
+/* PAGE TITLE */
+
+.info-page > h1 {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(29px, 4vw, 40px);
+  line-height: 1.2;
+
+  color: var(--info-brown);
+  margin: 0 0 12px;
+}
+
+/* INTRODUCTION */
+
+.info-page > p {
+  max-width: 820px;
+
+  font-size: 14px;
+  line-height: 1.8;
+  color: #826b5d;
+
+  margin: 0 0 22px;
+}
+
+/* TERMS DISCLAIMER */
+
+.info-page > p.hint {
+  padding: 14px 18px;
+
+  background: #fff1e7;
+  border: 1px solid var(--info-border);
+  border-radius: 12px;
+}
+
+/* CONTENT CARD */
+
+.info-page .card.wide-card {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+
+  background: #ffffff;
+  border: 1px solid var(--info-border);
+  border-radius: 18px;
+
+  padding: 30px 36px;
+
+  box-shadow:
+    0 12px 30px rgba(85, 54, 37, 0.06);
+}
+
+/* TERMS SECTION HEADINGS */
+
+.info-page #terms h2 {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(19px, 2.6vw, 23px);
+
+  color: var(--info-brown);
+
+  margin: 28px 0 10px;
+  padding-bottom: 9px;
+
+  border-bottom: 1px solid #f0e5dc;
+}
+
+.info-page #terms h2:first-child {
+  margin-top: 0;
+}
+
+/* TERMS PARAGRAPHS */
+
+.info-page #terms p {
+  color: #66554b;
+  line-height: 1.85;
+  font-size: 14px;
+
+  margin: 0 0 12px;
+}
+
+/* CAFE RULES LIST */
+
+.info-page #ruleList {
+  list-style: decimal;
+
+  margin: 0;
+  padding-left: 28px;
+}
+
+.info-page #ruleList li {
+  color: #66554b;
+
+  line-height: 1.8;
+  font-size: 14px;
+
+  padding: 10px 8px 12px 5px;
+
+  border-bottom: 1px solid #f2e9e1;
+}
+
+.info-page #ruleList li:last-child {
+  border-bottom: 0;
+}
+
+.info-page #ruleList li::marker {
+  color: #ad705c;
+  font-weight: 700;
+}
+
+/* LINKS */
+
+.info-page a {
+  color: #a85d48;
+  font-weight: 650;
+
+  text-underline-offset: 3px;
+}
+
+.info-page a:focus-visible {
+  outline: 3px solid var(--info-peach);
+  outline-offset: 3px;
+}
+
+/* BOTTOM NAVIGATION LINKS */
+
+.info-page > p:last-child:not(.hint) {
+  margin-top: 20px;
+}
+
+/* RESPONSIVE DESIGN */
+
+@media (max-width: 600px) {
+  .info-page {
+    padding: 22px 12px 40px;
+  }
+
+  .info-page .card.wide-card {
+    padding: 22px 18px;
+    border-radius: 14px;
+  }
+
+  .info-page #ruleList {
+    padding-left: 24px;
+  }
+
+  .info-page #terms p,
+  .info-page #ruleList li {
+    font-size: 13px;
+  }
+}

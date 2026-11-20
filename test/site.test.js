@@ -230,7 +230,7 @@ test('two guests press Book at the same moment on the same slot: one is confirme
 test('booking page: a visitor and a handler cannot book; a closed day and no handler are explained', async () => {
   const e = await world();
   assert.ok(text(await device(e).open('booking.html'), 'main').includes('Please log in'));
-  assert.ok(text(await (await as(e, 'aisha')).open('booking.html'), 'main').includes('This page is not for your account'));
+  assert.ok(text(await (await as(e, 'aisha')).open('booking.html'), 'main').includes('Account access'));
   await e.act('addLeave', { username: 'aisha', start: TOMORROW, end: TOMORROW, reason: 'Sick' }, e.tokens.admin);
   await e.act('addLeave', { username: 'ben', start: TOMORROW, end: TOMORROW, reason: 'Sick' }, e.tokens.admin);
   const g = await as(e, 'cat');

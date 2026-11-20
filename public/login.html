@@ -1,28 +1,84 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cat Café Reservations - Login</title>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Purrsona Meow - Login</title>
+
   <link rel="stylesheet" href="layout.css">
   <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="auth-design.css">
 </head>
+
 <body>
   <header id="site-header" class="site-header"></header>
 
   <div class="layout">
     <nav id="side-nav" class="side-nav"></nav>
 
-    <main>
-      <form class="card" id="loginForm">
+    <main class="auth-page">
+
+      <section class="auth-intro">
+        <span class="auth-kicker">
+          PURRSONA MEOW · CAT CAFÉ
+        </span>
+
+        <h2>Welcome</h2>
+
+        <p>
+          Log in to continue your
+          purrfect café experience.
+        </p>
+      </section>
+
+      <form class="card auth-card" id="loginForm">
+
         <h1>Login</h1>
-        <p>For guests, admin and cat handlers.</p>
-        <label>Email or username <input type="text" id="username" required></label>
-        <label>Password <input type="password" id="password" required></label>
-        <button type="submit">Log in</button>
+
+        <p class="auth-description">
+          For guests, admin and cat handlers.
+        </p>
+
+        <label>
+          Email or username
+          <input
+            type="text"
+            id="username"
+            autocomplete="username"
+            required>
+        </label>
+
+        <label>
+          Password
+          <input
+            type="password"
+            id="password"
+            autocomplete="current-password"
+            required>
+        </label>
+
+        <button type="submit">
+          Log in
+        </button>
+
         <div class="msg-error" id="error"></div>
-        <p class="link-row"><a href="forgot.html">Forgot your password?</a></p>
-        <p class="link-row">New here? <a href="signup.html">Create a guest account</a></p>
+
+        <p class="link-row">
+          <a href="forgot.html">
+            Forgot your password?
+          </a>
+        </p>
+
+        <p class="link-row">
+          New here?
+          <a href="signup.html">
+            Create a guest account
+          </a>
+        </p>
+
       </form>
     </main>
   </div>
@@ -36,6 +92,7 @@
   <script src="bookings.js"></script>
   <script src="actions.js"></script>
   <script src="layout.js"></script>
+
   <script>
 
     onDataReady(async function () {

@@ -1,47 +1,115 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cat Café Reservations - Admin - Sessions</title>
+
   <link rel="stylesheet" href="layout.css">
   <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="admin-design.css">
 </head>
+
 <body>
   <header id="site-header" class="site-header"></header>
 
   <div class="layout">
     <nav id="side-nav" class="side-nav"></nav>
 
-    <main>
+    <main class="admin-sessions-page">
+
+      <!-- SESSION TABLE -->
       <div class="card wide-card">
         <h1>Admin: Sessions</h1>
-        <p class="hint">Choose which rooms each session can be held in, how many hours guests can book, and whether guests choose their cats. Prices are set on <a href="admin-rates.html">Manage Rates</a>.</p>
-        <table>
-          <thead><tr><th>Session</th><th>Most people</th><th>Hours</th><th>Cats</th><th>Rooms</th><th>Active</th><th>Action</th></tr></thead>
-          <tbody id="rows"></tbody>
-        </table>
+
+        <p class="hint">
+          Choose which rooms each session can be held in,
+          how many hours guests can book, and whether guests
+          choose their cats. Prices are set on
+          <a href="admin-rates.html">Manage Rates</a>.
+        </p>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Session</th>
+                <th>Most people</th>
+                <th>Hours</th>
+                <th>Cats</th>
+                <th>Rooms</th>
+                <th>Active</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
       </div>
 
+      <!-- ADD / EDIT SESSION FORM -->
       <form class="card" id="sessionForm">
         <h2 id="formTitle">Add a session</h2>
-        <label>Session name <input type="text" id="sessionName" required></label>
-        <label>Most people allowed <input type="number" id="sessionMax" min="1" value="6" required></label>
-        <label>Fewest hours a guest can book <input type="number" id="sessionMinHours" min="1" max="8" value="1" required></label>
-        <label>Most hours a guest can book <input type="number" id="sessionMaxHours" min="1" max="8" value="3" required></label>
-        <label class="inline-check"><input type="checkbox" id="sessionCatChoice"> Guests choose their cats</label>
-        <label>Most cats a guest can choose <input type="number" id="sessionMaxCats" min="1" value="2"></label>
+
+        <label>
+          Session name
+          <input type="text" id="sessionName" required>
+        </label>
+
+        <label>
+          Most people allowed
+          <input type="number" id="sessionMax"
+                 min="1" value="6" required>
+        </label>
+
+        <label>
+          Fewest hours a guest can book
+          <input type="number" id="sessionMinHours"
+                 min="1" max="8" value="1" required>
+        </label>
+
+        <label>
+          Most hours a guest can book
+          <input type="number" id="sessionMaxHours"
+                 min="1" max="8" value="3" required>
+        </label>
+
+        <label class="inline-check">
+          <input type="checkbox" id="sessionCatChoice">
+          Guests choose their cats
+        </label>
+
+        <label>
+          Most cats a guest can choose
+          <input type="number" id="sessionMaxCats"
+                 min="1" value="2">
+        </label>
+
         <div class="checks">
           <label>Held in these rooms:</label>
           <span id="roomChecks"></span>
         </div>
-        <label class="inline-check"><input type="checkbox" id="sessionActive" checked> Active (guests can book it)</label>
+
+        <label class="inline-check">
+          <input type="checkbox" id="sessionActive" checked>
+          Active (guests can book it)
+        </label>
+
         <div class="form-buttons">
-          <button type="submit" id="saveBtn">Add session</button>
-          <button type="button" id="cancelBtn" style="display:none">Cancel editing</button>
+          <button type="submit" id="saveBtn">
+            Add session
+          </button>
+
+          <button type="button" id="cancelBtn"
+                  style="display:none">
+            Cancel editing
+          </button>
         </div>
+
         <div class="msg-error" id="error"></div>
       </form>
+
     </main>
   </div>
 
@@ -54,42 +122,62 @@
   <script src="bookings.js"></script>
   <script src="actions.js"></script>
   <script src="layout.js"></script>
+
   <script>
 
     onDataReady(async function () {
     renderLayout('admin-sessions.html');
+
     if (guardPage(['admin'], 'manage sessions')) initSessions();
 
     function initSessions() {
       let editingId = null;
+
       const el = id => document.getElementById(id);
       const form = el('sessionForm');
       const error = el('error');
       const checks = el('roomChecks');
 
-      // one tick box per room
+      // One tick box per room
       loadRooms().forEach(function (room) {
         const label = document.createElement('label');
         const box = document.createElement('input');
-        box.type = 'checkbox'; box.value = room.id;
+
+        box.type = 'checkbox';
+        box.value = room.id;
+
         label.appendChild(box);
-        label.appendChild(document.createTextNode(room.name + ' (' + room.type + ', ' + room.capacity + ')'));
+        label.appendChild(
+          document.createTextNode(
+            room.name + ' (' + room.type + ', ' + room.capacity + ')'
+          )
+        );
+
         checks.appendChild(label);
       });
-      const roomBoxes = () => [...checks.querySelectorAll('input')];
+
+      const roomBoxes = () => [
+        ...checks.querySelectorAll('input')
+      ];
 
       function resetForm() {
         editingId = null;
         form.reset();
-        roomBoxes().forEach(b => { b.checked = false; });
+
+        roomBoxes().forEach(b => {
+          b.checked = false;
+        });
+
         el('sessionActive').checked = true;
         el('formTitle').textContent = 'Add a session';
         el('saveBtn').textContent = 'Add session';
         el('cancelBtn').style.display = 'none';
         error.textContent = '';
       }
+
       function startEdit(session) {
         editingId = session.id;
+
         el('sessionName').value = session.name;
         el('sessionMax').value = session.max;
         el('sessionMinHours').value = session.minHours;
@@ -97,40 +185,92 @@
         el('sessionCatChoice').checked = session.catChoice;
         el('sessionMaxCats').value = session.maxCats || 2;
         el('sessionActive').checked = session.active;
-        roomBoxes().forEach(b => { b.checked = session.rooms.includes(b.value); });
+
+        roomBoxes().forEach(b => {
+          b.checked = session.rooms.includes(b.value);
+        });
+
         el('formTitle').textContent = 'Edit ' + session.name;
         el('saveBtn').textContent = 'Save changes';
         el('cancelBtn').style.display = 'inline-block';
+
         error.textContent = '';
         form.scrollIntoView();
       }
+
       function deleteSession(session) {
-        const used = loadReservations().some(r => r.sessionId === session.id && r.status !== 'Cancelled');
-        if (used) { alert(session.name + ' has bookings, so it cannot be deleted. Untick Active instead to stop new bookings.'); return; }
+        const used = loadReservations().some(
+          r => r.sessionId === session.id &&
+               r.status !== 'Cancelled'
+        );
+
+        if (used) {
+          alert(
+            session.name +
+            ' has bookings, so it cannot be deleted. ' +
+            'Untick Active instead to stop new bookings.'
+          );
+          return;
+        }
+
         if (!confirm('Delete ' + session.name + '?')) return;
-        saveSessions(loadSessions().filter(s => s.id !== session.id));
+
+        saveSessions(
+          loadSessions().filter(s => s.id !== session.id)
+        );
+
         if (editingId === session.id) resetForm();
+
         render();
       }
 
       function render() {
         const rooms = loadRooms();
         const body = el('rows');
+
         body.innerHTML = '';
+
         loadSessions().forEach(function (session) {
           const tr = body.insertRow();
-          const roomNames = session.rooms.map(id => { const r = rooms.find(x => x.id === id); return r ? r.name : id; }).join(', ');
-          [session.name, session.max, session.minHours === session.maxHours ? hoursText(session.minHours) : session.minHours + ' to ' + hoursText(session.maxHours),
-           session.catChoice ? 'Choose up to ' + session.maxCats : 'No choice', roomNames || '-', session.active ? 'Yes' : 'No']
-            .forEach(v => { tr.insertCell().textContent = v; });
+
+          const roomNames = session.rooms.map(id => {
+            const r = rooms.find(x => x.id === id);
+            return r ? r.name : id;
+          }).join(', ');
+
+          [
+            session.name,
+            session.max,
+            session.minHours === session.maxHours
+              ? hoursText(session.minHours)
+              : session.minHours + ' to ' +
+                hoursText(session.maxHours),
+            session.catChoice
+              ? 'Choose up to ' + session.maxCats
+              : 'No choice',
+            roomNames || '-',
+            session.active ? 'Yes' : 'No'
+          ].forEach(v => {
+            tr.insertCell().textContent = v;
+          });
+
           const action = tr.insertCell();
+
           const edit = document.createElement('button');
           edit.textContent = 'Edit';
-          edit.addEventListener('click', () => startEdit(session));
+
+          edit.addEventListener('click', () => {
+            startEdit(session);
+          });
+
           const del = document.createElement('button');
           del.textContent = 'Delete';
           del.style.marginLeft = '6px';
-          del.addEventListener('click', () => deleteSession(session));
+
+          del.addEventListener('click', () => {
+            deleteSession(session);
+          });
+
           action.appendChild(edit);
           action.appendChild(del);
         });
@@ -138,34 +278,92 @@
 
       form.addEventListener('submit', function (event) {
         event.preventDefault();
+
         const name = el('sessionName').value.trim();
         const max = Number(el('sessionMax').value);
         const minHours = Number(el('sessionMinHours').value);
         const maxHours = Number(el('sessionMaxHours').value);
         const catChoice = el('sessionCatChoice').checked;
         const maxCats = Number(el('sessionMaxCats').value);
-        const chosen = roomBoxes().filter(b => b.checked).map(b => b.value);
+
+        const chosen = roomBoxes()
+          .filter(b => b.checked)
+          .map(b => b.value);
+
         const sessions = loadSessions();
 
-        if (!name) { error.textContent = 'Please enter a session name.'; return; }
-        if (!(max >= 1)) { error.textContent = 'The most people allowed must be at least 1.'; return; }
-        if (!(Number.isInteger(minHours) && minHours >= 1)) { error.textContent = 'The fewest hours must be a whole number, 1 or more.'; return; }
-        if (!(Number.isInteger(maxHours) && maxHours >= minHours)) { error.textContent = 'The most hours must be a whole number and not less than the fewest hours.'; return; }
-        if (catChoice && !(maxCats >= 1)) { error.textContent = 'Guests must be able to choose at least 1 cat.'; return; }
-        if (chosen.length === 0) { error.textContent = 'Tick at least one room for this session.'; return; }
-        if (sessions.some(s => s.name.toLowerCase() === name.toLowerCase() && s.id !== editingId)) { error.textContent = 'A session with that name already exists.'; return; }
-
-        const data = { name: name, max: max, minHours: minHours, maxHours: maxHours, catChoice: catChoice, maxCats: catChoice ? maxCats : 0,
-                       rooms: chosen, active: el('sessionActive').checked };
-        if (editingId) {
-          Object.assign(sessions.find(s => s.id === editingId), data);
-        } else {
-          sessions.push(Object.assign({ id: 's' + Date.now() }, data));
+        if (!name) {
+          error.textContent = 'Please enter a session name.';
+          return;
         }
+
+        if (!(max >= 1)) {
+          error.textContent =
+            'The most people allowed must be at least 1.';
+          return;
+        }
+
+        if (!(Number.isInteger(minHours) && minHours >= 1)) {
+          error.textContent =
+            'The fewest hours must be a whole number, 1 or more.';
+          return;
+        }
+
+        if (!(Number.isInteger(maxHours) &&
+              maxHours >= minHours)) {
+          error.textContent =
+            'The most hours must be a whole number and not less than the fewest hours.';
+          return;
+        }
+
+        if (catChoice && !(maxCats >= 1)) {
+          error.textContent =
+            'Guests must be able to choose at least 1 cat.';
+          return;
+        }
+
+        if (chosen.length === 0) {
+          error.textContent =
+            'Tick at least one room for this session.';
+          return;
+        }
+
+        if (sessions.some(
+          s => s.name.toLowerCase() === name.toLowerCase() &&
+               s.id !== editingId
+        )) {
+          error.textContent =
+            'A session with that name already exists.';
+          return;
+        }
+
+        const data = {
+          name: name,
+          max: max,
+          minHours: minHours,
+          maxHours: maxHours,
+          catChoice: catChoice,
+          maxCats: catChoice ? maxCats : 0,
+          rooms: chosen,
+          active: el('sessionActive').checked
+        };
+
+        if (editingId) {
+          Object.assign(
+            sessions.find(s => s.id === editingId),
+            data
+          );
+        } else {
+          sessions.push(
+            Object.assign({ id: 's' + Date.now() }, data)
+          );
+        }
+
         saveSessions(sessions);
         resetForm();
         render();
       });
+
       el('cancelBtn').addEventListener('click', resetForm);
 
       resetForm();
