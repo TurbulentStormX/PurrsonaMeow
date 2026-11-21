@@ -1,13 +1,16 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PURRSONA MEOW - About Us</title>
+
   <link rel="stylesheet" href="layout.css">
   <link rel="stylesheet" href="pages.css">
   <link rel="stylesheet" href="aboutus-design.css">
 </head>
+
 <body>
   <header id="site-header" class="site-header"></header>
 
@@ -16,24 +19,178 @@
 
     <main class="about-page">
       <section class="cats-section">
+
         <h1>About Us</h1>
+
+        <!-- Welcome -->
         <div class="card">
-                <h2>Welcome to Purrsona Meow</h2>
-                <p>This is our little, cozy cat cafe.Lounge around with our feline friends as you bask in the warm atmosphere.
-                  We have private sessions, events, tasty snacks, drinks and desserts!~
-                </p>
-            </div>
+          <h2>Welcome to Purrsona Meow! 🐾</h2>
+
+          <p>
+            Welcome to Purrsona Meow, a cosy little haven created
+            for cat lovers and their furry companions!
+
+            Whether you are looking to unwind, enjoy some quality
+            time with cats, or simply take a break from your busy
+            day, our café offers a warm and relaxing environment
+            where everyone can feel at home.
+          </p>
+        </div>
+
+        <!-- Our Story -->
         <div class="card">
-                <h2>Our Socials</h2>
-                <p>Follow us on social media for updates and special offers!</p>
-            </div>
+          <h2>Our Story 🐱</h2>
+
+          <p>
+            Purrsona Meow was created out of a genuine love for cats
+            and a desire to give them a happier, safer and more
+            comfortable environment.
+
+            We believe that every cat deserves love, care and a
+            place where they can feel safe. We also understand that
+            not everyone has the opportunity to keep a cat at home,
+            even if they love them.
+
+            That is why we wanted to create a space where people
+            can enjoy the company of cats, make memories and
+            experience the happiness that these little companions
+            bring.
+          </p>
+        </div>
+
+        <!-- Our Mission -->
+        <div class="card">
+          <h2>Our Mission ❤️</h2>
+
+          <p>
+            Our mission goes beyond providing a place for people
+            to enjoy their time with cats.
+
+            We hope to contribute to the well-being of cats,
+            especially those that have been abandoned or are in
+            need of care.
+
+            We want to create awareness about responsible cat
+            ownership and encourage kindness towards animals.
+            Every cat deserves a chance to live a safe and happy life.
+          </p>
+        </div>
+
+      
+<!-- Our Cat-Friendly Experience -->
+<div class="card">
+  <h2>A Place for Every Cat Lover 🐈</h2>
+
+  <p>
+    Whether you are a lifelong cat lover or simply looking
+    for a little furry companionship, Purrsona Meow welcomes you!
+
+    Spend time with our lovely resident cats, enjoy their playful
+    personalities and experience the happiness they bring.
+
+    Have a cat of your own? You are welcome to bring your furry
+    companion along too! Our café provides opportunities for
+    cats to socialise, play and make new friends in a supervised
+    environment.
+
+    We understand that not every cat feels comfortable around
+    unfamiliar cats. That is why we also offer private rooms
+    where owners and their cats can enjoy some quiet time
+    together in their own space.
+  </p>
+</div>
+
+<!-- Our Private Rooms -->
+<div class="card">
+  <h2>A Little Space of Their Own 🏡</h2>
+
+  <p>
+    Every cat has its own personality. Some love making new
+    friends, while others prefer a quieter environment.
+
+    Our private rooms provide a comfortable alternative for
+    cats that need their own space or are not ready to interact
+    with other cats.
+
+    We want every visitor, both human and feline, to feel
+    safe, relaxed and comfortable during their visit.
+  </p>
+</div>
+
+
+        <!-- Help Cats in Need -->
+        <div class="card">
+          <h2>Found a Cat in Need? 🐾</h2>
+
+          <p>
+            Sometimes, a little kindness can make a big difference.
+
+            If you come across an abandoned, stray or vulnerable
+            cat that needs help, please reach out to us.
+
+            We would love to hear from you and see how we can help
+            provide the care and support that the cat needs.
+
+            Together, we can make a difference, one little paw
+            at a time!
+          </p>
+        </div>
+
+        <!-- Social Media -->
+        
+<div class="card socials-card">
+  <h2>Stay Connected With Us! 💗</h2>
+
+  <p>Follow Purrsona Meow for cute cat moments, café updates,
+    upcoming events and special promotions!</p>
+
+  <div class="social-links">
+
+    <!-- Instagram -->
+    <a href="https://www.instagram.com/purrsonameow/"
+       target="_blank" class="social-item instagram">
+      <span class="social-icon">📸</span>
+      <div>
+        <h3>Instagram</h3>
+        <p>@purrsonameow</p>
+        <small>Daily cat moments & café updates</small>
+      </div>
+    </a>
+
+    <!-- Twitter / X -->
+    <a href="https://x.com/purrsonameow"
+       target="_blank" class="social-item twitter">
+      <span class="social-icon">𝕏</span>
+      <div>
+        <h3>X (Twitter)</h3>
+        <p>@purrsonameow</p>
+        <small>News, announcements & little updates</small>
+      </div>
+    </a>
+
+    <!-- YouTube -->
+    <a href="https://www.youtube.com/@purrsonameow"
+       target="_blank" class="social-item youtube">
+      <span class="social-icon">▶</span>
+      <div>
+        <h3>YouTube</h3>
+        <p>@purrsonameow</p>
+        <small>Cat videos & behind-the-scenes moments</small>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+        <!-- Cat Gallery -->
         <div class="cat-grid" id="catGrid"></div>
+
       </section>
     </main>
   </div>
 
   <footer id="site-footer" class="site-footer"></footer>
-  
+
   <script src="api.js"></script>
   <script src="auth.js"></script>
   <script src="storage.js"></script>
@@ -41,10 +198,12 @@
   <script src="bookings.js"></script>
   <script src="actions.js"></script>
   <script src="layout.js"></script>
+
   <script>
     onDataReady(async function () {
       renderLayout('aboutus.html');
     });
   </script>
+
 </body>
 </html>

@@ -178,3 +178,87 @@
         font-size: 28px;
     }
 }
+
+
+/* Social Media Section */
+.social-links {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.social-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #FFF9F3;
+  border: 1px solid #EADFD2;
+  border-radius: 14px;
+  text-decoration: none;
+  color: #5C5048;
+  transition: 0.25s ease;
+}
+
+.social-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 5px 15px rgba(92, 80, 72, 0.12);
+}
+
+.social-icon {
+  font-size: 28px;
+  min-width: 32px;
+  text-align: center;
+}
+
+.social-item h3 {
+  margin: 0 0 5px;
+  color: #A96F5F;
+  font-size: 16px;
+}
+
+.social-item p {
+  margin: 0 0 4px;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.social-item small {
+  font-size: 11px;
+  color: #8C8178;
+}
+
+@media (max-width: 768px) {
+  .social-links {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Scattered cat picture background */
+.about-page {
+  position: relative;
+  background-color: #fff9f2;
+
+  background-image:
+    url("images/cat1.jpeg"),
+    url("images/cat2.jpeg"),
+    url("images/cat4.jpeg"),
+    url("images/cat9.jpeg"),
+    url("images/cat7.jpeg"),
+    url("images/cat8.jpeg");
+
+  background-repeat: no-repeat;
+
+  background-size:
+    120px, 110px, 130px,
+    115px, 105px, 125px;
+
+  background-position:
+    0% 10%,
+    100% 28%,
+    0% 45%,
+    100% 62%,
+    0% 80%,
+    100% 95%;
+}
