@@ -106,6 +106,19 @@ export default function actionRoutes(app, ctx) {
             relatedOrders
           );
         }
+
+        // Booking cancellation email
+        if (req.params.name === 'cancelReservation') {
+          await ctx.mailer.bookingCancelled(result.reservation, {
+            refund: result.refund,
+            percent: result.percent,
+            fee: result.fee,
+            reason: result.reservation.cancelReason ||
+              (result.reservation.cancelledBy === 'admin'
+                ? 'Cancelled by café'
+                : 'Cancelled by customer')
+          });
+        }
       }
 
       res.json(result);

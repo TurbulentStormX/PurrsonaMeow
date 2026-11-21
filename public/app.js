@@ -33,12 +33,53 @@ export function createApp({ store, models, User, engine, secret, options = {} })
   };
 
   // The cafe's own housekeeping (auto-cancel unpaid bookings, auto-conclude finished sessions). One change at a time, like every action.
-  ctx.sweep = () => ctx.mutex.run(async () => {
+  ctx.sweep = async () => {
+  const sweep = await ctx.mutex.run(async () => {
     const snapshot = await store.loadAll();
-    const out = engine.call(snapshot, [], 'sweepBookings', []);
+
+    const out = engine.call(
+      snapshot,
+      [],
+      'sweepBookings',
+      []
+    );
+
     await store.apply(out.changes);
-    return out.result;
+
+    // Find the bookings that were just automatically cancelled.
+    const cancelledCodes = out.result?.cancelled || [];
+
+    if (!cancelledCodes.length || !ctx.mailer) {
+      return {
+        result: out.result,
+        cancelledBookings: []
+      };
+    }
+
+    const updated = await store.loadAll();
+
+    const cancelledBookings = (updated.reservations || []).filter(
+      r => cancelledCodes.includes(r.code)
+    );
+
+    return {
+      result: out.result,
+      cancelledBookings
+    };
   });
+
+  // Send one email for each newly cancelled booking.
+  for (const reservation of sweep.cancelledBookings) {
+    await ctx.mailer.bookingCancelled(reservation, {
+      refund: reservation.refund,
+      percent: reservation.refundPercent,
+      fee: reservation.cancelFee,
+      reason: 'Payment deadline expired'
+    });
+  }
+
+  return sweep.result;
+};
 
   const app = express();
   app.locals.sweep = ctx.sweep;
