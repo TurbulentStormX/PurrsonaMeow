@@ -94,8 +94,8 @@
           const del = document.createElement('button');
           del.textContent = 'Delete';
           del.style.marginLeft = '6px';
-          del.addEventListener('click', function () {
-            if (!confirm('Delete this question?')) return;
+          del.addEventListener('click', async function () {
+            if (!await uiConfirm('Delete this question?')) return;
             saveFaq(loadFaq().filter(f => f.id !== item.id));
             drawFaq();
           });
@@ -154,8 +154,8 @@
             const publish = document.createElement('button');
             publish.textContent = 'Answer and publish to FAQ';
             publish.style.marginLeft = '6px';
-            publish.addEventListener('click', function () {
-              const answer = prompt('Write the answer. It will be shown to everyone on the FAQ page.');
+            publish.addEventListener('click', async function () {
+              const answer = await uiPrompt('Write the answer. It will be shown to everyone on the FAQ page.');
               if (!answer || !answer.trim()) return;
               const faq = loadFaq();
               faq.push({ id: 'f' + Date.now() + Math.floor(Math.random() * 1000), q: m.message, a: answer.trim() });
@@ -171,8 +171,8 @@
           const del = document.createElement('button');
           del.textContent = 'Delete';
           del.style.marginLeft = '6px';
-          del.addEventListener('click', function () {
-            if (!confirm('Delete this message?')) return;
+          del.addEventListener('click', async function () {
+            if (!await uiConfirm('Delete this message?')) return;
             saveFeedback(loadFeedback().filter(x => x.id !== m.id));
             drawFeedback();
           });

@@ -31,6 +31,7 @@ export class Device {
         w.Date = class extends RealDate { constructor(...a) { if (a.length === 0) super(env.clock.now); else super(...a); } static now() { return env.clock.now; } };
         w.CATCAFE_POLL_MS = pollMs;
         w.HTMLElement.prototype.scrollIntoView = function () {};
+        w.CATCAFE_NATIVE_DIALOGS = true;                                    // the pages use these stand-ins instead of drawing the pop-up
         w.__alerts = []; w.__confirms = []; w.__confirmAnswer = true; w.__promptAnswer = '';
         w.alert = m => w.__alerts.push(String(m));
         w.confirm = m => { w.__confirms.push(String(m)); return w.__confirmAnswer; };

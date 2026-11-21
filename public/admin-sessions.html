@@ -198,14 +198,14 @@
         form.scrollIntoView();
       }
 
-      function deleteSession(session) {
+      async function deleteSession(session) {
         const used = loadReservations().some(
           r => r.sessionId === session.id &&
                r.status !== 'Cancelled'
         );
 
         if (used) {
-          alert(
+          await uiAlert(
             session.name +
             ' has bookings, so it cannot be deleted. ' +
             'Untick Active instead to stop new bookings.'
@@ -213,7 +213,7 @@
           return;
         }
 
-        if (!confirm('Delete ' + session.name + '?')) return;
+        if (!await uiConfirm('Delete ' + session.name + '?')) return;
 
         saveSessions(
           loadSessions().filter(s => s.id !== session.id)

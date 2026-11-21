@@ -652,3 +652,139 @@ body.nav-top .layout {
     background: transparent; color: #79523f; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: none;
 }
 .pw-wrap .pw-toggle:hover { background: #f1e2d3; }
+
+/* ================================
+   POP-UP MESSAGES (replace the browser's grey alert / confirm)
+================================ */
+.ui-overlay {
+    position: fixed; inset: 0; z-index: 3000;
+    display: flex; align-items: center; justify-content: center; padding: 18px;
+    background: rgba(63, 48, 43, 0.55);
+    animation: ui-fade .15s ease-out;
+}
+.ui-dialog {
+    width: 100%; max-width: 440px; max-height: calc(100vh - 36px); overflow-y: auto;
+    background: #fffaf4; color: #5c4033;
+    border: 1px solid #ecd9c6; border-top: 6px solid #c98672; border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(63, 48, 43, 0.35);
+    padding: 24px 24px 20px;
+    font-family: 'DM Sans', Arial, sans-serif; text-align: left;
+    animation: ui-pop .18s ease-out;
+}
+.ui-dialog.danger { border-top-color: #b8483f; }
+.ui-dialog h2 { margin: 0 0 10px; font-family: 'Playfair Display', Georgia, serif; font-size: 22px; color: #79523f; }
+.ui-dialog p { margin: 0 0 6px; font-size: 15px; line-height: 1.5; word-break: break-word; }
+.ui-dialog p.gap { height: 8px; margin: 0; }
+.ui-dialog textarea { width: 100%; margin-top: 8px; padding: 10px 12px; border: 1px solid #dcc3ab; border-radius: 8px; font: inherit; box-sizing: border-box; resize: vertical; }
+.ui-buttons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+.ui-dialog button { margin: 0; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.ui-dialog .ui-ok { background: #79523f; border: 1px solid #79523f; color: #fff; }
+.ui-dialog .ui-ok:hover { background: #9b6b53; }
+.ui-dialog.danger .ui-ok { background: #b8483f; border-color: #b8483f; }
+.ui-dialog.danger .ui-ok:hover { background: #cc5a50; }
+.ui-dialog .ui-cancel { background: #fff; border: 1px solid #dcc3ab; color: #79523f; }
+.ui-dialog .ui-cancel:hover { background: #f6eae0; }
+.ui-dialog button:focus-visible { outline: 3px solid #d9a44166; outline-offset: 2px; }
+@keyframes ui-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ui-pop { from { transform: translateY(8px) scale(.98); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (max-width: 480px) { .ui-dialog { padding: 20px 16px 16px; } .ui-buttons button { flex: 1 1 auto; } }
+
+/* ==========================================================================
+   STAFF AND ADMIN SHELL
+   A full-height sidebar (brand, profile card, labelled groups with icons, Settings at the bottom)
+   and a light top bar (search and avatar). The dashboard sits inside this same shell, so
+   moving between screens never feels like moving to a different website.
+   ========================================================================== */
+body.nav-side { --side-w: 256px; }
+
+body.nav-side .site-header {
+    background: #ffffff !important;
+    color: #4a2f1d;
+    border-bottom: 1px solid #ecd9c6;
+    box-shadow: 0 1px 8px #79523f14;
+}
+body.nav-side .site-header .menu-toggle span { background: #79523f !important; }
+body.nav-side .site-header .brand a,
+body.nav-side .site-header .brand a:visited { color: #79523f !important; }
+body.nav-side .header-search { margin: 0 14px 0 auto; max-width: 360px; }
+body.nav-side .header-search input {
+    background: #fbf3ea; border: 1px solid #ecd9c6; padding: 9px 16px;
+}
+body.nav-side .header-search input:focus { outline: 2px solid #c98672; background: #fff; }
+body.nav-side .site-header .avatar-btn { border-color: #e3cdb8; }
+body.nav-side .site-header .avatar-btn:hover,
+body.nav-side .site-header .avatar-btn:focus-visible { box-shadow: 0 0 0 3px #c9867255; }
+body.nav-side .site-header .header-search-toggle { color: #79523f; }
+
+body.nav-side .side-nav {
+    background: #fffaf4;
+    border-right: 1px solid #ecd9c6;
+    padding: calc(var(--header-h) + 14px) 14px 14px;
+    gap: 0;
+}
+body.nav-side .side-nav a {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px; margin: 2px 0; border-radius: 10px;
+    color: #6a4a35; font-size: 14.5px; line-height: 1.2;
+    transition: background .15s, color .15s;
+}
+body.nav-side .side-nav a:hover { background: #f6eae0; color: #4a2f1d; }
+body.nav-side .side-nav a.active {
+    background: #7a4b2a; color: #ffffff; font-weight: 600;
+    box-shadow: 0 4px 10px #7a4b2a40;
+}
+body.nav-side .nav-icon { flex: 0 0 20px; opacity: .85; }
+body.nav-side a.active .nav-icon { opacity: 1; }
+
+body.nav-side .nav-links { display: block; flex: 1 1 auto; }
+body.nav-side .nav-group { margin-bottom: 14px; }
+body.nav-side .nav-label {
+    padding: 6px 12px 4px; font-size: 11px; font-weight: 700; letter-spacing: .09em;
+    text-transform: uppercase; color: #a58b76;
+}
+body.nav-side .side-profile {
+    display: flex; align-items: center; gap: 12px;
+    background: #fbefe2; border: 1px solid #f0dcc8; border-radius: 14px;
+    padding: 12px; margin-bottom: 18px;
+}
+body.nav-side .side-profile .side-avatar {
+    flex: 0 0 46px; width: 46px; height: 46px; font-size: 18px;
+}
+body.nav-side .side-profile strong { display: block; color: #4a2f1d; font-size: 14.5px; word-break: break-word; }
+body.nav-side .side-profile small { color: #8c7a6f; font-size: 12px; }
+body.nav-side .nav-foot { margin-top: 10px; padding-top: 10px; border-top: 1px solid #ecd9c6; }
+
+/* a page the staff are on shows the cafe's own colour; the footer stays slim */
+body.nav-side .site-footer { background: #fffaf4; color: #8c7a6f; border-top: 1px solid #ecd9c6; }
+body.nav-side .site-footer a { color: #79523f; }
+
+@media (min-width: 1024px) {
+    body.nav-side .side-nav {
+        position: fixed; top: 0; left: 0; bottom: 0; height: auto;
+        width: var(--side-w); flex: none; z-index: 50;
+    }
+    /* the brand sits on top of the sidebar's top corner */
+    body.nav-side .site-header { margin-left: var(--side-w); padding-left: 24px; }
+    body.nav-side .site-header .brand {
+        position: fixed; top: 0; left: 0; width: var(--side-w); height: var(--header-h);
+        display: flex; align-items: center; justify-content: center; flex: none;
+        background: #79523f; z-index: 80;
+    }
+    body.nav-side .site-header .brand a,
+    body.nav-side .site-header .brand a:visited { color: #ffffff !important; font-size: 24px; }
+    body.nav-side .layout { margin-left: var(--side-w); }
+    body.nav-side .site-footer { margin-left: var(--side-w); }
+}
+
+/* on a tablet or phone the same sidebar slides in as a drawer */
+@media (max-width: 1023px) {
+    body.nav-side .side-nav { width: 276px; max-width: 86vw; z-index: 55; }
+    body.nav-side .site-header .brand { flex: 1; }
+}
+
+/* the dashboard shown inside the shell */
+body.nav-side main.dashboard-page { padding: 0; }
+.dashboard-frame {
+    display: block; width: 100%; border: 0; background: #fff7ee;
+    height: calc(100vh - var(--header-h));
+}

@@ -109,10 +109,15 @@
           drawPicks(); drawPreview();
           frag.appendChild(pic);
 
-          const prof = card('Your details', isGuest ? 'Your email is your login, so it cannot be changed here.' : 'Your username is your login, so it cannot be changed here.');
+          const prof = card('Your details', isGuest ? 'You can log in with your email or your username. Your email cannot be changed here.' : 'Your username is your login, so it cannot be changed here.');
           const name = input('text', user.name, { maxLength: 80, id: 'setName' });
           prof.appendChild(field('Name', name));
-          prof.appendChild(field(isGuest ? 'Email' : 'Username', input('text', isGuest ? user.email : user.username, { readOnly: true })));
+          let username = null;
+          if (isGuest) {
+            username = input('text', user.username || '', { maxLength: 20, id: 'setUsername', placeholder: 'Choose a username' });
+            prof.appendChild(field('Username (3 to 20 letters or numbers, you can also log in with it)', username));
+            prof.appendChild(field('Email', input('text', user.email, { readOnly: true })));
+          } else prof.appendChild(field('Username', input('text', user.username, { readOnly: true })));
           let phone = null;
           if (isGuest) { phone = input('tel', user.phone, { maxLength: 8, id: 'setPhone' }); prof.appendChild(field('Phone (8 digits, starts with 6, 8 or 9)', phone)); }
           const profMsg = el('div');
@@ -120,7 +125,7 @@
           saveProf.type = 'button';
           saveProf.addEventListener('click', async function () {
             try {
-              const out = await api.put('/auth/profile', isGuest ? { name: name.value, phone: phone.value } : { name: name.value });
+              const out = await api.put('/auth/profile', isGuest ? { name: name.value, phone: phone.value, username: username.value } : { name: name.value });
               userChanged(out.user); say(profMsg, 'Details saved.', true);
             } catch (e) { say(profMsg, errorText(e), false); }
           });
@@ -252,7 +257,7 @@
             const cancel = el('button', 'primary', 'Cancel my plan');
             cancel.type = 'button';
             cancel.addEventListener('click', async function () {
-              if (!confirm('Cancel your plan?')) return;
+              if (!await uiConfirm('Cancel your plan?')) return;
               const done = await cancelSubscription();
               if (!done.ok) { say(msg, done.error, false); return; }
               render();

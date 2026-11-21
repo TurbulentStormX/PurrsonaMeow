@@ -47,6 +47,20 @@
         </label>
 
         <label>
+          Username
+          <input
+            type="text"
+            id="username"
+            autocomplete="username"
+            minlength="3"
+            maxlength="20"
+            pattern="[A-Za-z][A-Za-z0-9_.]{2,19}"
+            placeholder="3 to 20 letters or numbers"
+            title="Start with a letter. Use letters, numbers, dot or underscore."
+            required>
+        </label>
+
+        <label>
           Email
           <input
             type="email"
@@ -163,6 +177,7 @@
       try {
         const data = await api.post('/auth/signup', {
           name: document.getElementById('name').value,
+          username: document.getElementById('username').value,
           email: document.getElementById('email').value,
           phone: document.getElementById('phone').value,
           password: password

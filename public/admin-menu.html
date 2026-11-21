@@ -169,8 +169,8 @@
           const del = document.createElement('button');
           del.textContent = 'Delete';
           del.style.marginLeft = '6px';
-          del.addEventListener('click', function () {
-            if (!confirm('Delete ' + item.name + ' from the menu?')) return;
+          del.addEventListener('click', async function () {
+            if (!await uiConfirm('Delete ' + item.name + ' from the menu?')) return;
             saveMenu(loadMenu().filter(i => i.id !== item.id));
             if (editingId === item.id) resetForm();
             render();
@@ -193,7 +193,7 @@
         showPreview();
       });
 
-      form.addEventListener('submit', function (event) {
+      form.addEventListener('submit', async function (event) {
         event.preventDefault();
         const name = el('itemName').value.trim();
         const price = Number(el('itemPrice').value);
@@ -201,7 +201,7 @@
         if (!(price > 0)) { error.textContent = 'Please enter a price above 0.'; return; }
 
         const allergens = allergenBoxes().filter(b => b.checked).map(b => b.value);
-        if (allergens.length === 0 && !confirm('No allergens are ticked. Guests will see "No common allergens listed" for this item. Is that right?')) return;
+        if (allergens.length === 0 && !await uiConfirm('No allergens are ticked. Guests will see "No common allergens listed" for this item. Is that right?')) return;
         const data = { name: name, category: el('itemCategory').value, price: price, description: el('itemDescription').value.trim(),
                        allergens: allergens, available: el('itemAvailable').checked, photo: photoData };
         const list = loadMenu();

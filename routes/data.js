@@ -4,7 +4,7 @@ import { buildView, lookupView } from '../lib/views.js';
 export default function dataRoutes(app, ctx) {
   const { store, User, optionalAuth, lookupLimiter } = ctx;
 
-  const staffList = async () => (await User.find({ role: 'handler' })).map(h => ({ username: h.username, name: h.name, role: 'handler', contact: h.contact || '' }));
+  const staffList = async () => (await User.find({ role: 'handler' })).map(h => ({ username: h.username, name: h.name, role: 'handler', contact: h.contact || '', avatar: { icon: (h.avatar && h.avatar.icon) || '', color: (h.avatar && h.avatar.color) || '' } }));
 
   // A copy of the data for the website, filtered for who is asking (see lib/views.js)
   app.get('/api/data', optionalAuth, async (req, res) => {

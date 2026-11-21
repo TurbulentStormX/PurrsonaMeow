@@ -101,15 +101,15 @@
         error.textContent = '';
         form.scrollIntoView();
       }
-      function deleteRoom(room) {
+      async function deleteRoom(room) {
         const used = loadReservations().some(r => r.roomId === room.id && r.status !== 'Cancelled');
-        if (used) { alert(room.name + ' has bookings, so it cannot be deleted. Untick Active instead to stop new bookings.'); return; }
+        if (used) { await uiAlert(room.name + ' has bookings, so it cannot be deleted. Untick Active instead to stop new bookings.'); return; }
         const inSession = loadSessions().filter(s => s.rooms.includes(room.id));
         if (inSession.length > 0) {
-          alert(room.name + ' is used by: ' + inSession.map(s => s.name).join(', ') + '. Remove it from those sessions first (Manage Sessions).');
+          await uiAlert(room.name + ' is used by: ' + inSession.map(s => s.name).join(', ') + '. Remove it from those sessions first (Manage Sessions).');
           return;
         }
-        if (!confirm('Delete ' + room.name + '?')) return;
+        if (!await uiConfirm('Delete ' + room.name + '?')) return;
         saveRooms(loadRooms().filter(r => r.id !== room.id));
         if (editingId === room.id) resetForm();
         render();

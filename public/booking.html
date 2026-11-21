@@ -229,12 +229,12 @@
           const note = document.createElement('small');
           note.textContent = chosen ? 'Chosen' : state === 'free' ? 'Available' : state === 'booked' ? 'Booked then' : state === 'break' ? 'On a break then' : state === 'resting' ? 'Resting' : 'Pick a date first';
           box.appendChild(note);
-          box.addEventListener('click', function () {
+          box.addEventListener('click', async function () {
             if (!free) return;
             if (chosen) {
               chosenCats = chosenCats.filter(id => id !== cat.id);
             } else {
-              if (chosenCats.length >= s.maxCats) { alert('You can choose up to ' + s.maxCats + ' cat(s) for this session.'); return; }
+              if (chosenCats.length >= s.maxCats) { await uiAlert('You can choose up to ' + s.maxCats + ' cat(s) for this session.'); return; }
               chosenCats.push(cat.id);
             }
             renderCats();
@@ -332,25 +332,25 @@
 
       form.addEventListener('submit', async function (event) {
         event.preventDefault();
-        if (!el('agree').checked) { alert('Please tick the box to agree to the Terms and conditions and the Cafe rules.'); return; }
+        if (!el('agree').checked) { await uiAlert('Please tick the box to agree to the Terms and conditions and the Cafe rules.'); return; }
         const f = {
           sessionId: sessionEl.value, roomId: roomEl.value, date: dateEl.value, time: timeEl.value, hours: chosenHours(),
           guests: Number(guestsEl.value), requests: requestsEl.value, cats: chosenCats
         };
         // the rules live in bookings.js: check everything first, then ask the guest to confirm
         const check = checkBooking(f);
-        if (!check.ok) { alert(check.error); return; }
+        if (!check.ok) { await uiAlert(check.error); return; }
 
         const catNames = check.catIds.map(id => loadCats().find(c => c.id === id).name);
         const message = 'Please confirm your booking:\n\n' + check.session.name + '\n' + check.room.name + '\n' +
           f.date + ', ' + timeLabel(f.time) + ' to ' + timeLabel(fromMin(toMin(f.time) + f.hours * 60)) + ' (' + hoursText(f.hours) + ')\n' + f.guests + ' guest(s)' +
           (catNames.length ? '\nCats: ' + catNames.join(', ') : '') +
           '\nTotal: ' + money(check.rate.pricePerHour * f.hours) + ' (' + money(check.rate.pricePerHour) + ' per hour). You pay after booking.';
-        if (!confirm(message)) return;
+        if (!await uiConfirm(message, { title: 'Confirm your booking', okText: 'Confirm booking', cancelText: 'Go back' })) return;
 
         const done = await createReservation(currentUser(), f);
-        if (!done.ok) { alert(done.error); refresh(); return; }
-        alert('Your booking is confirmed! Your reservation code is ' + done.reservation.code + '. Your cat handler is ' + done.reservation.handler + '. You can pay on the Sessions page.');
+        if (!done.ok) { await uiAlert(done.error); refresh(); return; }
+        await uiAlert('Your booking is confirmed! Your reservation code is ' + done.reservation.code + '. Your cat handler is ' + done.reservation.handler + '. You can pay on the Sessions page.', { title: 'Booking confirmed', okText: 'Great!' });
 
         // clear the form but keep the session, room and date so the schedule stays on screen
         const keepSession = sessionEl.value, keepRoom = roomEl.value, keepDate = dateEl.value;

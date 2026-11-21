@@ -146,8 +146,8 @@
           const del = document.createElement('button');
           del.textContent = 'Delete';
           del.style.marginLeft = '6px';
-          del.addEventListener('click', function () {
-            if (!confirm('Delete "' + p.name + '"? Guests will be able to book that time.')) return;
+          del.addEventListener('click', async function () {
+            if (!await uiConfirm('Delete "' + p.name + '"? Guests will be able to book that time.')) return;
             const h = loadHours();
             h.closedPeriods = h.closedPeriods.filter(x => x.id !== p.id);
             saveHours(h);
@@ -200,8 +200,8 @@
           const del = document.createElement('button');
           del.textContent = 'Delete';
           del.style.marginLeft = '6px';
-          del.addEventListener('click', function () {
-            if (!confirm('Delete ' + hol.name + '? That day then follows the normal weekly hours and rates.')) return;
+          del.addEventListener('click', async function () {
+            if (!await uiConfirm('Delete ' + hol.name + '? That day then follows the normal weekly hours and rates.')) return;
             saveHolidays(loadHolidays().filter(x => x.id !== hol.id));
             drawHolidays();
           });

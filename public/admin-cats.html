@@ -120,13 +120,13 @@
         el('error').textContent = '';
         el('catForm').scrollIntoView();
       }
-      function deleteCat(cat) {
+      async function deleteCat(cat) {
         const upcoming = upcomingBookingsForCat(cat.id);
         if (upcoming.length > 0) {
-          alert(cat.name + ' is in ' + upcoming.length + ' upcoming booking(s) (' + upcoming.map(r => r.code).join(', ') + '), so it cannot be deleted. Untick Available instead: those bookings get another cat.');
+          await uiAlert(cat.name + ' is in ' + upcoming.length + ' upcoming booking(s) (' + upcoming.map(r => r.code).join(', ') + '), so it cannot be deleted. Untick Available instead: those bookings get another cat.');
           return;
         }
-        if (!confirm('Delete ' + cat.name + '?')) return;
+        if (!await uiConfirm('Delete ' + cat.name + '?')) return;
         saveCats(loadCats().filter(c => c.id !== cat.id));
         if (editingId === cat.id) resetForm();
         say([]);

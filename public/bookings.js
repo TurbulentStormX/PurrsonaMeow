@@ -52,11 +52,16 @@ function payDeadline(date, time, now) {
   const later = dayBefore > hourAfterBooking ? dayBefore : hourAfterBooking;
   return later < start ? later : start;
 }
-function overlaps(aStart, aEnd, bStart, bEnd) { return aStart < bEnd && bStart < aEnd; }
+function overlaps(aStart, aEnd, bStart, bEnd) { return aStart < aEnd && bStart < bEnd && aStart < bEnd && bStart < aEnd; }   // an empty time span (a session that ended before it began) blocks nothing
 
 // How long a booking lasts (older bookings were one fixed slot: count them as 1 hour)
 function bookingHours(r) { return r.hours >= 1 ? r.hours : 1; }
-function bookingEndMin(r) { return toMin(r.time) + bookingHours(r) * 60; }
+// When does it really end? A session the handler concluded early ends then, so the room, cats and handler are free again.
+function bookingEndMin(r) {
+  const planned = toMin(r.time) + bookingHours(r) * 60;
+  if (r.status === 'Concluded' && r.endedAtMin !== undefined && r.endedAtMin !== null) return Math.max(toMin(r.time), Math.min(planned, r.endedAtMin));
+  return planned;
+}
 function bookingEnd(r) { return fromMin(bookingEndMin(r)); }
 function timeRange(r) { return timeLabel(r.time) + ' - ' + timeLabel(bookingEnd(r)); }
 
@@ -431,6 +436,9 @@ function sweepBookings(now) {
       r.status = 'Concluded';
       r.checkedIn = r.checkedIn !== undefined ? r.checkedIn : r.guests;
       r.autoConcluded = true;
+      r.concludedAt = now.toISOString();
+      r.concludedBy = 'auto';
+      r.noShow = r.checkedIn === 0;
       concluded.push(r.code);
     } else if (!r.paid && start > now && new Date(r.payBy || payDeadline(r.date, r.time, new Date(r.createdAt || now))) <= now) {
       r.status = 'Cancelled';
@@ -628,6 +636,25 @@ function personStatusNow(kind, id, now) {
   const next = mine.filter(b => toMin(b.time) > nowMin).sort((a, b) => toMin(a.time) - toMin(b.time))[0];
   return { state: 'free', text: next ? 'Available until ' + timeLabel(next.time) : 'Available' };
 }
+// What is a staff member doing right now? One word for the Staff status screen:
+//  'session' (working with guests), 'break' (resting after a session), 'lunch', 'free' (on shift, available), 'leave', 'off' (off duty, at home).
+function staffStatusNow(username, now) {
+  now = now || new Date();
+  const date = dateString(now);
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const leave = leaveOn(username, date);
+  if (leave) return { state: 'leave', label: 'On leave', detail: 'Back after ' + formatDate(leave.end) };
+  const info = dayInfo(date);
+  if (!info.open) return { state: 'off', label: 'Off duty', detail: info.text };
+  if (nowMin < toMin(info.from)) return { state: 'off', label: 'Off duty', detail: 'Shift starts at ' + timeLabel(info.from) };
+  if (nowMin >= toMin(info.to)) return { state: 'off', label: 'Off duty', detail: 'Shift ended at ' + timeLabel(info.to) };
+  const base = personStatusNow('handler', username, now);
+  if (base.state === 'session') return { state: 'session', label: 'Working', detail: base.text };
+  if (base.state === 'break') return { state: 'break', label: 'On a break', detail: base.text };
+  const lunch = (loadHours().closedPeriods || []).find(p => toMin(p.from) <= nowMin && nowMin < toMin(p.to));
+  if (lunch) return { state: 'lunch', label: lunch.name, detail: 'Back at ' + timeLabel(lunch.to) };
+  return { state: 'free', label: 'On shift', detail: base.text };
+}
 // What is this person doing during one hour of a day? (used by the cat schedule)
 // kind = 'cat' or 'handler', hourMin = the hour in minutes (14:00 = 840). Returns { state: 'booked' | 'break' | 'free', booking }.
 function personHourState(kind, id, date, hourMin) {
@@ -686,8 +713,19 @@ function concludeReservation(code, username, checkedIn) {
   if (!Number.isInteger(checkedIn) || checkedIn < 0 || checkedIn > r.guests) {
     return { ok: false, error: 'Guests checked in must be a number from 0 to ' + r.guests + '.' };
   }
+  const now = new Date();
+  const start = slotStartDate(r.date, r.time);
+  if (now < start) return { ok: false, error: 'This session has not started yet. You can conclude it once it starts (for example if the guests did not come).' };
+  const plannedEnd = new Date(start.getTime() + bookingHours(r) * 3600000);
   r.checkedIn = checkedIn;
+  r.noShow = checkedIn === 0;                                   // nobody came
   r.status = 'Concluded';
+  r.concludedAt = now.toISOString();
+  r.concludedBy = 'staff';
+  if (now < plannedEnd) {                                       // finished early: the room and the cats are free for the rest of the time
+    r.endedEarly = true;
+    r.endedAtMin = now.getHours() * 60 + now.getMinutes();
+  }
   saveReservations(list);
   return { ok: true, reservation: r };
 }

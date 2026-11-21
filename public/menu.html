@@ -182,9 +182,9 @@
           } else if (isGuest) {
             const add = document.createElement('button');
             add.textContent = 'Add';
-            add.addEventListener('click', function () {
+            add.addEventListener('click', async function () {
               const matches = allergyMatches(item);
-              if (matches.length && !confirm(item.name + ' contains ' + matches.join(', ') + ', which you said you are allergic to. Add it anyway?')) return;
+              if (matches.length && !await uiConfirm(item.name + ' contains ' + matches.join(', ') + ', which you said you are allergic to. Add it anyway?')) return;
               cart[item.id] = (cart[item.id] || 0) + 1;
               renderCart();
             });
@@ -277,10 +277,10 @@
     async function submitOrder() {
       const code = document.getElementById('orderReservation').value;
       const lines = Object.keys(cart).filter(id => cart[id] > 0).map(id => ({ id: id, qty: cart[id] }));
-      if (lines.length === 0) { alert('Your order is empty.'); return; }
+      if (lines.length === 0) { await uiAlert('Your order is empty.'); return; }
       const done = await placeOrder(user, code, lines);
-      if (!done.ok) { alert(done.error); return; }
-      alert('Order placed! Your order code is ' + done.order.code + '. It will be brought to ' + done.order.zone + '.');
+      if (!done.ok) { await uiAlert(done.error); return; }
+      await uiAlert('Order placed! Your order code is ' + done.order.code + '. It will be brought to ' + done.order.zone + '.', { title: 'Order placed', okText: 'Great!' });
       cart = {};
       renderCart();
     }

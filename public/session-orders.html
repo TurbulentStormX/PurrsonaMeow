@@ -92,7 +92,7 @@
               const b = el('button', '', 'Mark served');
               b.addEventListener('click', async function () {
                 const done = await markOrderServed(o.code);
-                if (!done.ok) alert(done.error);
+                if (!done.ok) await uiAlert(done.error);
                 render();
               });
               action.appendChild(b);

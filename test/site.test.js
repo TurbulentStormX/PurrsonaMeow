@@ -41,12 +41,13 @@ test('menus, About us, search and the dashboard link (which tells the dashboard 
   const admin = await as(e, 'admin');
   w = await admin.open('admin.html');
   assert.deepEqual(navLabels(w).slice(0, 3), ['Dashboard', 'Reservations', 'Orders'], 'staff and admin do not get the public Home page in their menu');
-  const url = new URL($$(w, '#side-nav a').find(a => a.textContent === 'Dashboard').getAttribute('href'), e.base);
-  assert.deepEqual([url.origin, url.pathname, url.searchParams.get('back')], [e.base, '/dashboard/', e.base + '/index.html']);
-  set(w, 'navSearch', 'orders');                                  // staff keep the search box in their sidebar
-  assert.deepEqual($$(w, '#navResults a').map(a => a.textContent), ['Orders']);
+  assert.equal($$(w, '#side-nav a').find(a => a.textContent === 'Dashboard').getAttribute('href'), 'dashboard.html', 'the dashboard opens inside the same shell');
+  assert.deepEqual($$(w, '#side-nav .nav-label').map(x => x.textContent), ['Overview', 'Cafe setup', 'People']);
+  assert.ok(text(w, '#side-nav .side-profile').includes('Admin'), 'profile card in the sidebar');
+  set(w, 'headerSearchInput', 'orders');                          // staff search from the top bar
+  assert.deepEqual($$(w, '#headerResults a').map(a => a.textContent), ['Orders', 'Session orders'].filter(x => x === 'Orders'));
   const h = await as(e, 'aisha');
-  assert.deepEqual(navLabels(await h.open('handler.html')).slice(0, 3), ['My Sessions', 'Session orders', 'Dashboard']);
+  assert.deepEqual(navLabels(await h.open('handler.html')).slice(0, 6), ['My Sessions', 'Session orders', 'Dashboard', 'Cat schedule', 'Staff status', 'FAQ']);
   noErrors(admin, h);
 });
 test('About us page (yours) is shown with the same menu and footer as every page', async () => {
@@ -93,7 +94,7 @@ test('sign up page: weak password, a missing tick and mismatched passwords never
   const d = device(e);
   const w = await d.open('signup.html');
   assert.equal($$(w, '.pw-rules li').length, 6);
-  for (const [id, v] of [['name', 'Amy Tan'], ['email', 'Amy@Test.com'], ['phone', '91234567']]) set(w, id, v);
+  for (const [id, v] of [['name', 'Amy Tan'], ['username', 'Amy_T'], ['email', 'Amy@Test.com'], ['phone', '91234567']]) set(w, id, v);
   set(w, 'password', 'abcdefgh'); set(w, 'confirm', 'abcdefgh');
   w.document.getElementById('agree').checked = true;
   await send(w, 'signupForm');
@@ -305,7 +306,9 @@ test('reviews: guest reviews each cat and the handler; others see stars only; th
   const g = await as(e, 'cat');
   let w = await g.open('review.html?code=' + booked.code);
   assert.ok(text(w, '#reviewBox').includes('You can review a session after it has finished'));
+  const clockBefore = e.clock.now; e.clock.now = new Date(TOMORROW + 'T23:00:00').getTime();   // the session is over
   await e.act('concludeReservation', { code: booked.code, checkedIn: 2 }, e.tokens.aisha);
+  e.clock.now = clockBefore;
   w = await g.open('sessions.html');
   assert.equal(linkByText(row(w, '#myReservations tr', booked.code), 'Review your session').getAttribute('href'), 'review.html?code=' + booked.code);
   w = await g.open('review.html?code=' + booked.code);
@@ -339,6 +342,8 @@ test('handler page: sessions arrive through the cats, the handler finishes them,
   let w = await h.open('handler.html');
   assert.ok(text(w, '#rows').includes(a.code) && !text(w, '#rows').includes(b.code) && !text(w, 'main').includes('Take this session'));
   assert.deepEqual($$(w, '#myCats .who-card strong').map(x => x.textContent), ['Fluffy', 'Moody', 'Madinah']);
+  const clockBefore2 = e.clock.now;
+  e.clock.now = new Date(TOMORROW + 'T14:30:00').getTime();                                  // half way through: concluding now is concluding early
   $(w, '#rows tr input').value = '9';
   await click(buttonByText($(w, '#rows tr'), 'Check in & conclude'));
   assert.ok(w.__alerts.some(m => m.includes('from 0 to 2')));
@@ -347,10 +352,14 @@ test('handler page: sessions arrive through the cats, the handler finishes them,
   $(w, '#rows tr input').value = '1';
   await click(buttonByText($(w, '#rows tr'), 'Check in & conclude'));
   assert.ok(row(w, '#rows tr', a.code).textContent.includes('Concluded') && row(w, '#rows tr', a.code).textContent.includes('1 checked in'));
+  e.clock.now = clockBefore2;
+  w = await h.open('staff-status.html');                                                     // leave is recorded on the Staff status screen now
+  assert.equal($(w, '#leaveStart') !== null && $(w, '#leaveForm') !== null, true);
   set(w, 'leaveStart', TOMORROW); set(w, 'leaveEnd', TOMORROW); set(w, 'leaveReason', 'Sick');
   await send(w, 'leaveForm');
   assert.ok(text(w, '#leaveResult').includes('Your leave is recorded.'));
   assert.ok(text(w, '#leaveNotice').includes('You are on leave (Sick)'));
+  assert.ok(text(w, '#ssGrid').includes('Aisha') && text(w, '#ssGrid').includes('Ben'), 'every handler is listed with a status');
   const ben = await as(e, 'ben');
   w = await ben.open('handler.html');
   assert.ok(text(w, '#rows').includes(b.code) && !text(w, '#rows').includes(a.code));
@@ -480,12 +489,12 @@ test('orders: the guest orders from the Menu (the server sets the prices); the a
   dairy.checked = true; dairy.dispatchEvent(new w.Event('change'));
   assert.equal($$(w, '.menu-item.allergy-warning').length, 6);
   w.__confirmAnswer = false;
-  buttonByText(row(w, '.menu-item', 'Latte'), 'Add').click();
+  await click(buttonByText(row(w, '.menu-item', 'Latte'), 'Add'));
   assert.ok(w.__confirms[0].includes('Latte contains Dairy'));
   w.__confirmAnswer = true;
-  buttonByText(row(w, '.menu-item', 'Latte'), 'Add').click();
-  buttonByText(row(w, '.menu-item', 'Latte'), 'Add').click();
-  buttonByText(row(w, '.menu-item', 'Iced Lemon Tea'), 'Add').click();
+  await click(buttonByText(row(w, '.menu-item', 'Latte'), 'Add'));
+  await click(buttonByText(row(w, '.menu-item', 'Latte'), 'Add'));
+  await click(buttonByText(row(w, '.menu-item', 'Iced Lemon Tea'), 'Add'));
   assert.ok(w.document.getElementById('orderReservation').textContent.includes(booked.code));
   await click([...w.document.querySelectorAll('#cartBox button')].find(x => /place/i.test(x.textContent)));
   const order = (await store(e)).orders[0];
@@ -619,7 +628,7 @@ test('header search: visitors and guests can search from the top bar on any scre
     assert.ok($$(w, '#headerResults a').length >= 5 && $$(w, '#headerResults a').length <= 8);
   }
   const w = await (await as(e, 'admin')).open('admin.html');
-  assert.equal($(w, '#headerSearchInput'), null, 'staff have the sidebar search instead');
+  assert.ok($(w, '#headerSearchInput'), 'staff search from the top bar too');
   const css = (await (await fetch(e.base + '/layout.css')).text()) + (await (await fetch(e.base + '/home-design.css')).text());
   assert.match(css, /\.header-results\s*\{[^}]*overflow-y:\s*auto/, 'the top bar list scrolls inside itself');
   assert.match(css, /\.hero-results\s*\{[^}]*max-height[^}]*overflow-y:\s*auto/, 'the home page list scrolls inside itself');
@@ -683,10 +692,11 @@ test('settings: a visitor must log in; guests get account, payment and subscript
   assert.equal(text(w, '#avatarBtn'), '\u{1F43E}', 'the top bar shows the paw straight away');
   assert.deepEqual(JSON.parse(g.local.catcafe_auth).user.avatar, { icon: 'paw', color: '#79523f' });
   // profile
-  set(w, 'setName', 'Cat Tan'); set(w, 'setPhone', '81234567');
+  set(w, 'setName', 'Cat Tan'); set(w, 'setPhone', '81234567'); set(w, 'setUsername', 'Cat_Tan');
   await click(buttonByText(w.document, 'Save details'));
   await until(() => $$(w, '.settings-msg').some(m => /Details saved/.test(m.textContent)), 'details saved');
   assert.equal((await e.call('GET', '/api/auth/me', undefined, e.tokens.cat)).data.user.name, 'Cat Tan');
+  assert.ok(await e.login('cat_tan', 'cat123'), 'the new username works for logging in');
   // saved payment method
   w = await g.open('settings.html#payment');
   $$(w, 'input[name=savedMethod]')[1].click();
@@ -746,4 +756,19 @@ test('staff: session orders page groups orders under each session and room; cat 
   assert.deepEqual([cat.active, cat.note], [false, 'Vet visit']);
   assert.match(text(w, '#myCats'), /Not bookable: Vet visit/);
   noErrors(h, ben);
+});
+
+test('staff shell: dashboard opens inside the same sidebar, embedded; guests cannot open staff screens; staff status lists everyone', async () => {
+  const e = await world();
+  const admin = await as(e, 'admin');
+  let w = await admin.open('dashboard.html');
+  assert.equal($(w, '#dashboardFrame').getAttribute('src'), '/dashboard/?embed=1');
+  assert.equal($(w, '#side-nav a.active').textContent, 'Dashboard');
+  assert.ok($$(w, '#side-nav svg.nav-icon').length >= 10, 'every sidebar link has an icon');
+  w = await admin.open('staff-status.html');
+  assert.ok(text(w, '#ssGrid').includes('Aisha') && text(w, '#ssGrid').includes('Ben'));
+  const guest = await as(e, 'cat');
+  w = await guest.open('dashboard.html');
+  assert.equal($(w, '#dashboardFrame'), null, 'a guest never gets the dashboard');
+  noErrors(admin);
 });

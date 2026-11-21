@@ -171,14 +171,14 @@
             if (!same) changes.cats = ids;
           }
           const done = await editReservation(r.code, changes);
-          if (!done.ok) { alert(done.error); return; }
+          if (!done.ok) { await uiAlert(done.error); return; }
           openEdits.delete(r.code);
           render();
         });
         const cancel = button('Cancel this booking (full refund)', async function () {
-          if (!confirm('Cancel booking ' + r.code + ' for ' + r.name + '? ' + (r.paid ? 'They will be refunded in full.' : 'They have not paid.'))) return;
+          if (!await uiConfirm('Cancel booking ' + r.code + ' for ' + r.name + '? ' + (r.paid ? 'They will be refunded in full.' : 'They have not paid.'))) return;
           const done = await cancelReservation(r.code);
-          if (!done.ok) { alert(done.error); return; }
+          if (!done.ok) { await uiAlert(done.error); return; }
           openEdits.delete(r.code);
           render();
         });
@@ -273,7 +273,7 @@
       }
 
       document.getElementById('resetBtn').addEventListener('click', async function () {
-        if (!confirm('Delete ALL practice reservations, orders and reviews?')) return;
+        if (!await uiConfirm('Delete ALL practice reservations, orders and reviews?')) return;
         await clearPracticeData();
         openEdits.clear();
         render();

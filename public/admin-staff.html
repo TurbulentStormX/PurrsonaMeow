@@ -125,7 +125,7 @@
           const btn = document.createElement('button');
           btn.textContent = 'Remove';
           btn.addEventListener('click', async function () {
-            if (!confirm('Remove this leave? Sessions that were already moved stay where they are.')) return;
+            if (!await uiConfirm('Remove this leave? Sessions that were already moved stay where they are.')) return;
             await removeLeave(l.id);
             render();
           });

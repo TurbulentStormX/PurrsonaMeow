@@ -122,8 +122,8 @@
           const del = document.createElement('button');
           del.textContent = 'Delete';
           del.style.marginLeft = '6px';
-          del.addEventListener('click', function () {
-            if (!confirm('Delete the rate "' + rate.name + '"? Bookings already made keep their price.')) return;
+          del.addEventListener('click', async function () {
+            if (!await uiConfirm('Delete the rate "' + rate.name + '"? Bookings already made keep their price.')) return;
             saveRates(loadRates().filter(r => r.id !== rate.id));
             if (editingId === rate.id) resetForm();
             render();

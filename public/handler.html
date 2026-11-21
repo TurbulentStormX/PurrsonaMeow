@@ -28,11 +28,10 @@
   </section>
 
   <div id="leaveNotice"></div>
-      <div id="leaveNotice"></div>
 
       <div class="card wide-card">
         <h1>Cat Handler: My sessions</h1>
-        <p class="hint">Sessions finish by themselves when their time is over (everyone booked counts as checked in), so you only need to check guests in if the number is different.</p>
+        <p class="hint">Sessions finish by themselves when their time is over (everyone booked counts as checked in). Conclude early if the guests leave early, or press No-show if nobody came: the room and cats are freed straight away.</p>
         <p class="hint">Bookings come to you from the cats you look after. After each session you rest for a while (see the Opening hours page).</p>
         <div class="table-scroll">
           <table>
@@ -57,17 +56,6 @@
         <h2>My reviews from guests</h2>
         <div id="myRating"></div>
       </div>
-
-      <form class="card handler-leave" id="leaveForm">
-        <h2>Cannot work? Report sick or urgent leave</h2>
-        <p class="hint">Your upcoming sessions on those days move to another free handler automatically.</p>
-        <label>From <input type="date" id="leaveStart" required></label>
-        <label>To (same day for one day) <input type="date" id="leaveEnd" required></label>
-        <label>Reason <select id="leaveReason"></select></label>
-        <label>Note (optional) <input type="text" id="leaveNote"></label>
-        <button type="submit">Report leave</button>
-        <div id="leaveResult"></div>
-      </form>
 
       <div class="card wide-card">
         <h2>Food and drink orders for my rooms</h2>
@@ -123,7 +111,7 @@
 
       async function conclude(code, checkedIn) {
         const done = await concludeReservation(code, user.username, checkedIn);
-        if (!done.ok) { alert(done.error); return; }
+        if (!done.ok) { await uiAlert(done.error); return; }
         render();
       }
 
@@ -158,8 +146,19 @@
             input.style.width = '60px';
             cell.appendChild(input);
             cell.appendChild(button('Check in & conclude', () => conclude(r.code, Number(input.value))));
+            const none = button('No-show', async function () {
+              if (await uiConfirm('Nobody came to ' + r.code + '? This ends the session now and frees the room and cats.', { okText: 'Yes, nobody came' })) conclude(r.code, 0);
+            });
+            none.className = 'secondary';
+            cell.appendChild(none);
           } else {
-            cell.textContent = r.checkedIn !== undefined ? r.checkedIn + ' checked in' : '-';
+            cell.textContent = r.noShow ? 'No-show' : r.checkedIn !== undefined ? r.checkedIn + ' checked in' : '-';
+            if (r.endedEarly || r.concludedBy === 'auto') {
+              const note = document.createElement('div');
+              note.className = 'flag';
+              note.textContent = r.concludedBy === 'auto' ? 'Concluded automatically' : 'Ended early';
+              cell.appendChild(note);
+            }
           }
         });
       }
@@ -196,7 +195,7 @@
           status.appendChild(note);
           status.appendChild(button(cat.active ? 'Mark unavailable' : 'Mark available', async function () {
             const done = await setCatStatus(cat.id, !cat.active, note.value.trim());
-            if (!done.ok) { alert(done.error); return; }
+            if (!done.ok) { await uiAlert(done.error); return; }
             render();
           }));
           if (!cat.active) {
@@ -221,7 +220,7 @@
       function renderLeave() {
         const today = todayString();
         const mine = loadLeaves().filter(l => l.handler === user.username && l.end >= today).sort((a, b) => a.start.localeCompare(b.start));
-        say(el('leaveNotice'), mine.map(l => 'You are on leave (' + l.reason + ') from ' + formatDate(l.start) + ' to ' + formatDate(l.end) + '.'), 'warn');
+        say(el('leaveNotice'), mine.map(l => 'You are on leave (' + l.reason + ') from ' + formatDate(l.start) + ' to ' + formatDate(l.end) + '. Manage it on Staff status.'), 'warn');
       }
 
       // ----- my reviews from guests -----
@@ -252,7 +251,7 @@
           if (o.status === 'Ordered') {
             action.appendChild(button('Mark served', async function () {
               const done = await markOrderServed(o.code);
-              if (!done.ok) alert(done.error);
+              if (!done.ok) await uiAlert(done.error);
               render();
             }));
           } else {
@@ -271,26 +270,6 @@
         renderOrders();
         lastSignature = signature();
       }
-
-      // report leave
-      LEAVE_REASONS.forEach(function (reason) {
-        const o = document.createElement('option');
-        o.value = reason; o.textContent = reason;
-        el('leaveReason').appendChild(o);
-      });
-      el('leaveStart').value = todayString();
-      el('leaveEnd').value = todayString();
-      el('leaveForm').addEventListener('submit', async function (event) {
-        event.preventDefault();
-        const done = await addLeave(user.username, el('leaveStart').value, el('leaveEnd').value, el('leaveReason').value, el('leaveNote').value.trim());
-        if (!done.ok) { say(el('leaveResult'), [done.error], 'warn'); return; }
-        const lines = ['Your leave is recorded.'];
-        if (done.moved.length) lines.push(done.moved.length + ' session(s) moved to another handler: ' + done.moved.map(m => m.code + ' to ' + m.to).join(', ') + '.');
-        if (done.uncovered.length) lines.push(done.uncovered.length + ' session(s) have nobody free to cover them yet: ' + done.uncovered.join(', ') + '. The admin has been flagged.');
-        if (!done.moved.length && !done.uncovered.length) lines.push('None of your sessions were affected.');
-        say(el('leaveResult'), lines, done.uncovered.length ? 'warn' : 'good');
-        render();
-      });
 
       // The page checks again every few seconds and is redrawn if anything changed
       // (but not while a handler is typing a number or choosing something).

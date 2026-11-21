@@ -12,6 +12,9 @@ export const publicUser = u => ({
 const AVATAR_ICONS = ['cat', 'paw', 'smile', 'heart-eyes', 'sleepy', 'lion', 'tiger', 'fish', 'coffee', 'yarn'];
 const AVATAR_COLORS = ['#c98672', '#79523f', '#d9a441', '#6b9080', '#5b7db1', '#8e6bb0', '#c0587a', '#4a4a4a'];
 
+// A guest's username: 3 to 20 letters, numbers, dots or underscores, starting with a letter
+export const usernameProblem = name => /^[a-z][a-z0-9_.]{2,19}$/.test(name) ? '' : 'Username must be 3 to 20 characters: letters, numbers, dot or underscore, starting with a letter.';
+
 export default function authRoutes(app, ctx) {
   const { User, sign, requireAuth, loginLimiter } = ctx;
   const mine = req => User.findOne({ _id: req.user.id });
@@ -21,7 +24,9 @@ export default function authRoutes(app, ctx) {
   app.post('/api/auth/signup', async (req, res) => {
     const b = req.body || {};
     const email = String(b.email || '').trim().toLowerCase();
+    const username = String(b.username || '').trim().toLowerCase();
     const errors = [];
+    if (usernameProblem(username)) errors.push(usernameProblem(username));
     if (!b.name || !String(b.name).trim()) errors.push('Name is required.');
     if (!/^\S+@\S+\.\S+$/.test(email)) errors.push('A valid email is required.');
     if (!/^[689]\d{7}$/.test(b.phone || '')) errors.push('Phone must be 8 digits starting with 6, 8 or 9.');
@@ -32,7 +37,10 @@ export default function authRoutes(app, ctx) {
     if ((await User.findOne({ email })) || (await User.findOne({ username: email }))) {
       return res.status(409).json({ errors: ['This email is already registered. Please log in.'] });
     }
-    const user = await User.create({ name: String(b.name).trim().slice(0, 80), email, phone: b.phone, role: 'guest', passwordHash: await bcrypt.hash(b.password, 10) });
+    if ((await User.findOne({ username })) || (await User.findOne({ email: username }))) {
+      return res.status(409).json({ errors: ['This username is taken. Please choose another one.'] });
+    }
+    const user = await User.create({ name: String(b.name).trim().slice(0, 80), email, username, phone: b.phone, role: 'guest', passwordHash: await bcrypt.hash(b.password, 10) });
     res.status(201).json(logIn(user));
   });
 
@@ -58,7 +66,18 @@ export default function authRoutes(app, ctx) {
     const name = String(b.name === undefined ? u.name : b.name).trim();
     if (!name) errors.push('Name is required.');
     if (u.role === 'guest' && b.phone !== undefined && !/^[689]\d{7}$/.test(b.phone || '')) errors.push('Phone must be 8 digits starting with 6, 8 or 9.');
+    // guests choose their own username (it is a second way to log in); staff usernames are set by the admin
+    let username = null;
+    if (u.role === 'guest' && b.username !== undefined) {
+      username = String(b.username).trim().toLowerCase();
+      if (usernameProblem(username)) errors.push(usernameProblem(username));
+      else if (username !== (u.username || '')) {
+        const taken = await User.findOne({ username });
+        if ((taken && String(taken._id) !== String(u._id)) || (await User.findOne({ email: username }))) errors.push('This username is taken. Please choose another one.');
+      }
+    }
     if (errors.length) return res.status(400).json({ errors });
+    if (username) u.username = username;
     u.name = name.slice(0, 80);
     if (u.role === 'guest' && b.phone !== undefined) u.phone = b.phone;
     await u.save();

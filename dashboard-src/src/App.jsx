@@ -393,6 +393,9 @@ function App() {
     </ResponsiveContainer>
   );
 
+  // ?embed=1: shown inside the website's own sidebar (dashboard.html), so no "Back to Website" button
+  const embed = new URLSearchParams(window.location.search).get("embed") === "1";
+
   return (
     <div className="dashboard">
 
@@ -403,6 +406,7 @@ function App() {
           <p>Welcome to your reservation overview!</p>
         </div>
 
+        {!embed && (
         <button
           className="back-button"
           onClick={() => {
@@ -415,6 +419,7 @@ function App() {
         >
           ← Back to Website
         </button>
+        )}
       </header>
 
       {/* SUMMARY CARDS */}

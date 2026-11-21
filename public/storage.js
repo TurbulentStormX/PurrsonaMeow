@@ -30,7 +30,7 @@ async function saveKey(key) {
   try {
     await api.put('/collection/' + key, { value: DATA[key] });
   } catch (e) {
-    alert('That could not be saved: ' + errorText(e));
+    if (window.uiAlert) await uiAlert('That could not be saved: ' + errorText(e)); else alert('That could not be saved: ' + errorText(e));
     try { await refreshData(); window.location.reload(); } catch (e2) { /* the page stays as it is */ }
   }
 }

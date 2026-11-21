@@ -131,7 +131,7 @@
               payFee.addEventListener('click', async function () {
                 payFee.disabled = true; payFee.textContent = 'Processing...';
                 const done = await payCancellationFee(r.code, box.querySelector('input[name=method]:checked').value);
-                if (!done.ok) { alert(done.error); payFee.disabled = false; payFee.textContent = 'Pay fee ' + money(r.cancelFee); return; }
+                if (!done.ok) { await uiAlert(done.error); payFee.disabled = false; payFee.textContent = 'Pay fee ' + money(r.cancelFee); return; }
                 render();
               });
               box.appendChild(payFee);
@@ -167,7 +167,7 @@
           const method = box.querySelector('input[name=method]:checked').value;
           pay.disabled = true; pay.textContent = 'Processing...';      // stop double clicks
           const done = await payReservation(r.code, method);
-          if (!done.ok) { alert(done.error); pay.disabled = false; pay.textContent = 'Pay ' + money(amountOf(r)) + ' now'; return; }
+          if (!done.ok) { await uiAlert(done.error); pay.disabled = false; pay.textContent = 'Pay ' + money(amountOf(r)) + ' now'; return; }
           render();
         });
         box.appendChild(pay);

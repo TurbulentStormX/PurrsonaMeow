@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Purrsona Meow - Staff status</title>
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="handler-design.css">
+  <link rel="stylesheet" href="staff-status.css">
+</head>
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main class="handler-page ss-page">
+      <section class="handler-hero">
+        <p class="handler-eyebrow">PURRSONA MEOW · CAT CARE TEAM</p>
+        <h1>Staff status</h1>
+        <p>Who is working, on a break, on leave or off duty right now. Updates by itself.</p>
+      </section>
+
+      <div id="leaveNotice"></div>
+      <div class="ss-summary" id="ssSummary"></div>
+      <div class="ss-grid" id="ssGrid"></div>
+
+      <div class="ss-two">
+        <section class="card">
+          <h2>Who is on leave</h2>
+          <p class="hint">Today and coming days. The reason stays private.</p>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Staff</th><th>From</th><th>To</th></tr></thead>
+              <tbody id="leaveRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <form class="card handler-leave" id="leaveForm">
+          <h2>Cannot work? Take leave</h2>
+          <p class="hint">Report sick or urgent leave. Your upcoming sessions on those days move to another free handler automatically.</p>
+          <label>From <input type="date" id="leaveStart" required></label>
+          <label>To (same day for one day) <input type="date" id="leaveEnd" required></label>
+          <label>Reason <select id="leaveReason"></select></label>
+          <label>Note (optional) <input type="text" id="leaveNote"></label>
+          <button type="submit">Report leave</button>
+          <div id="leaveResult"></div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+  <script>
+    onDataReady(async function () {
+      renderLayout('staff-status.html');
+      if (guardPage(['handler', 'admin'], 'see the staff status')) initPage();
+
+      function initPage() {
+        const POLL_MS = window.CATCAFE_POLL_MS || 5000;
+        const user = currentUser();
+        const el = id => document.getElementById(id);
+        const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+        let lastSignature = '';
+
+        function say(target, lines, kind) {
+          target.innerHTML = '';
+          if (!lines.length) return;
+          const div = mk('div', 'notice ' + (kind || ''));
+          lines.forEach(t => { const p = mk('p', '', t); p.style.margin = '2px 0'; div.appendChild(p); });
+          target.appendChild(div);
+        }
+
+        const ORDER = ['session', 'break', 'lunch', 'free', 'leave', 'off'];
+        function render() {
+          const now = new Date();
+          const people = allHandlers().map(h => ({ h: h, st: staffStatusNow(h.username, now) }))
+            .sort((a, b) => ORDER.indexOf(a.st.state) - ORDER.indexOf(b.st.state) || a.h.name.localeCompare(b.h.name));
+
+          const counts = {};
+          people.forEach(p => { counts[p.st.state] = (counts[p.st.state] || 0) + 1; });
+          const summary = el('ssSummary');
+          summary.innerHTML = '';
+          [['session', 'Working'], ['free', 'On shift'], ['break', 'On a break'], ['lunch', 'Lunch'], ['leave', 'On leave'], ['off', 'Off duty']].forEach(function (x) {
+            if (!counts[x[0]]) return;
+            const chip = mk('span', 'ss-chip s-' + x[0]);
+            chip.appendChild(mk('strong', '', String(counts[x[0]])));
+            chip.appendChild(document.createTextNode(' ' + x[1]));
+            summary.appendChild(chip);
+          });
+
+          const grid = el('ssGrid');
+          grid.innerHTML = '';
+          people.forEach(function (p) {
+            const card = mk('article', 'ss-card s-' + p.st.state + (p.h.username === user.username ? ' me' : ''));
+            card.appendChild(avatarElement({ name: p.h.name, avatar: p.h.avatar }, 'ss-avatar'));
+            const body = mk('div', 'ss-body');
+            body.appendChild(mk('strong', '', p.h.name + (p.h.username === user.username ? ' (you)' : '')));
+            body.appendChild(mk('span', 'ss-state', p.st.label));
+            body.appendChild(mk('small', '', p.st.detail));
+            const cats = loadCats().filter(c => c.handler === p.h.username).map(c => c.name);
+            if (cats.length) body.appendChild(mk('small', 'ss-cats', 'Cats: ' + cats.join(', ')));
+            card.appendChild(body);
+            grid.appendChild(card);
+          });
+
+          // leave: the person, the dates (the reason is private)
+          const today = todayString();
+          const leaves = loadLeaves().filter(l => l.end >= today).sort((a, b) => a.start.localeCompare(b.start));
+          const rows = el('leaveRows');
+          rows.innerHTML = '';
+          if (!leaves.length) rows.insertRow().insertCell().textContent = 'Nobody is on leave.';
+          leaves.forEach(function (l) {
+            const tr = rows.insertRow();
+            const h = allHandlers().find(x => x.username === l.handler);
+            [h ? h.name : l.handler, formatDate(l.start), formatDate(l.end)].forEach(v => { tr.insertCell().textContent = v; });
+          });
+          const mine = leaves.filter(l => l.handler === user.username);
+          say(el('leaveNotice'), mine.map(l => 'You are on leave (' + l.reason + ') from ' + formatDate(l.start) + ' to ' + formatDate(l.end) + '.'), 'warn');
+          lastSignature = signature();
+        }
+        function signature() { return JSON.stringify([loadReservations(), loadLeaves(), loadCats(), Math.floor(Date.now() / 60000)]); }
+
+        LEAVE_REASONS.forEach(function (reason) {
+          const o = document.createElement('option');
+          o.value = reason; o.textContent = reason;
+          el('leaveReason').appendChild(o);
+        });
+        if (user.role === 'admin') {                       // the admin records leave for staff on the Staff and leave screen
+          el('leaveForm').hidden = true;
+          el('leaveForm').insertAdjacentHTML('afterend', '<section class="card"><h2>Staff leave</h2><p class="hint">To record leave for a handler, use <a href="admin-staff.html">Staff and leave</a>.</p></section>');
+        }
+        el('leaveStart').value = todayString();
+        el('leaveEnd').value = todayString();
+        el('leaveForm').addEventListener('submit', async function (event) {
+          event.preventDefault();
+          const done = await addLeave(user.username, el('leaveStart').value, el('leaveEnd').value, el('leaveReason').value, el('leaveNote').value.trim());
+          if (!done.ok) { say(el('leaveResult'), [done.error], 'warn'); return; }
+          const lines = ['Your leave is recorded.'];
+          if (done.moved.length) lines.push(done.moved.length + ' session(s) moved to another handler: ' + done.moved.map(m => m.code + ' to ' + m.to).join(', ') + '.');
+          if (done.uncovered.length) lines.push(done.uncovered.length + ' session(s) have nobody free to cover them yet: ' + done.uncovered.join(', ') + '. The admin has been flagged.');
+          if (!done.moved.length && !done.uncovered.length) lines.push('None of your sessions were affected.');
+          say(el('leaveResult'), lines, done.uncovered.length ? 'warn' : 'good');
+          await refreshData();
+          render();
+        });
+
+        async function tick() {
+          try { await refreshData(); } catch (e) { /* keep what we have */ }
+          const active = document.activeElement;
+          const typing = active && ['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName);
+          if (signature() !== lastSignature && !typing) render();
+        }
+        render();
+        setInterval(tick, POLL_MS);
+      }
+    });
+  </script>
+</body>
+</html>

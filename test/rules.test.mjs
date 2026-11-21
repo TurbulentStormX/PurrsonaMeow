@@ -508,6 +508,8 @@ test('conclude: only the handler of that session, only when confirmed, with a se
   const s = site();
   const b = book(s, CAT, { cats: ['c1'] }).reservation;                              // Aisha
   assert.match(s.call('concludeReservation', b.code, 'ben', 1).error, /not one of your sessions/);
+  assert.match(s.call('concludeReservation', b.code, 'aisha', 1).error, /not started yet/);
+  s.setNow(TOMORROW + 'T23:00:00');
   assert.match(s.call('concludeReservation', 'CC-NOPE1', 'aisha', 1).error, /not one of your sessions/);
   assert.match(s.call('concludeReservation', b.code, 'aisha', 9).error, /from 0 to 2/);
   assert.match(s.call('concludeReservation', b.code, 'aisha', 'x').error, /from 0 to 2/);
@@ -574,4 +576,19 @@ test('clear practice data: reservations, orders and reviews are emptied, the set
   s.call('placeOrder', CAT, b.code, [{ id: 'd1', qty: 1 }]);
   assert.equal(s.call('clearPracticeData').ok, true);
   assert.deepEqual([s.get('loadReservations().length'), s.get('loadOrders().length'), s.get('loadReviews().length'), s.get('loadCats().length')], [0, 0, 0, 6]);
+});
+
+test('conclude early: a no-show or an early finish frees the room, cat and handler for the rest of the booked time', () => {
+  const s = site();
+  const a = book(s, CAT, { hours: 2, cats: ['c1'] }).reservation;                    // 14:00 to 16:00, room P1, Fluffy, Aisha
+  assert.equal(book(s, DOG, { time: '16:00', cats: ['c1'] }).ok, false, 'still taken while the session runs (and the cat rests after it)');
+  const b = book(s, CAT, { time: '10:00', roomId: 'P2', cats: ['c4'] }).reservation;
+  s.setNow(TOMORROW + 'T14:20:00');
+  const done = s.call('concludeReservation', a.code, 'aisha', 0);                    // nobody came
+  assert.deepEqual([done.ok, done.reservation.noShow, done.reservation.endedEarly, done.reservation.concludedBy], [true, true, true, 'staff']);
+  assert.equal(book(s, DOG, { time: '16:00', cats: ['c1'] }).ok, true, 'the room, the cat and the handler are free from the moment it ended');
+  // a session nobody concluded is concluded by the sweep once its time is over, everyone counted as checked in
+  s.setNow(TOMORROW + 'T17:30:00');
+  const swept = s.call('sweepBookings');
+  assert.ok(swept.concluded.includes(b.code));
 });

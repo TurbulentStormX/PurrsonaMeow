@@ -65,7 +65,9 @@ test('data model: every document the rules create fits the schema exactly (no fi
   await e.act('submitFeedback', { f: { type: 'Question', name: 'A', email: 'a@b.com', message: 'Hi?' } });
   await e.act('addLeave', { username: 'ben', start: TOMORROW, end: TOMORROW, reason: 'Sick', note: 'x' }, admin);
   await e.act('replaceCatInUpcomingBookings', { catId: 'c5' }, admin);                // b's cat: it gets a swap note
+  const clockBefore = e.clock.now; e.clock.now = new Date(TOMORROW + 'T23:00:00').getTime();   // the session is over
   await e.act('concludeReservation', { code: a.code, checkedIn: 2 }, e.tokens.aisha);
+  e.clock.now = clockBefore;
   await e.act('addReview', { code: a.code, data: { handlerStars: 5, handlerComment: 'Lovely', cats: [{ id: 'c1', stars: 4, comment: 'Soft' }, { id: 'c3', stars: 5 }] } }, cat);
   const c = (await e.book(cat, { roomId: 'P3', time: '18:00', cats: ['c6'] })).data.reservation;
   await e.act('cancelReservation', { code: c.code }, cat);
@@ -121,16 +123,18 @@ test('engine: only the allowed rule functions can be run', async () => {
 // ======================================================= accounts
 test('auth: sign up checks the password rules and fields; login works by email or username; wrong tries lock', async () => {
   const e = await world();
-  const signup = over => e.call('POST', '/api/auth/signup', { name: 'Amy Tan', email: 'Amy@Test.com', phone: '91234567', password: STRONG, ...over });
+  const signup = over => e.call('POST', '/api/auth/signup', { name: 'Amy Tan', username: 'Amy_T', email: 'Amy@Test.com', phone: '91234567', password: STRONG, ...over });
   const weak = await signup({ password: 'abcdefgh' });
   assert.equal(weak.status, 400); assert.ok(weak.data.errors.join(' ').includes('An uppercase letter'));
-  assert.equal((await signup({ name: '', email: 'nope', phone: '1' })).data.errors.length, 3);
+  assert.equal((await signup({ name: '', email: 'nope', phone: '1', username: 'a b' })).data.errors.length, 4);
   const ok = await signup({});
   assert.equal(ok.status, 201);
-  assert.deepEqual(ok.data.user, { name: 'Amy Tan', email: 'amy@test.com', phone: '91234567', role: 'guest', avatar: { icon: '', color: '' }, savedPayment: { method: '', last4: '' } });
+  assert.deepEqual(ok.data.user, { name: 'Amy Tan', email: 'amy@test.com', phone: '91234567', username: 'amy_t', role: 'guest', avatar: { icon: '', color: '' }, savedPayment: { method: '', last4: '' } });
   const row = e.User.rows.find(u => u.email === 'amy@test.com');
   assert.ok(row.passwordHash.startsWith('$2') && !JSON.stringify(row).includes(STRONG), 'only a scrambled password is saved');
   assert.equal((await signup({})).status, 409);
+  assert.match((await signup({ email: 'other@test.com' })).data.errors[0], /username is taken/);
+  assert.equal((await e.call('POST', '/api/auth/login', { username: 'AMY_t', password: STRONG })).status, 200, 'a guest can log in with the username');
   assert.equal((await e.call('POST', '/api/auth/login', { username: 'AMY@test.com', password: STRONG })).status, 200);
   assert.equal((await e.call('POST', '/api/auth/login', { username: 'admin', password: 'admin123' })).data.user.role, 'admin');
   const wrong = await e.call('POST', '/api/auth/login', { username: 'amy@test.com', password: 'Wrong1234!' });
@@ -210,7 +214,9 @@ test('privacy: nobody receives another person\'s details, and booking codes are 
 test('privacy: reviews show only stars to others, and a guest sees their own in full', async () => {
   const e = await world();
   const a = (await e.book(e.tokens.cat, { cats: ['c1'] })).data.reservation;
+  const clockBefore = e.clock.now; e.clock.now = new Date(TOMORROW + 'T23:00:00').getTime();   // the session is over
   await e.act('concludeReservation', { code: a.code, checkedIn: 2 }, e.tokens.aisha);
+  e.clock.now = clockBefore;
   await e.act('addReview', { code: a.code, data: { handlerStars: 4, handlerComment: 'Kind', cats: [{ id: 'c1', stars: 5, comment: 'So soft' }] } }, e.tokens.cat);
   const get = async token => (await e.call('GET', '/api/data', undefined, token)).data.data.reviews[0];
   const visitor = await get();
@@ -290,7 +296,9 @@ test('actions: the whole booking life - book, pay, cancel with a refund, finish,
   assert.deepEqual([o.total, o.handler], [17.5, 'Aisha']);
   assert.match((await e.act('markOrderServed', { code: o.code }, e.tokens.ben)).data.error, /not for one of your rooms/);
   assert.equal((await e.act('markOrderServed', { code: o.code }, aisha)).data.order.status, 'Served');
+  const clockBefore = e.clock.now; e.clock.now = new Date(TOMORROW + 'T23:00:00').getTime();   // the session is over
   assert.equal((await e.act('concludeReservation', { code: a.code, checkedIn: 2 }, aisha)).data.reservation.status, 'Concluded');
+  e.clock.now = clockBefore;
   assert.equal((await e.act('addReview', { code: a.code, data: { handlerStars: 5, cats: [{ id: 'c1', stars: 4 }, { id: 'c3', stars: 5 }] } }, cat)).data.ok, true);
   const b = (await e.book(cat, { roomId: 'P2', cats: ['c4'], time: '10:00', hours: 2 })).data.reservation;
   await e.act('payReservation', { code: b.code, method: 'PayNow' }, cat);
@@ -422,7 +430,9 @@ test('dashboard feed: totals, bookings by month and session, room status now, an
   await e.act('payReservation', { code: a.code, method: 'Card' }, e.tokens.cat);
   const b = (await e.book(e.tokens.dog, { sessionId: 'ys', roomId: 'L1', cats: [], time: '10:00', guests: 5 })).data.reservation;
   await e.act('cancelReservation', { code: b.code }, e.tokens.dog);
+  const clockBefore = e.clock.now; e.clock.now = new Date(TOMORROW + 'T23:00:00').getTime();   // the session is over
   await e.act('concludeReservation', { code: a.code, checkedIn: 2 }, e.tokens.aisha);
+  e.clock.now = clockBefore;
   await e.act('addReview', { code: a.code, data: { handlerStars: 5, handlerComment: 'Lovely', cats: [{ id: 'c1', stars: 3, comment: 'Shy' }] } }, e.tokens.cat);
   e.clock.now = new Date('2030-03-05T14:30:00').getTime();
   const d = (await e.call('GET', '/api/admin/dashboard', undefined, e.tokens.admin)).data;

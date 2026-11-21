@@ -104,8 +104,8 @@
           const del = document.createElement('button');
           del.textContent = 'Delete';
           del.style.marginLeft = '6px';
-          del.addEventListener('click', function () {
-            if (!confirm('Delete the event "' + e.title + '"?')) return;
+          del.addEventListener('click', async function () {
+            if (!await uiConfirm('Delete the event "' + e.title + '"?')) return;
             saveEvents(loadEvents().filter(x => x.id !== e.id));
             if (editingId === e.id) resetForm();
             render();
