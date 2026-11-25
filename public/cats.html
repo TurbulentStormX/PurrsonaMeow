@@ -43,7 +43,89 @@
     </main>
   </div>
 
-  <footer id="site-footer" class="site-footer"></footer>
+  
+<!-- Expanded Cat Profile -->
+
+<dialog id="catProfileModal" class="cat-profile-modal">
+
+  <div class="cat-profile-content">
+
+    <button type="button"
+            id="closeCatProfile"
+            class="cat-profile-close"
+            aria-label="Close cat profile">
+      &times;
+    </button>
+
+    <!-- Enlarged cat photograph -->
+
+    <div class="cat-profile-image">
+      <img id="profilePhoto" src="" alt="">
+    </div>
+
+    <!-- Cat name and relationship -->
+
+    <div class="cat-profile-heading">
+      <span class="profile-subtitle">
+        Get to know me
+      </span>
+
+      <h2 id="profileName"></h2>
+      <p id="profileRelation"></p>
+    </div>
+
+    <!-- About Me -->
+
+    <section class="profile-box" id="profileAboutBox">
+      <h3>About Me</h3>
+      <p id="profileAbout"></p>
+    </section>
+
+    <!-- Personality -->
+
+    <section class="profile-box" id="profilePersonalityBox">
+      <h3>My Personality</h3>
+      <p id="profilePersonality"></p>
+    </section>
+
+    <!-- Likes and Dislikes -->
+
+    <div class="profile-preferences">
+
+      <section class="profile-box profile-likes"
+               id="profileLikesBox">
+        <h3>♡ My Likes</h3>
+        <ul id="profileLikes"></ul>
+      </section>
+
+      <section class="profile-box profile-dislikes"
+               id="profileDislikesBox">
+        <h3>My Dislikes</h3>
+        <ul id="profileDislikes"></ul>
+      </section>
+
+    </div>
+
+    <!-- Interaction Tips -->
+
+    <section class="profile-box profile-tips"
+             id="profileTipsBox">
+      <h3>How to Approach Me</h3>
+      <p id="profileTips"></p>
+    </section>
+
+    <button type="button"
+            id="backToPinboard"
+            class="profile-back-button">
+      Back to the Pinboard
+    </button>
+
+  </div>
+
+</dialog>
+
+
+  <footer id="site-footer" class="site-footer"></footer>  
 
   <script src="api.js"></script>
   <script src="auth.js"></script>

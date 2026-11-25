@@ -311,3 +311,340 @@ body:has(.cats-page) .site-footer a {
         transition: none;
     }
 }
+
+
+/* ========================================
+   EXPANDED CAT PROFILE
+======================================== */
+
+/* Clickable pinboard cards */
+
+.cats-page .cat-card[role="button"] {
+    cursor: pointer;
+}
+
+.cats-page .cat-card:focus-visible {
+    outline: 3px solid #c98672;
+    outline-offset: 5px;
+}
+
+.cats-page .cat-card .cat-profile-hint {
+    color: #a66d58;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 15px;
+    letter-spacing: 0.03em;
+}
+
+/* Prevent background scrolling */
+
+body.cat-modal-open {
+    overflow: hidden;
+}
+
+/* Popup container */
+
+.cat-profile-modal {
+    width: min(620px, calc(100% - 32px));
+    max-width: 620px;
+    max-height: 90vh;
+    max-height: 90dvh;
+    padding: 0;
+    margin: auto;
+    border: none;
+    border-radius: 20px;
+    background: #fffaf3;
+    color: #49382f;
+    box-sizing: border-box;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    font-family: 'DM Sans', Arial, sans-serif;
+    box-shadow: 0 20px 60px rgba(55, 35, 20, 0.3);
+}
+
+/* Background overlay */
+
+.cat-profile-modal::backdrop {
+    background: rgba(49, 34, 26, 0.65);
+    backdrop-filter: blur(5px);
+}
+
+/* Opening animation */
+
+.cat-profile-modal[open] {
+    animation: catProfileAppear 0.3s ease-out;
+}
+
+@keyframes catProfileAppear {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Inner content */
+
+.cat-profile-content {
+    position: relative;
+    padding: 30px;
+}
+
+/* Close button */
+
+.cat-profile-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fffaf3;
+    color: #79523f;
+    border: 1px solid #dfc5b4;
+    border-radius: 50%;
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 5;
+    transition: background 0.2s, color 0.2s;
+}
+
+.cat-profile-close:hover {
+    background: #c98672;
+    color: white;
+}
+
+/* Enlarged cat photograph */
+
+.cat-profile-image {
+    padding: 10px;
+    background: #ffffff;
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(55, 35, 20, 0.12);
+}
+
+.cat-profile-image img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 350px;
+    object-fit: contain;
+    background: #f6eae0;
+    border-radius: 3px;
+}
+
+.cat-profile-image:has(img[hidden]) {
+    display: none;
+}
+
+/* Cat name and relationship */
+
+.cat-profile-heading {
+    text-align: center;
+    margin: 25px 0;
+}
+
+.profile-subtitle {
+    color: #a66d58;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.cat-profile-heading h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(30px, 5vw, 40px);
+    font-weight: 600;
+    color: #79523f;
+    margin: 8px 0;
+}
+
+.cat-profile-heading p {
+    font-size: 14px;
+    font-style: italic;
+    color: #967561;
+    margin: 0;
+}
+
+/* Individual information boxes */
+
+.profile-box {
+    background: #f3e5d8;
+    border: 1px solid #e6d3c2;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.profile-box h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 19px;
+    font-weight: 600;
+    color: #79523f;
+    margin: 0 0 10px;
+}
+
+.profile-box p {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #59483e;
+    margin: 0;
+    white-space: pre-line;
+}
+
+/* Likes and dislikes layout */
+
+.profile-preferences {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.profile-preferences:has(.profile-box[hidden]) {
+    grid-template-columns: 1fr;
+}
+
+.profile-preferences ul {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+/* Likes - soft sage green */
+
+.profile-likes {
+    background: #e5eadc;
+    border-color: #d0dac3;
+    color: #53664a;
+}
+
+.profile-likes h3 {
+    color: #53664a;
+}
+
+/* Dislikes - soft terracotta */
+
+.profile-dislikes {
+    background: #f2ddd5;
+    border-color: #e7c7ba;
+    color: #945a43;
+}
+
+.profile-dislikes h3 {
+    color: #945a43;
+}
+
+/* Interaction tips */
+
+.profile-tips {
+    background: #f6ead9;
+    border-left: 4px solid #c98672;
+}
+
+/* Hide empty profile sections */
+
+.cat-profile-modal [hidden] {
+    display: none !important;
+}
+
+/* Back to pinboard button */
+
+.profile-back-button {
+    display: block;
+    width: 100%;
+    padding: 14px 20px;
+    margin-top: 22px;
+    background: #79523f;
+    color: #fffaf3;
+    border: none;
+    border-radius: 30px;
+    font-family: 'DM Sans', Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.profile-back-button:hover {
+    background: #c98672;
+}
+
+/* Keyboard accessibility */
+
+.cat-profile-modal button:focus-visible {
+    outline: 3px solid #c98672;
+    outline-offset: 3px;
+}
+
+/* ========================================
+   MOBILE RESPONSIVENESS
+======================================== */
+
+@media (max-width: 600px) {
+
+    .cat-profile-modal {
+        width: calc(100% - 24px);
+        border-radius: 15px;
+    }
+
+    .cat-profile-content {
+        padding: 20px;
+    }
+
+    .cat-profile-image img {
+        max-height: 260px;
+    }
+
+    .cat-profile-heading h2 {
+        font-size: 30px;
+    }
+
+    .profile-preferences {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .profile-box {
+        padding: 15px;
+    }
+
+    .profile-box h3 {
+        font-size: 18px;
+    }
+
+    .profile-box p,
+    .profile-preferences ul {
+        font-size: 14px;
+    }
+
+    .cat-profile-close {
+        top: 10px;
+        right: 10px;
+    }
+}
+
+/* Reduced motion accessibility */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .cat-profile-modal[open] {
+        animation: none;
+    }
+
+    .cat-profile-close,
+    .profile-back-button {
+        transition: none;
+    }
+}

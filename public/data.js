@@ -152,32 +152,149 @@ function loadSessions() {
 }
 function saveSessions(list) { saveList('sessions', list); }
 
-// ---------- cats ----------
-// "active" = available for sessions (untick when a cat is resting or unwell). "note" says why.
-// "handler" = the staff member who looks after this cat (the admin can change it).
+
+ // ---------- cats ----------
+ // "active" = available for sessions.
+ // "note" = reason for resting or unavailability.
+ // "handler" = assigned cat handler.
+ // "notes" = existing cat notes.
+ // "about", "personality", "likes", "dislikes" and
+ // "interactionTips" = expanded customer profile.
+
 function loadCats() {
   const cats = loadSeeded('cats', () => [
-    { id: 'c1', name: 'Fluffy',   relation: "Moody's Brother",   photo: 'images/fluffy.png',   active: true, note: '', handler: 'aisha',
-      notes: ['Loves to eat, pets', 'May scratch if too overstimulated.'] },
-    { id: 'c2', name: 'Moody',    relation: "Fluffy's Brother",  photo: 'images/moody.png',    active: true, note: '', handler: 'aisha',
-      notes: ['Loves to clean (his brother)', 'Will lick the spot where you last petted.'] },
-    { id: 'c3', name: 'Madinah',  relation: "Mozza's Sister",    photo: 'images/madinah.png',  active: true, note: '', handler: 'aisha',
-      notes: ['Shy Girl, ADHD', 'Surprisingly can play fetch... We think...'] },
-    { id: 'c4', name: 'Mozza',    relation: "Madinah's Brother", photo: 'images/mozza.png',    active: true, note: '', handler: 'ben',
-      notes: ['Lazy Fluff', 'Loves to hide unless there is food.'] },
-    { id: 'c5', name: 'Kitty',    relation: 'little kitten',     photo: 'images/kitty.png',    active: true, note: '', handler: 'ben',
-      notes: ['tiny cat', 'Loves to play'] },
-    { id: 'c6', name: 'Whiskers', relation: 'big kitten',        photo: 'images/whiskers.png', active: true, note: '', handler: 'ben',
-      notes: ['big cat', 'Loves to sleep'] }
+    {
+      id: 'c1',
+      name: 'Fluffy',
+      relation: "Moody's Brother",
+      photo: 'images/fluffy.png',
+      active: true,
+      note: '',
+      handler: 'aisha',
+      notes: [
+        'Loves to eat, pets',
+        'May scratch if too overstimulated.'
+      ],
+      about: "I'm Moody's brother and I love food and attention.",
+      personality: 'Affectionate',
+      likes: ['Food', 'Gentle petting'],
+      dislikes: ['Overstimulation'],
+      interactionTips: 'Pet gently and give me space when needed.'
+    },
+    {
+      id: 'c2',
+      name: 'Moody',
+      relation: "Fluffy's Brother",
+      photo: 'images/moody.png',
+      active: true,
+      note: '',
+      handler: 'aisha',
+      notes: [
+        'Loves to clean (his brother)',
+        'Will lick the spot where you last petted.'
+      ],
+      about: "I'm Fluffy's brother and I enjoy grooming.",
+      personality: '',
+      likes: ['Grooming my brother'],
+      dislikes: [],
+      interactionTips: ''
+    },
+    {
+      id: 'c3',
+      name: 'Madinah',
+      relation: "Mozza's Sister",
+      photo: 'images/madinah.png',
+      active: true,
+      note: '',
+      handler: 'aisha',
+      notes: [
+        'Shy Girl, ADHD',
+        'Surprisingly can play fetch... We think...'
+      ],
+      about: "I'm Mozza's sister. I may be shy, but I can surprise you!",
+      personality: 'Shy and playful',
+      likes: ['Playing fetch'],
+      dislikes: [],
+      interactionTips: 'Allow me to approach you at my own pace.'
+    },
+    {
+      id: 'c4',
+      name: 'Mozza',
+      relation: "Madinah's Brother",
+      photo: 'images/mozza.png',
+      active: true,
+      note: '',
+      handler: 'ben',
+      notes: [
+        'Lazy Fluff',
+        'Loves to hide unless there is food.'
+      ],
+      about: "I'm Madinah's brother. I enjoy hiding and relaxing.",
+      personality: 'Relaxed',
+      likes: ['Food', 'Hiding'],
+      dislikes: [],
+      interactionTips: 'Give me space when I am hiding.'
+    },
+    {
+      id: 'c5',
+      name: 'Kitty',
+      relation: 'little kitten',
+      photo: 'images/kitty.png',
+      active: true,
+      note: '',
+      handler: 'ben',
+      notes: ['tiny cat', 'Loves to play'],
+      about: "I'm a little kitten who loves to play!",
+      personality: 'Playful',
+      likes: ['Playing'],
+      dislikes: [],
+      interactionTips: ''
+    },
+    {
+      id: 'c6',
+      name: 'Whiskers',
+      relation: 'big kitten',
+      photo: 'images/whiskers.png',
+      active: true,
+      note: '',
+      handler: 'ben',
+      notes: ['big cat', 'Loves to sleep'],
+      about: "I'm a big kitten who loves sleeping.",
+      personality: 'Sleepy',
+      likes: ['Sleeping'],
+      dislikes: [],
+      interactionTips: 'Please let me rest when I am sleeping.'
+    }
   ]);
-  // cats saved by an older version had no handler: share them out between Aisha and Ben
+
+  // Compatibility with previously saved cat records.
   cats.forEach(function (c, i) {
-    if (c.handler === undefined) c.handler = i < Math.ceil(cats.length / 2) ? 'aisha' : 'ben';
+    if (c.handler === undefined) {
+      c.handler = i < Math.ceil(cats.length / 2)
+        ? 'aisha'
+        : 'ben';
+    }
+
     if (c.note === undefined) c.note = '';
+    if (!Array.isArray(c.notes)) c.notes = [];
+
+    // New expanded profile fields.
+    if (c.about === undefined) c.about = '';
+    if (c.personality === undefined) c.personality = '';
+    if (!Array.isArray(c.likes)) c.likes = [];
+    if (!Array.isArray(c.dislikes)) c.dislikes = [];
+    if (c.interactionTips === undefined) {
+      c.interactionTips = '';
+    }
   });
+
   return cats;
 }
-function saveCats(list) { saveList('cats', list); }
+
+function saveCats(list) {
+  saveList('cats', list);
+}
+
 
 // ---------- events ----------
 function loadEvents() {

@@ -34,6 +34,36 @@
         <label>Notes (one line each)
           <textarea id="catNotes" rows="4" placeholder="Loves to eat&#10;May scratch if overstimulated"></textarea>
         </label>
+
+        
+<!-- Expanded cat profile information -->
+
+        <label>About Me
+          <textarea id="catAbout" rows="4"
+          placeholder="Enter a short introduction about the cat..."></textarea>
+        </label>
+
+        <label>Personality
+          <input type="text" id="catPersonality"
+          placeholder="e.g. Playful, friendly, curious">
+        </label>
+
+        <label>Likes (one per line)
+          <textarea id="catLikes" rows="4"
+          placeholder="Feather toys&#10;Gentle petting&#10;Sleeping"></textarea>
+        </label>
+
+        <label>Dislikes (one per line)
+          <textarea id="catDislikes" rows="4"
+          placeholder="Loud noises&#10;Sudden movements"></textarea>
+        </label>
+
+        <label>Interaction Tips
+          <textarea id="catInteractionTips" rows="3"
+          placeholder="How should customers approach this cat?"></textarea>
+        </label>
+
+
         <label>Looked after by <select id="catHandler"></select></label>
         <label>Photo <input type="file" id="catPhoto" accept="image/*"></label>
         <img id="preview" class="preview" alt="" style="display:none">
@@ -104,11 +134,21 @@
         el('cancelBtn').style.display = 'none';
         el('error').textContent = '';
       }
+
+
+
       function startEdit(cat) {
         editingId = cat.id;
         el('catName').value = cat.name;
         el('catRelation').value = cat.relation || '';
         el('catNotes').value = (cat.notes || []).join('\n');
+
+        el('catAbout').value = cat.about || '';
+        el('catPersonality').value = cat.personality || '';
+        el('catLikes').value = (cat.likes || []).join('\n');
+        el('catDislikes').value = (cat.dislikes || []).join('\n');
+        el('catInteractionTips').value = cat.interactionTips || '';
+
         el('catHandler').value = cat.handler;
         el('catActive').checked = cat.active;
         el('catNote').value = cat.note || '';
@@ -149,7 +189,15 @@
             photoCell.appendChild(none);
           }
           tr.insertCell().textContent = cat.name;
-          tr.insertCell().textContent = [cat.relation].concat(cat.notes || []).filter(Boolean).join(' | ') || '-';
+          
+          tr.insertCell().textContent = [
+            cat.relation,
+            cat.about,
+            cat.personality
+          ].concat(cat.notes || [])
+            .filter(Boolean)
+            .join(' | ') || '-';
+            
 
           // change who looks after this cat straight from the table
           const handlerCell = tr.insertCell();
@@ -202,12 +250,41 @@
         if (!name) { el('error').textContent = 'Please enter a name.'; return; }
         if (cats.some(c => c.name.toLowerCase() === name.toLowerCase() && c.id !== editingId)) { el('error').textContent = 'There is already a cat with that name.'; return; }
 
-        const data = {
-          name: name, relation: el('catRelation').value.trim(),
-          notes: el('catNotes').value.split('\n').map(l => l.trim()).filter(Boolean),
-          handler: el('catHandler').value, photo: photoData,
-          active: el('catActive').checked, note: el('catActive').checked ? '' : el('catNote').value.trim()
+        
+      const data = {
+        name: name,
+        relation: el('catRelation').value.trim(),
+
+        notes: el('catNotes').value
+          .split('\n')
+          .map(l => l.trim())
+          .filter(Boolean),
+
+        about: el('catAbout').value.trim(),
+
+        personality: el('catPersonality').value.trim(),
+
+        likes: el('catLikes').value
+          .split('\n')
+          .map(l => l.trim())
+          .filter(Boolean),
+
+        dislikes: el('catDislikes').value
+          .split('\n')
+          .map(l => l.trim())
+          .filter(Boolean),
+
+        interactionTips: el('catInteractionTips').value.trim(),
+
+        handler: el('catHandler').value,
+        photo: photoData,
+        active: el('catActive').checked,
+
+         note: el('catActive').checked
+          ? ''
+          : el('catNote').value.trim()
         };
+
         let id = editingId;
         if (editingId) {
           Object.assign(cats.find(c => c.id === editingId), data);
