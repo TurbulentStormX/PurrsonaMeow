@@ -127,6 +127,8 @@
 
   <footer id="site-footer" class="site-footer"></footer>  
 
+
+
   <script src="api.js"></script>
   <script src="auth.js"></script>
   <script src="storage.js"></script>
@@ -138,6 +140,147 @@
 
     onDataReady(async function () {
     renderLayout('cats.html');
+
+
+// ---------- Expanded Cat Profile ----------
+
+const catModal = document.getElementById('catProfileModal');
+
+const profilePhoto = document.getElementById('profilePhoto');
+
+// Display text and hide empty sections
+
+function setProfileText(boxId, textId, value) {
+  const box = document.getElementById(boxId);
+  const text = document.getElementById(textId);
+
+  text.textContent = value || '';
+  box.hidden = !String(value || '').trim();
+}
+
+// Display likes and dislikes as individual items
+
+function setProfileList(boxId, listId, items) {
+  const box = document.getElementById(boxId);
+  const list = document.getElementById(listId);
+
+  list.innerHTML = '';
+
+  const values = Array.isArray(items)
+    ? items.filter(item => String(item).trim())
+    : [];
+
+  values.forEach(function (item) {
+    const li = document.createElement('li');
+    li.textContent = item;
+    list.appendChild(li);
+  });
+
+  box.hidden = values.length === 0;
+}
+
+// Open the selected cat's profile
+
+function openCatProfile(cat) {
+
+  // Cat photograph
+
+  profilePhoto.hidden = !cat.photo;
+
+  if (cat.photo) {
+    profilePhoto.src = cat.photo;
+    profilePhoto.alt = 'Photo of ' + cat.name;
+  } else {
+    profilePhoto.removeAttribute('src');
+    profilePhoto.alt = '';
+  }
+
+  // Cat name and relationship
+
+  document.getElementById('profileName').textContent =
+    'Meet ' + cat.name + '!';
+
+  document.getElementById('profileRelation').textContent =
+    cat.relation || '';
+
+  // About Me
+
+  setProfileText(
+    'profileAboutBox',
+    'profileAbout',
+    cat.about
+  );
+
+  // Personality
+
+  setProfileText(
+    'profilePersonalityBox',
+    'profilePersonality',
+    cat.personality
+  );
+
+  // Likes
+
+  setProfileList(
+    'profileLikesBox',
+    'profileLikes',
+    cat.likes
+  );
+
+  // Dislikes
+
+  setProfileList(
+    'profileDislikesBox',
+    'profileDislikes',
+    cat.dislikes
+  );
+
+  // Interaction tips
+
+  setProfileText(
+    'profileTipsBox',
+    'profileTips',
+    cat.interactionTips
+  );
+
+  // Open popup
+
+  catModal.showModal();
+  document.body.classList.add('cat-modal-open');
+}
+
+// Hide missing photographs
+
+profilePhoto.addEventListener('error', function () {
+  profilePhoto.hidden = true;
+});
+
+// Close the profile
+
+function closeCatProfile() {
+  catModal.close();
+}
+
+document.getElementById('closeCatProfile')
+  .addEventListener('click', closeCatProfile);
+
+document.getElementById('backToPinboard')
+  .addEventListener('click', closeCatProfile);
+
+// Close when clicking outside the profile
+
+catModal.addEventListener('click', function (event) {
+  if (event.target === catModal) {
+    closeCatProfile();
+  }
+});
+
+// Restore scrolling when closed
+
+catModal.addEventListener('close', function () {
+  document.body.classList.remove('cat-modal-open');
+});
+
 
     // If a photo file is missing, show a grey box instead of a broken picture
     function showPlaceholder(img) {
@@ -152,6 +295,34 @@
     loadCats().forEach(function (cat) {
       const card = document.createElement('div');
       card.className = 'cat-card';
+
+
+// Make the cat card interactive
+
+card.tabIndex = 0;
+
+card.setAttribute('role', 'button');
+
+card.setAttribute(
+  'aria-label',
+  'View ' + cat.name + "'s profile"
+);
+
+card.setAttribute('aria-haspopup', 'dialog');
+
+card.addEventListener('click', function () {
+  openCatProfile(cat);
+});
+
+// Allow keyboard interaction
+
+card.addEventListener('keydown', function (event) {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    openCatProfile(cat);
+  }
+});
+
 
       if (cat.photo) {
         const img = document.createElement('img');
@@ -194,6 +365,17 @@
         rest.textContent = 'Resting right now' + (cat.note ? ': ' + cat.note : '');
         card.appendChild(rest);
       }
+
+      
+      const hint = document.createElement('p');
+
+      hint.className = 'cat-profile-hint';
+
+      hint.textContent = 'Click to get to know me ♡';
+
+      card.appendChild(hint);
+
+
       grid.appendChild(card);
     });
     });
