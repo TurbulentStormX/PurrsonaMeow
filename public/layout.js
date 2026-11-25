@@ -37,8 +37,7 @@ const PAGES = [
   ['admin-staff.html', 'Staff and leave', 'staff handlers leave sick urgent break', ['admin']],
   ['admin-reviews.html', 'Reviews', 'ratings reviews stars cats staff', ['admin']],
   ['admin-faq.html', 'FAQ and feedback', 'faq feedback questions supporters subscribers', ['admin']],
-  ['admin-events.html', 'Manage Events', 'events offers', ['admin']],
-  ['admin-management.html', 'Management', 'admin staff handlers permissions roles', ['admin']]
+  ['admin-events.html', 'Manage Events', 'events offers', ['admin']]
 ];
 
 function roleOf(user) { return user ? user.role : 'visitor'; }
@@ -92,7 +91,7 @@ function menuGroups(user) {
   return [
     { label: 'Overview', items: pick(['dashboard.html', 'admin.html', 'admin-orders.html', 'cat-schedule.html']) },
     { label: 'Cafe setup', items: pick(['admin-menu.html', 'admin-rooms.html', 'admin-sessions.html', 'admin-rates.html', 'admin-hours.html', 'admin-cats.html', 'admin-events.html']) },
-    { label: 'People', items: pick(['staff-status.html', 'admin-staff.html', 'admin-management.html', 'admin-reviews.html', 'admin-faq.html']) }
+    { label: 'People', items: pick(['staff-status.html', 'admin-staff.html', 'admin-reviews.html', 'admin-faq.html']) }
   ];
 
 function menuFor(user) {
