@@ -513,7 +513,8 @@ test('emails (EmailJS): off without keys; with keys it sends the booking and the
   assert.equal(await m.bookingConfirmed(r), true);
   assert.deepEqual([sent[0].service, sent[0].template, sent[0].keys], ['svc', 'tpl_book', { publicKey: 'pub', privateKey: 'priv' }]);
   assert.equal(sent[0].params.email, 'cat@gmail.com');
-  assert.equal(sent[0].params.amount, 'S$20.00');
+  assert.ok(sent[0].params.extra_details.includes('Total Amount: S$20.00') && sent[0].params.extra_details.includes('Cat Handler: Aisha'));
+  assert.equal(sent[0].params.email_heading, 'Your Booking is Confirmed!');
   assert.equal(sent[0].params.name, 'Tom &amp; Jerry', 'values are escaped before they go into the email');
 
   const orders = [{ code: 'OR-1001', total: 9, items: [{ name: 'Latte', qty: 2, price: 4.5 }] }];
@@ -523,6 +524,11 @@ test('emails (EmailJS): off without keys; with keys it sends the booking and the
   assert.deepEqual([pay.food_items, pay.food_total, pay.food_order_codes, pay.grand_total], ['Latte x 2 - S$9.00', 'S$9.00', 'OR-1001', 'S$29.00']);
   assert.equal((await m.paymentReceived(r)).valueOf(), true);
   assert.equal(sent[2].params.food_items, 'No food orders');
+
+  assert.equal(await m.bookingCancelled({ ...r, cancelReason: 'Cancelled by customer' }, { refund: 10, percent: 50, fee: 5 }), true);
+  assert.equal(sent[3].template, 'tpl_book', 'the cancellation uses the booking template');
+  assert.equal(sent[3].params.email_heading, 'Your Booking Has Been Cancelled');
+  assert.ok(sent[3].params.extra_details.includes('Refund Amount: S$10.00') && sent[3].params.extra_details.includes('Cancellation Fee: S$5.00'));
 
   refuse = true;
   assert.equal(await m.bookingConfirmed(r), false, 'a refusal never throws');
@@ -620,4 +626,23 @@ test('settings: everyone edits their own profile and avatar, guests keep a saved
   assert.equal((await e.call('POST', '/api/auth/password', { current: 'cat123', password: 'weak' }, cat)).status, 400);
   assert.equal((await e.call('POST', '/api/auth/password', { current: 'cat123', password: STRONG }, cat)).data.ok, true);
   assert.ok(await e.login('cat', STRONG));
+});
+
+
+// ======================================================= the cat profile (about, personality, likes, dislikes, tips) is saved
+test('admin can save a cat\'s notes and the full profile, and guests see it', async () => {
+  const e = await world();
+  const { admin, cat } = e.tokens;
+  const cats = (await e.call('GET', '/api/data', undefined, admin)).data.data.cats;
+  const fluffy = cats.find(c => c.id === 'c1');
+  fluffy.notes = ['Loves to eat', 'Brand new note'];
+  Object.assign(fluffy, { about: 'Hello, I am Fluffy.', personality: 'Affectionate', likes: ['Food', 'Petting'], dislikes: ['Loud noises'], interactionTips: 'Be gentle.' });
+  const saved = await e.call('PUT', '/api/collection/cats', { value: cats }, admin);
+  assert.equal(saved.status, 200, JSON.stringify(saved.data));
+  for (const token of [admin, cat]) {
+    const back = (await e.call('GET', '/api/data', undefined, token)).data.data.cats.find(c => c.id === 'c1');
+    assert.deepEqual(back.notes, ['Loves to eat', 'Brand new note']);
+    assert.deepEqual([back.about, back.personality, back.likes, back.dislikes, back.interactionTips],
+      ['Hello, I am Fluffy.', 'Affectionate', ['Food', 'Petting'], ['Loud noises'], 'Be gentle.']);
+  }
 });

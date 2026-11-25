@@ -78,6 +78,11 @@ export function buildModels(strict = true, instance = mongoose) {
       name: req(str(60)),
       relation: str(120),
       notes: [str(300)],
+      about: str(1000),                                   // the profile guests read on the Cats page
+      personality: str(300),
+      likes: [str(200)],
+      dislikes: [str(200)],
+      interactionTips: str(600),
       photo: { type: String, default: '', maxlength: 300000 },      // a picture path, or a small picture saved as text
       active: { type: Boolean, default: true },           // false = resting or unwell
       note: str(200),                                     // why it is resting
