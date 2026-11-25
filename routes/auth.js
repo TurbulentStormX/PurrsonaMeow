@@ -120,6 +120,141 @@ export default function authRoutes(app, ctx) {
 
   app.get('/api/auth/me', requireAuth(), (req, res) => res.json({ user: publicUser(req.user) }));
 
+  // ---- admin: view all registered accounts ----
+app.get('/api/admin/users', requireAuth('admin'), async (req, res) => {
+  try {
+    const users = await User.find({})
+      .select('name email username phone role')
+      .sort({ name: 1 })
+      .lean();
+
+    res.json({
+      users: users.map(u => ({
+        id: String(u._id),
+        name: u.name || '',
+        email: u.email || '',
+        username: u.username || '',
+        phone: u.phone || '',
+        role: u.role || 'guest'
+      }))
+    });
+  } catch (error) {
+    ctx.log('Could not load users: ' + error.message);
+    res.status(500).json({ error: 'Unable to load users.' });
+  }
+});
+
+// ---- admin: create a new account ----
+app.post('/api/admin/users', requireAuth('admin'), async (req, res) => {
+  try {
+    const b = req.body || {};
+
+    const name = String(b.name || '').trim();
+    const email = String(b.email || '').trim().toLowerCase();
+    const username = String(b.username || '').trim().toLowerCase();
+    const phone = String(b.phone || '').trim();
+    const password = String(b.password || '');
+    const role = String(b.role || '');
+
+    const errors = [];
+
+    if (!name) errors.push('Name is required.');
+    if (!/^\S+@\S+\.\S+$/.test(email)) errors.push('Enter a valid email.');
+    if (usernameProblem(username)) errors.push(usernameProblem(username));
+    if (!['guest', 'handler', 'admin'].includes(role)) {
+      errors.push('Choose a valid account role.');
+    }
+    if (role === 'guest' && !/^[689]\d{7}$/.test(phone)) {
+      errors.push('Customer phone must be 8 digits starting with 6, 8 or 9.');
+    }
+
+    const weak = passwordProblem(password);
+    if (weak) errors.push(weak);
+
+    if (errors.length) {
+      return res.status(400).json({ errors });
+    }
+
+    const existingEmail = await User.findOne({
+      $or: [{ email }, { username: email }]
+    });
+
+    if (existingEmail) {
+      return res.status(409).json({ error: 'This email is already in use.' });
+    }
+
+    const existingUsername = await User.findOne({
+      $or: [{ username }, { email: username }]
+    });
+
+    if (existingUsername) {
+      return res.status(409).json({ error: 'This username is already in use.' });
+    }
+
+    const user = await User.create({
+      name: name.slice(0, 80),
+      email,
+      username,
+      phone,
+      role,
+      passwordHash: await bcrypt.hash(password, 10)
+    });
+
+    res.status(201).json({
+      message: 'Account created successfully.',
+      user: {
+        id: String(user._id),
+        name: user.name,
+        email: user.email,
+        username: user.username,
+        phone: user.phone,
+        role: user.role
+      }
+    });
+
+  } catch (error) {
+    ctx.log('Could not create user: ' + error.message);
+    res.status(500).json({ error: 'Unable to create account.' });
+  }
+});
+
+// ---- admin: delete an account ----
+app.delete('/api/admin/users/:id', requireAuth('admin'), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ error: 'Account not found.' });
+    }
+
+    // Prevent an admin from deleting their own account.
+    if (String(user._id) === String(req.user.id)) {
+      return res.status(400).json({
+        error: 'You cannot delete your own account.'
+      });
+    }
+
+    // Prevent deleting the last remaining admin.
+    if (user.role === 'admin') {
+      const adminCount = await User.countDocuments({ role: 'admin' });
+
+      if (adminCount <= 1) {
+        return res.status(400).json({
+          error: 'You cannot delete the last admin account.'
+        });
+      }
+    }
+
+    await User.deleteOne({ _id: user._id });
+
+    res.json({ message: 'Account deleted successfully.' });
+
+  } catch (error) {
+    ctx.log('Could not delete user: ' + error.message);
+    res.status(500).json({ error: 'Unable to delete account.' });
+  }
+});
+
   // ---- forgot password, step 1 (the answer is the same whether or not the email has an account) ----
   app.post('/api/auth/forgot', async (req, res) => {
     const email = String((req.body || {}).email || '').trim().toLowerCase();

@@ -1160,4 +1160,131 @@
     }
 
 }
-    
+
+
+/* ===== USER MANAGEMENT ===== */
+
+.user-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin: 25px 0 10px;
+}
+
+.user-stat {
+  background: #FFF9F3;
+  border: 1px solid #EADFD2;
+  border-radius: 16px;
+  padding: 22px;
+  text-align: center;
+}
+
+.user-stat h2 {
+  font-size: 30px;
+  color: #A96F5F;
+  margin: 0 0 8px;
+}
+
+.user-stat p {
+  margin: 0;
+  color: #79523f;
+  font-size: 14px;
+}
+
+.user-controls {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.user-controls input,
+.user-controls select {
+  padding: 12px 15px;
+  border: 1px solid #EADFD2;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  background: #FFFDF9;
+  color: #5C5048;
+}
+
+.user-controls input {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-controls select {
+  min-width: 150px;
+}
+
+.user-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.user-table-wrapper table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.user-table-wrapper th,
+.user-table-wrapper td {
+  padding: 14px 12px;
+  text-align: left;
+  border-bottom: 1px solid #EADFD2;
+  font-size: 14px;
+}
+
+.user-table-wrapper th {
+  background: #F8F4EC;
+  color: #79523f;
+}
+
+.user-table-wrapper td {
+  color: #5C5048;
+}
+
+@media (max-width: 768px) {
+  .user-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .user-controls {
+    flex-direction: column;
+  }
+
+  .user-controls select {
+    width: 100%;
+  }
+}
+
+/* Manage Users - search and filter layout */
+.user-controls {
+  display: grid;
+  grid-template-columns: minmax(250px, 1fr) minmax(220px, 1fr);
+  gap: 16px;
+  align-items: center;
+}
+
+.user-controls input,
+.user-controls select {
+  width: 100%;
+  min-width: 0;
+  height: 58px;
+  box-sizing: border-box;
+  padding: 0 18px;
+  color: #5C5048;
+  background: #FFFDF9;
+  font-size: 16px;
+}
+
+.user-controls input::placeholder {
+  color: #8B7C70;
+  opacity: 1;
+}
+
+@media (max-width: 700px) {
+  .user-controls {
+    grid-template-columns: 1fr;
+  }
+}

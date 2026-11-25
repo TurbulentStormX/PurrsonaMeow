@@ -44,7 +44,8 @@ async function request(method, path, body) {
 const api = {
   get: path => request('GET', path),
   post: (path, body) => request('POST', path, body),
-  put: (path, body) => request('PUT', path, body)
+  put: (path, body) => request('PUT', path, body),
+  del: path => request('DELETE', path)
 };
 
 // The first message of an error, for showing on the page

@@ -1,0 +1,513 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Purrsona Meow - Manage Users</title>
+
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="admin-design.css">
+
+  <style>
+    .user-controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 240px;
+      gap: 14px;
+      width: 100%;
+      margin: 18px 0;
+    }
+
+    #userSearch, #roleFilter {
+      width: 100%;
+      min-width: 0;
+      height: 48px;
+      box-sizing: border-box;
+      padding: 0 14px;
+      font-size: 15px;
+    }
+
+    #userSearch {
+      color: #5C5048;
+    }
+
+    #userSearch::placeholder {
+      color: #8B7C70;
+      opacity: 1;
+    }
+
+    .user-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .add-user-button, .save-user-button {
+      background: #85B09A;
+      color: white;
+      border: none;
+      border-radius: 9px;
+      padding: 12px 18px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .add-user-button:hover, .save-user-button:hover {
+      opacity: 0.88;
+    }
+
+    .delete-user-button {
+      background: #F5E2DE;
+      color: #A34E45;
+      border: 1px solid #E8C5BE;
+      border-radius: 7px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .delete-user-button:hover {
+      background: #EED2CC;
+    }
+
+    .user-form {
+      display: none;
+      background: #FFFDF9;
+      border: 1px solid #EADFD2;
+      border-radius: 12px;
+      padding: 22px;
+      margin: 18px 0;
+    }
+
+    .user-form.open {
+      display: block;
+    }
+
+    .user-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .user-form label {
+      display: block;
+      color: #5C5048;
+      font-weight: 600;
+      margin-bottom: 7px;
+    }
+
+    .user-form input, .user-form select {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      padding: 12px;
+      border: 1px solid #DCCFC2;
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+      color: #5C5048;
+    }
+
+    .user-form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .cancel-user-button {
+      background: #EEE8E0;
+      color: #5C5048;
+      border: none;
+      border-radius: 9px;
+      padding: 12px 18px;
+      cursor: pointer;
+    }
+
+    .user-form-message {
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    .user-form-message.error {
+      color: #B34B42;
+    }
+
+    .user-form-message.success {
+      color: #4E8969;
+    }
+
+    .user-table-wrapper {
+      overflow-x: auto;
+    }
+
+    .user-table-wrapper table {
+      min-width: 780px;
+      width: 100%;
+    }
+
+    @media (max-width: 700px) {
+      .user-controls, .user-form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header id="site-header" class="site-header"></header>
+
+  <div class="layout">
+    <nav id="side-nav" class="side-nav"></nav>
+
+    <main class="admin-staff-page">
+
+      <div class="card wide-card">
+        <h1>Admin: Manage Users</h1>
+        <p>View and manage all registered accounts in Purrsona Meow.</p>
+
+        <div class="user-summary">
+          <div class="user-stat">
+            <h2 id="totalUsers">0</h2>
+            <p>Total Accounts</p>
+          </div>
+
+          <div class="user-stat">
+            <h2 id="customerCount">0</h2>
+            <p>Customers</p>
+          </div>
+
+          <div class="user-stat">
+            <h2 id="handlerCount">0</h2>
+            <p>Handlers</p>
+          </div>
+
+          <div class="user-stat">
+            <h2 id="adminCount">0</h2>
+            <p>Admins</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card wide-card">
+
+        <div class="user-heading">
+          <div>
+            <h2>Registered Accounts</h2>
+            <p>Search, filter, create or remove accounts.</p>
+          </div>
+
+          <button type="button" class="add-user-button" id="toggleUserForm">
+            + Add Account
+          </button>
+        </div>
+
+        <form class="user-form" id="userForm">
+          <h3>Create New Account</h3>
+          <p>Enter the details for the new account.</p>
+
+          <div class="user-form-grid">
+
+            <div>
+              <label for="newName">Full Name</label>
+              <input type="text" id="newName" maxlength="80" required>
+            </div>
+
+            <div>
+              <label for="newEmail">Email Address</label>
+              <input type="email" id="newEmail" required>
+            </div>
+
+            <div>
+              <label for="newUsername">Username</label>
+              <input type="text" id="newUsername" required>
+            </div>
+
+            <div>
+              <label for="newPhone">Phone Number</label>
+              <input type="tel" id="newPhone" placeholder="e.g. 91234567">
+            </div>
+
+            <div>
+              <label for="newPassword">Temporary Password</label>
+              <input type="password" id="newPassword" minlength="8" maxlength="12" required>
+              <small>8–12 characters, uppercase, lowercase, number and special character. No spaces.</small>
+            </div>
+
+            <div>
+              <label for="newRole">Account Role</label>
+              <select id="newRole" required>
+                <option value="guest">Customer</option>
+                <option value="handler">Handler</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+
+          </div>
+
+          <div class="user-form-actions">
+            <button type="submit" class="save-user-button" id="saveUserButton">
+              Create Account
+            </button>
+
+            <button type="button" class="cancel-user-button" id="cancelUserForm">
+              Cancel
+            </button>
+          </div>
+
+          <p id="userFormMessage" class="user-form-message"></p>
+        </form>
+
+        <div class="user-controls">
+          <input
+            type="text"
+            id="userSearch"
+            placeholder="Search by name, email or username..."
+          >
+
+          <select id="roleFilter">
+            <option value="all">All Roles</option>
+            <option value="guest">Customers</option>
+            <option value="handler">Handlers</option>
+            <option value="admin">Admins</option>
+          </select>
+        </div>
+
+        <p id="userResult" class="hint">Loading accounts...</p>
+
+        <div class="user-table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Username</th>
+                <th>Phone</th>
+                <th>Role</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody id="userRows">
+              <tr>
+                <td colspan="6">Loading users...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="storage.js"></script>
+  <script src="data.js"></script>
+  <script src="bookings.js"></script>
+  <script src="actions.js"></script>
+  <script src="layout.js"></script>
+
+  <script>
+    onDataReady(async function () {
+      renderLayout('admin-users.html');
+
+      if (guardPage(['admin'], 'manage users')) {
+        await initUsers();
+      }
+
+      async function initUsers() {
+        const el = id => document.getElementById(id);
+
+        let users = [];
+
+        const roleNames = {
+          guest: 'Customer',
+          handler: 'Handler',
+          admin: 'Admin'
+        };
+
+        function updateSummary() {
+          el('totalUsers').textContent = users.length;
+
+          el('customerCount').textContent =
+            users.filter(u => u.role === 'guest').length;
+
+          el('handlerCount').textContent =
+            users.filter(u => u.role === 'handler').length;
+
+          el('adminCount').textContent =
+            users.filter(u => u.role === 'admin').length;
+        }
+
+        function renderUsers() {
+          const search = el('userSearch').value.trim().toLowerCase();
+          const selectedRole = el('roleFilter').value;
+
+          const filtered = users.filter(u => {
+            const matchesSearch =
+              (u.name || '').toLowerCase().includes(search) ||
+              (u.email || '').toLowerCase().includes(search) ||
+              (u.username || '').toLowerCase().includes(search);
+
+            const matchesRole =
+              selectedRole === 'all' || u.role === selectedRole;
+
+            return matchesSearch && matchesRole;
+          });
+
+          const body = el('userRows');
+          body.innerHTML = '';
+
+          if (filtered.length === 0) {
+            const tr = body.insertRow();
+            const td = tr.insertCell();
+
+            td.colSpan = 6;
+            td.textContent = 'No matching accounts found.';
+
+            el('userResult').textContent = 'Showing 0 accounts.';
+            return;
+          }
+
+          filtered.forEach(u => {
+            const tr = body.insertRow();
+
+            [
+              u.name || '-',
+              u.email || '-',
+              u.username || '-',
+              u.phone || '-'
+            ].forEach(value => {
+              tr.insertCell().textContent = value;
+            });
+
+            const roleCell = tr.insertCell();
+            roleCell.textContent = roleNames[u.role] || u.role;
+
+            const actionCell = tr.insertCell();
+
+            const deleteButton = document.createElement('button');
+            deleteButton.type = 'button';
+            deleteButton.className = 'delete-user-button';
+            deleteButton.textContent = 'Delete';
+
+            deleteButton.addEventListener('click', () => deleteUser(u));
+
+            actionCell.appendChild(deleteButton);
+          });
+
+          el('userResult').textContent =
+            'Showing ' + filtered.length + ' of ' + users.length + ' accounts.';
+        }
+
+        async function loadUsers() {
+          const result = await api.get('/admin/users');
+          users = result.users || [];
+          updateSummary();
+          renderUsers();
+        }
+
+        async function deleteUser(user) {
+          const confirmed = confirm(
+            'Are you sure you want to delete the account for ' +
+            user.name + ' (' + user.username + ')? This action cannot be undone.'
+          );
+
+          if (!confirmed) return;
+
+          try {
+            await api.del('/admin/users/' + encodeURIComponent(user.id));
+            await loadUsers();
+            alert('Account deleted successfully.');
+          } catch (error) {
+            alert(errorText(error));
+          }
+        }
+
+        function closeUserForm() {
+          el('userForm').classList.remove('open');
+          el('userForm').reset();
+          el('userFormMessage').textContent = '';
+          el('userFormMessage').className = 'user-form-message';
+        }
+
+        el('toggleUserForm').addEventListener('click', () => {
+          el('userForm').classList.toggle('open');
+          el('userFormMessage').textContent = '';
+        });
+
+        el('cancelUserForm').addEventListener('click', closeUserForm);
+
+        el('newRole').addEventListener('change', () => {
+          const isCustomer = el('newRole').value === 'guest';
+          el('newPhone').required = isCustomer;
+        });
+
+        el('userForm').addEventListener('submit', async event => {
+          event.preventDefault();
+
+          const message = el('userFormMessage');
+          const saveButton = el('saveUserButton');
+
+          const payload = {
+            name: el('newName').value.trim(),
+            email: el('newEmail').value.trim(),
+            username: el('newUsername').value.trim(),
+            phone: el('newPhone').value.trim(),
+            password: el('newPassword').value,
+            role: el('newRole').value
+          };
+
+          saveButton.disabled = true;
+          saveButton.textContent = 'Creating...';
+          message.textContent = '';
+          message.className = 'user-form-message';
+
+          try {
+            await api.post('/admin/users', payload);
+
+            await loadUsers();
+            closeUserForm();
+
+            alert('Account created successfully.');
+
+          } catch (error) {
+            message.textContent = errorText(error);
+            message.className = 'user-form-message error';
+
+          } finally {
+            saveButton.disabled = false;
+            saveButton.textContent = 'Create Account';
+          }
+        });
+
+        try {
+          await loadUsers();
+
+          el('userSearch').addEventListener('input', renderUsers);
+          el('roleFilter').addEventListener('change', renderUsers);
+
+        } catch (error) {
+          el('userRows').innerHTML = '';
+
+          const tr = el('userRows').insertRow();
+          const td = tr.insertCell();
+
+          td.colSpan = 6;
+          td.textContent = errorText(error);
+
+          el('userResult').textContent = 'Could not load accounts.';
+
+          console.error('User loading error:', error);
+        }
+      }
+    });
+  </script>
+</body>
+</html>

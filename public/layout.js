@@ -35,6 +35,7 @@ const PAGES = [
   ['admin-hours.html', 'Hours and holidays', 'opening hours public holiday lunch break closed', ['admin']],
   ['admin-cats.html', 'Manage Cats', 'cats sick unwell handler photo resting', ['admin']],
   ['admin-staff.html', 'Staff and leave', 'staff handlers leave sick urgent break', ['admin']],
+  ['admin-users.html', 'Manage Users', 'users accounts customers handlers admins search', ['admin']],
   ['admin-reviews.html', 'Reviews', 'ratings reviews stars cats staff', ['admin']],
   ['admin-faq.html', 'FAQ and feedback', 'faq feedback questions supporters subscribers', ['admin']],
   ['admin-events.html', 'Manage Events', 'events offers', ['admin']]
@@ -60,6 +61,7 @@ const NAV_ICONS = {
   'admin-hours.html': '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l-3 3"/><path d="M2 12h2M20 12h2"/>',
   'admin-cats.html': '<path d="M12 21c-4 0-7-2.5-7-6 0-2 1-3.5 2-4.5L5 5l4 2c1-.3 2-.5 3-.5s2 .2 3 .5l4-2-2 5.500c1 1 2 2.500 2 4.500 0 3.500-3 6-7 6z"/><path d="M9 13h.01M15 13h.01"/>',
   'admin-staff.html': '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>',
+  'admin-users.html': '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   'admin-reviews.html': '<path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.200 6.800L12 17.700 5.800 21l1.200-6.800-5-4.900 6.900-1z"/>',
   'admin-faq.html': '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
   'admin-events.html': '<path d="M20 12v10H4V12"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.500a2.500 2.500 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.500a2.500 2.500 0 0 0 0-5C13 2 12 7 12 7z"/>',
@@ -90,7 +92,7 @@ function menuGroups(user) {
   return [
     { label: 'Overview', items: pick(['dashboard.html', 'admin.html', 'admin-orders.html', 'cat-schedule.html']) },
     { label: 'Cafe setup', items: pick(['admin-menu.html', 'admin-rooms.html', 'admin-sessions.html', 'admin-rates.html', 'admin-hours.html', 'admin-cats.html', 'admin-events.html']) },
-    { label: 'People', items: pick(['staff-status.html', 'admin-staff.html', 'admin-reviews.html', 'admin-faq.html']) }
+    { label: 'People', items: pick(['staff-status.html', 'admin-staff.html', 'admin-users.html', 'admin-reviews.html', 'admin-faq.html']) }
   ];
 }
 function menuFor(user) {
