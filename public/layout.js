@@ -37,7 +37,8 @@ const PAGES = [
   ['admin-staff.html', 'Staff and leave', 'staff handlers leave sick urgent break', ['admin']],
   ['admin-reviews.html', 'Reviews', 'ratings reviews stars cats staff', ['admin']],
   ['admin-faq.html', 'FAQ and feedback', 'faq feedback questions supporters subscribers', ['admin']],
-  ['admin-events.html', 'Manage Events', 'events offers', ['admin']]
+  ['admin-events.html', 'Manage Events', 'events offers', ['admin']],
+  ['admin-management.html', 'Management', 'admin staff handlers permissions roles', ['admin']]
 ];
 
 function roleOf(user) { return user ? user.role : 'visitor'; }
@@ -63,7 +64,8 @@ const NAV_ICONS = {
   'admin-reviews.html': '<path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.200 6.800L12 17.700 5.800 21l1.200-6.800-5-4.900 6.900-1z"/>',
   'admin-faq.html': '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
   'admin-events.html': '<path d="M20 12v10H4V12"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.500a2.500 2.500 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.500a2.500 2.500 0 0 0 0-5C13 2 12 7 12 7z"/>',
-  'settings.html': '<circle cx="12" cy="12" r="3"/><path d="M19.400 15a1.700 1.700 0 0 0 .3 1.800l.1.1a2 2 0 1 1-2.800 2.800l-.1-.1a1.700 1.700 0 0 0-1.800-.3 1.700 1.700 0 0 0-1 1.500V21a2 2 0 1 1-4 0v-.1a1.700 1.700 0 0 0-1.100-1.500 1.700 1.700 0 0 0-1.800.3l-.1.1a2 2 0 1 1-2.800-2.800l.1-.1a1.700 1.700 0 0 0 .3-1.800 1.700 1.700 0 0 0-1.500-1H3a2 2 0 1 1 0-4h.1a1.700 1.700 0 0 0 1.500-1.100 1.700 1.700 0 0 0-.3-1.800l-.1-.1a2 2 0 1 1 2.800-2.800l.1.1a1.700 1.700 0 0 0 1.800.3H9a1.700 1.700 0 0 0 1-1.500V3a2 2 0 1 1 4 0v.1a1.700 1.700 0 0 0 1 1.500 1.700 1.700 0 0 0 1.800-.3l.1-.1a2 2 0 1 1 2.800 2.800l-.1.1a1.700 1.700 0 0 0-.3 1.800V9a1.700 1.700 0 0 0 1.500 1H21a2 2 0 1 1 0 4h-.1a1.700 1.700 0 0 0-1.500 1z"/>'
+  'settings.html': '<circle cx="12" cy="12" r="3"/><path d="M19.400 15a1.700 1.700 0 0 0 .3 1.800l.1.1a2 2 0 1 1-2.800 2.800l-.1-.1a1.700 1.700 0 0 0-1.800-.3 1.700 1.700 0 0 0-1 1.500V21a2 2 0 1 1-4 0v-.1a1.700 1.700 0 0 0-1.100-1.500 1.700 1.700 0 0 0-1.800.3l-.1.1a2 2 0 1 1-2.800-2.800l.1-.1a1.700 1.700 0 0 0 .3-1.800 1.700 1.700 0 0 0-1.500-1H3a2 2 0 1 1 0-4h.1a1.700 1.700 0 0 0 1.500-1.100 1.700 1.700 0 0 0-.3-1.800l-.1-.1a2 2 0 1 1 2.800-2.800l.1.1a1.700 1.700 0 0 0 1.800.3H9a1.700 1.700 0 0 0 1-1.500V3a2 2 0 1 1 4 0v.1a1.700 1.700 0 0 0 1 1.500 1.700 1.700 0 0 0 1.800-.3l.1-.1a2 2 0 1 1 2.800 2.800l-.1.1a1.700 1.700 0 0 0-.3 1.800V9a1.700 1.700 0 0 0 1.500 1H21a2 2 0 1 1 0 4h-.1a1.700 1.700 0 0 0-1.500 1z"/>',
+  'admin-management.html': '<path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/><path d="M9.5 9.5h.01M14.5 9.5h.01M12 14.5h.01"/>'
 };
 function navIcon(file) {
   const path = NAV_ICONS[file];
@@ -90,9 +92,9 @@ function menuGroups(user) {
   return [
     { label: 'Overview', items: pick(['dashboard.html', 'admin.html', 'admin-orders.html', 'cat-schedule.html']) },
     { label: 'Cafe setup', items: pick(['admin-menu.html', 'admin-rooms.html', 'admin-sessions.html', 'admin-rates.html', 'admin-hours.html', 'admin-cats.html', 'admin-events.html']) },
-    { label: 'People', items: pick(['staff-status.html', 'admin-staff.html', 'admin-reviews.html', 'admin-faq.html']) }
+    { label: 'People', items: pick(['staff-status.html', 'admin-staff.html', 'admin-management.html', 'admin-reviews.html', 'admin-faq.html']) }
   ];
-}
+
 function menuFor(user) {
   return [].concat.apply([], menuGroups(user).map(g => g.items));
 }
