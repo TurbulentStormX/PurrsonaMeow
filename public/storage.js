@@ -58,10 +58,3 @@ function onDataReady(start) {
     if (main) main.innerHTML = '<div class="card msg-error">' + (window.__loadError || 'Could not load the data.') + ' Please try again in a moment.</div>';
   });
 }
-
-const cats = loadCats();
-const cat = cats.find(c => c.id === catId);
-if (cat) {
-  cat.notes.push('New note');
-  saveCats(cats);
-}
