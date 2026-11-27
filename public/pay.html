@@ -58,6 +58,44 @@
       const user = currentUser();
       const code = (new URLSearchParams(window.location.search).get('code') || '').toUpperCase();
       const box = document.getElementById('payBox');
+      const comingBack = new URLSearchParams(window.location.search).get('back') === '1';   // returning from the HitPay page
+      let online = false;                                                                  // is real PayNow switched on at the server?
+
+      // Real PayNow: ask the server for the HitPay page, then go there. The server (not this page) marks the booking paid.
+      async function payOnline(kind, button, label) {
+        button.disabled = true; button.textContent = 'Opening PayNow...';
+        try {
+          const started = await api.post('/pay/start', { code: code, kind: kind });
+          window.location.href = started.url;
+        } catch (e) {
+          await uiAlert((e && e.message) || 'We could not start the payment. Please try again.');
+          button.disabled = false; button.textContent = label;
+        }
+      }
+
+      // After HitPay sends the guest back, wait for the payment to be confirmed (up to about 40 seconds)
+      async function confirmPayment(kind) {
+        box.innerHTML = '';
+        const h = document.createElement('h1'); h.textContent = 'Payment';
+        box.appendChild(h);
+        notice('Confirming your payment with PayNow... this can take a few seconds. Please keep this page open.', '');
+        for (let i = 0; i < 14; i++) {
+          try {
+            const st = await api.get('/pay/status?code=' + encodeURIComponent(code) + '&kind=' + kind);
+            if (st.paid) { await refreshData(); history.replaceState(null, '', 'pay.html?code=' + encodeURIComponent(code)); render(); return; }
+          } catch (e) { /* try again */ }
+          await new Promise(function (ok) { setTimeout(ok, 3000); });
+        }
+        box.innerHTML = '';
+        box.appendChild(h);
+        notice('We have not received the payment yet. If you paid, it can take a minute to appear. Press the button to check again. If you did not finish paying, you can start again.', 'warn');
+        const again = document.createElement('button');
+        again.textContent = 'Check again';
+        again.addEventListener('click', function () { confirmPayment(kind); });
+        box.appendChild(again);
+        box.appendChild(document.createTextNode(' '));
+        backLink();
+      }
 
       function line(label, value) {
         const p = document.createElement('p');
@@ -83,6 +121,7 @@
 
       // PayNow or Card; the method saved in Settings is chosen first
       function methodChoice() {
+        if (online) { notice('Pay with PayNow: you will be taken to a secure page that shows a PayNow QR code. Scan it with your banking app.', ''); return; }
         const saved = (user.savedPayment && user.savedPayment.method) || 'PayNow';
         const methods = document.createElement('div');
         methods.className = 'pay-methods';
@@ -129,6 +168,7 @@
               const payFee = document.createElement('button');
               payFee.textContent = 'Pay fee ' + money(r.cancelFee);
               payFee.addEventListener('click', async function () {
+                if (online) { payOnline('fee', payFee, 'Pay fee ' + money(r.cancelFee)); return; }
                 payFee.disabled = true; payFee.textContent = 'Processing...';
                 const done = await payCancellationFee(r.code, box.querySelector('input[name=method]:checked').value);
                 if (!done.ok) { await uiAlert(done.error); payFee.disabled = false; payFee.textContent = 'Pay fee ' + money(r.cancelFee); return; }
@@ -155,7 +195,7 @@
         if (r.status === 'Concluded') { notice('This session has finished.'); backLink(); return; }
         if (r.status !== 'Assigned') { notice('This booking cannot be paid yet.'); backLink(); return; }
 
-        notice('PRACTICE ONLY: no money is taken and no card details are asked for. The real site would send you to a secure payment provider.', 'warn');
+        if (!online) notice('PRACTICE ONLY: no money is taken and no card details are asked for. The real site would send you to a secure payment provider.', 'warn');
 
         if (r.payBy) notice('Please pay by ' + new Date(r.payBy).toLocaleString('en-SG', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) + '. An unpaid booking is cancelled automatically after that, and the room and cats are freed for other guests.', '');
         methodChoice();
@@ -164,6 +204,7 @@
         pay.id = 'payBtn';
         pay.textContent = 'Pay ' + money(amountOf(r)) + ' now';
         pay.addEventListener('click', async function () {
+          if (online) { payOnline('booking', pay, 'Pay ' + money(amountOf(r)) + ' now'); return; }
           const method = box.querySelector('input[name=method]:checked').value;
           pay.disabled = true; pay.textContent = 'Processing...';      // stop double clicks
           const done = await payReservation(r.code, method);
@@ -174,7 +215,13 @@
         box.appendChild(document.createTextNode(' '));
         backLink();
       }
-      render();
+      (async function start() {
+        try { online = !!(await api.get('/pay/config')).online; } catch (e) { online = false; }
+        const mine = loadReservations().find(x => x.code === code && (x.email || '').toLowerCase() === user.email);
+        if (online && comingBack && mine && ((mine.status === 'Assigned' && !mine.paid) || (mine.status === 'Cancelled' && mine.cancelFee > 0 && !mine.feePaid))) {
+          confirmPayment(mine.status === 'Cancelled' ? 'fee' : 'booking');
+        } else render();
+      })();
     }
     });
   </script>

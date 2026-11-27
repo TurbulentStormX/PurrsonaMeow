@@ -35,3 +35,12 @@ services:
         sync: false
       - key: EMAILJS_PRIVATE_KEY
         sync: false
+      # Real PayNow payments through HitPay (see docs/PAYMENT.md). Leave them out and payment stays in practice mode.
+      - key: HITPAY_API_KEY
+        sync: false
+      - key: HITPAY_SALT
+        sync: false
+      - key: HITPAY_BASE_URL
+        sync: false
+      - key: PUBLIC_URL
+        value: https://purrsonameow.onrender.com

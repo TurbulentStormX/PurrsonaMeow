@@ -43,3 +43,5 @@ browser pages (public/)  --/api-->  server (app.js, routes/)  --->  MongoDB (mod
 - The React dashboard (Qistina's) is built into the `dashboard` folder and opens at `/dashboard/` after logging in as admin or handler. It now reads live data from `/api/data`. To change it, edit the source in your `dashboard-react` folder, then run `npx vite build --base=/dashboard/` and copy `dist` into `dashboard`.
 - Booking and payment emails (`lib/mailer.js`) are sent only when `EMAIL_USER` and `EMAIL_PASS` (a Gmail app password) are set in `.env` or in Render's Environment. Without them, nothing is sent and nothing breaks.
 - The old `backend` folder (port 3000) is no longer needed. Never upload its `.env`.
+
+Real PayNow payments (HitPay): see docs/PAYMENT.md

@@ -159,6 +159,7 @@ export function buildModels(strict = true, instance = mongoose) {
       refund: Number, refundPercent: Number, cancelledBy: { type: String, enum: ['guest', 'admin', 'system'] }, cancelledAt: str(40),
       cancelReason: str(120), cancelFee: Number, feePaid: Boolean,       // late-cancellation fee (and whether the guest has paid it)
       feePayment: sub({ method: { type: String, enum: ['PayNow', 'Card'] }, ref: String, amount: Number, paidAt: String }),
+      payRequest: sub({ id: String, kind: String, amount: Number, createdAt: String }),     // the HitPay payment started for this booking
       payBy: str(40), autoConcluded: Boolean,
       noShow: Boolean, endedEarly: Boolean, endedAtMin: Number, concludedAt: str(40), concludedBy: { type: String, enum: ['staff', 'auto'] },                           // pay-before time, and set when the cafe concluded it by itself
       pricePerGuest: Number, assignedBy: str(20), reopenedReason: str(200)      // only on bookings made by older versions

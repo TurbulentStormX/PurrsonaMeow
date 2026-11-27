@@ -11,6 +11,7 @@ import dataRoutes from './routes/data.js';
 import actionRoutes from './routes/actions.js';
 import collectionRoutes from './routes/collections.js';
 import dashboardRoutes from './routes/dashboard.js';
+import payRoutes from './routes/pay.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -26,6 +27,7 @@ export function createApp({ store, models, User, engine, secret, options = {} })
     log: options.log || console.log,
     resetCodeMode: options.resetCodeMode || 'console',      // 'console' = the code appears in the server log, 'page' = on the web page
     salt: secret,
+    hitpay: options.hitpay || null,                          // real PayNow payments through HitPay (off unless the keys are set)
     mailer: options.mailer || null,                          // booking emails (only the real server turns them on)
     loginLimiter: makeLimiter({ max: 5, lockSeconds: options.lockSeconds ?? 60, now: options.clock }),
     lookupLimiter: makeLimiter({ max: 5, lockSeconds: options.lockSeconds ?? 60, now: options.clock }),
@@ -58,6 +60,7 @@ export function createApp({ store, models, User, engine, secret, options = {} })
   authRoutes(app, ctx);
   dataRoutes(app, ctx);
   actionRoutes(app, ctx);
+  payRoutes(app, ctx);
   collectionRoutes(app, ctx);
   dashboardRoutes(app, ctx);
   app.use('/api', (req, res) => res.status(404).json({ error: 'Not found.' }));

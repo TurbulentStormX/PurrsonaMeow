@@ -9,6 +9,7 @@ import { createEngine } from './lib/rules.js';
 import { ensureSeeded } from './lib/seed.js';
 import { createApp } from './app.js';
 import { createMailer } from './lib/mailer.js';
+import { createHitpay } from './lib/hitpay.js';
 
 // The cafe runs on Singapore time. The rules work out "today" and "is it open now" from the server's clock,
 // so the server must use the cafe's time zone, not the hosting company's (which is usually UTC).
@@ -45,7 +46,7 @@ try {
 
 const app = createApp({
   store, models, User: models.User, engine, secret,
-  options: { resetCodeMode: process.env.RESET_CODE_MODE, trustProxy: !!process.env.RENDER || process.env.TRUST_PROXY === '1', corsOrigin: process.env.DASHBOARD_ORIGIN, mailer: createMailer(process.env) }
+  options: { resetCodeMode: process.env.RESET_CODE_MODE, trustProxy: !!process.env.RENDER || process.env.TRUST_PROXY === '1', corsOrigin: process.env.DASHBOARD_ORIGIN, mailer: createMailer(process.env), hitpay: createHitpay(process.env) }
 });
 const port = process.env.PORT || 5000;
 // every minute: cancel bookings that were not paid in time, and conclude sessions whose time is over

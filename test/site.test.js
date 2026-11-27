@@ -772,3 +772,21 @@ test('staff shell: dashboard opens inside the same sidebar, embedded; guests can
   assert.equal($(w, '#dashboardFrame'), null, 'a guest never gets the dashboard');
   noErrors(admin);
 });
+
+test('pay page with real PayNow on: no practice card, and coming back from HitPay confirms the payment', async () => {
+  let paid = false;
+  const hitpay = { enabled: true, createPayment: async () => ({ id: 'r1', url: 'https://pay.example/r1' }), getPayment: async () => ({ paid, amount: 30, paymentId: 'zz11yy22' }), verifyWebhook: () => false };
+  const e = await world({ hitpay });
+  const b = (await e.book(e.tokens.cat)).data.reservation;
+  const g = await as(e, 'cat');
+  let w = await g.open('pay.html?code=' + b.code);
+  assert.ok(!text(w, '#payBox').includes('PRACTICE ONLY'), 'no practice warning');
+  assert.equal($$(w, 'input[name=method]').length, 0, 'no card or method choice');
+  assert.ok(text(w, '#payBox').includes('PayNow QR code') && text(w, '#payBtn').includes('S$30.00'));
+  await e.call('POST', '/api/pay/start', { code: b.code }, e.tokens.cat);     // what the button does just before sending the guest to HitPay
+  paid = true;                                                                  // the guest paid on HitPay and is sent back here
+  w = await g.open('pay.html?code=' + b.code + '&back=1');
+  await until(() => /Paid\. Thank you!/.test(text(w, '#payBox')), 'the payment to be confirmed', 8000);
+  assert.ok(text(w, '#payBox').includes('HP-ZZ11YY22 | PayNow | S$30.00'));
+  noErrors(g);
+});

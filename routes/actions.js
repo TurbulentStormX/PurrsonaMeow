@@ -49,6 +49,11 @@ export default function actionRoutes(app, ctx) {
       }
     }
 
+    // With real payment switched on, the practice "pay" buttons must not mark a booking as paid for free
+    if (ctx.hitpay && ctx.hitpay.enabled && (req.params.name === 'payReservation' || req.params.name === 'payCancellationFee')) {
+      return res.status(400).json({ ok: false, error: 'Please pay online with PayNow.' });
+    }
+
     if (req.params.name === 'submitFeedback') {
       const wait = feedbackLimiter.wait(req.ip);
 

@@ -420,6 +420,58 @@ function payCancellationFee(code, method, userEmail) {
   return { ok: true, reservation: r };
 }
 
+// ---------- real online payment (HitPay PayNow) ----------
+// The server starts a HitPay payment, and only HitPay's own message (the webhook) can mark a booking as paid.
+// kind is 'booking' (the session price) or 'fee' (a late-cancellation fee that is still owed).
+// Step 1: is this guest allowed to pay this now, and how much?
+function beginOnlinePayment(code, kind, userEmail) {
+  const r = loadReservations().find(x => x.code === code);
+  if (!r) return { ok: false, error: 'Booking not found.' };
+  if ((r.email || '').toLowerCase() !== (userEmail || '').toLowerCase()) return { ok: false, error: 'That booking is not yours.' };
+  if (kind === 'fee') {
+    if (r.status !== 'Cancelled' || !(r.cancelFee > 0) || r.feePaid) return { ok: false, error: 'There is no cancellation fee to pay for this booking.' };
+    return { ok: true, amount: r.cancelFee, reservation: r };
+  }
+  if (r.status !== 'Assigned') return { ok: false, error: 'This booking cannot be paid now.' };
+  if (r.paid) return { ok: false, error: 'This booking is already paid.' };
+  return { ok: true, amount: amountOf(r), reservation: r };
+}
+// Step 2: remember which HitPay payment request belongs to the booking (so "check my payment" can ask HitPay)
+function attachPayRequest(code, kind, requestId, amount) {
+  const list = loadReservations();
+  const r = list.find(x => x.code === code);
+  if (!r) return { ok: false, error: 'Booking not found.' };
+  r.payRequest = { id: String(requestId), kind: kind === 'fee' ? 'fee' : 'booking', amount: amount, createdAt: new Date().toISOString() };
+  saveReservations(list);
+  return { ok: true };
+}
+// Step 3: HitPay says it was paid. The amount must match what we asked for. A payment that arrives twice is ignored.
+function completeOnlinePayment(code, kind, paymentId, amountPaid) {
+  const list = loadReservations();
+  const r = list.find(x => x.code === code);
+  if (!r) return { ok: false, error: 'Booking not found.' };
+  const ref = 'HP-' + String(paymentId || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 8).toUpperCase();
+  const now = new Date().toISOString();
+  if (kind === 'fee') {
+    if (r.feePaid) return { ok: true, already: true, reservation: r };
+    if (r.status !== 'Cancelled' || !(r.cancelFee > 0)) return { ok: false, error: 'No fee is owed on this booking.', needsRefund: true };
+    if (Math.abs(Number(amountPaid) - r.cancelFee) > 0.005) return { ok: false, error: 'The amount paid does not match the fee.', needsRefund: true };
+    r.feePaid = true;
+    r.feePayment = { method: 'PayNow', ref: ref, amount: r.cancelFee, paidAt: now };
+    saveReservations(list);
+    return { ok: true, reservation: r };
+  }
+  if (r.paid) return { ok: true, already: true, reservation: r };
+  if (r.status !== 'Assigned') return { ok: false, error: 'The booking was no longer open when the payment arrived.', needsRefund: true };
+  const due = amountOf(r);
+  if (Math.abs(Number(amountPaid) - due) > 0.005) return { ok: false, error: 'The amount paid does not match the price.', needsRefund: true };
+  r.amount = due;
+  r.paid = true;
+  r.payment = { method: 'PayNow', ref: ref, amount: due, paidAt: now };
+  saveReservations(list);
+  return { ok: true, reservation: r };
+}
+
 // ---------- things the cafe does by itself (the server runs this every minute) ----------
 //  1. An unpaid booking that is still unpaid 24 hours before it starts is cancelled (no fee: nothing was paid).
 //  2. A confirmed session whose time is over is concluded without the handler. Everyone booked counts as checked in
